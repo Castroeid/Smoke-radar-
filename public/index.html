@@ -78,3 +78,15 @@ async function loadData() {
   container.innerHTML = data.videos.map(v => `
     <div class="card">
       <img src="${v.thumbnail}">
+      <div class="title">${v.title}</div>
+      <div>👁 ${v.viewCount}</div>
+      <div>👍 ${v.likeCount}</div>
+      <div class="score">🔥 ${v.smokeScore}</div>
+      <a href="https://youtube.com/watch?v=${v.id}" target="_blank">▶ צפייה</a>
+    </div>
+  `).join("");
+}
+</script>
+
+</body>
+</html>
