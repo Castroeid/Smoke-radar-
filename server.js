@@ -34,13 +34,13 @@ function calculateSmokeScore(video) {
 
 app.get("/api/smoke-radar", async (req, res) => {
   try {
-    const topic = req.query.topic || "bbq OR steak OR brisket";
-    const days = req.query.days || "7";
+    const topic = req.query.topic || "bbq steak brisket smoked meat";
+    const days = req.query.days || "30";
 
     const publishedAfter = new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000).toISOString();
 
     const searchRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic)}&type=video&order=viewCount&maxResults=12&publishedAfter=${publishedAfter}&key=${API_KEY}`
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic)}&type=video&maxResults=12&publishedAfter=${publishedAfter}&key=${API_KEY}`
     );
 
     const searchData = await searchRes.json();
