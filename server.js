@@ -37,7 +37,7 @@ app.get("/api/smoke-radar", async (req, res) => {
     const topic = req.query.topic || "bbq OR steak OR brisket";
     const days = req.query.days || "7";
 
-    const publishedAfter = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const publishedAfter = new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000).toISOString();
 
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic)}&type=video&order=viewCount&maxResults=12&publishedAfter=${publishedAfter}&key=${API_KEY}`
@@ -97,7 +97,6 @@ app.get("/api/smoke-radar", async (req, res) => {
       total: videos.length,
       videos
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
