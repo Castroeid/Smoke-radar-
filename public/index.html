@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smoke Radar</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+      color: #ff6b2c;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: #ff6b2c;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border-radius: 12px;
+      overflow: hidden;
+      padding-bottom: 10px;
+    }
+
+    img {
+      width: 100%;
+    }
+
+    .title {
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .score {
+      color: #ff6b2c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🥩 Smoke Radar</h1>
+
+<button onclick="loadData()">טען סרטונים חמים</button>
+
+<div id="results" class="grid"></div>
+
+<script>
+async function loadData() {
+  const res = await fetch("/api/smoke-radar");
+  const data = await res.json();
+
+  const container = document.getElementById("results");
+
+  container.innerHTML = data.videos.map(v => `
+    <div class="card">
+      <img src="${v.thumbnail}">
