@@ -99,7 +99,6 @@
 
     .meta-pill,
     .pill-btn,
-    .icon-btn,
     .tab-btn {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.02);
@@ -117,13 +116,6 @@
       padding: 10px 14px;
       font-size: 14px;
       gap: 8px;
-      cursor: pointer;
-    }
-
-    .icon-btn {
-      width: 44px;
-      height: 44px;
-      font-size: 18px;
       cursor: pointer;
     }
 
@@ -539,10 +531,6 @@
       padding: 8px 0 0;
     }
 
-    .hidden {
-      display: none;
-    }
-
     canvas {
       max-height: 320px;
     }
@@ -779,7 +767,19 @@
       const miniLiveBadge = document.getElementById("miniLiveBadge");
       const pills = [];
 
-      if (data.cached) {
+      if (data.source === "live") {
+        pills.push(`<div class="meta-pill live">Live Data</div>`);
+        miniLiveBadge.textContent = "Live";
+        miniLiveBadge.className = "meta-pill live";
+      } else if (data.source === "cache") {
+        pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
+        miniLiveBadge.textContent = "Cached";
+        miniLiveBadge.className = "meta-pill cached";
+      } else if (data.source === "seed" || data.source === "no-key") {
+        pills.push(`<div class="meta-pill">Offline Snapshot</div>`);
+        miniLiveBadge.textContent = "Offline";
+        miniLiveBadge.className = "meta-pill";
+      } else if (data.cached) {
         pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
         miniLiveBadge.textContent = "Cached";
         miniLiveBadge.className = "meta-pill cached";
@@ -812,8 +812,17 @@
     }
 
     function renderHero(data = {}) {
-      const avgSmoke = Number(data?.summary?.avgSmokeScore || 0);
-      const normalized = Math.max(0, Math.min(100, Math.round(avgSmoke / 120)));
+      let baseScore = 0;
+
+      if (data.summary && typeof data.summary.avgSmokeScore !== "undefined") {
+        baseScore = Number(data.summary.avgSmokeScore || 0);
+      } else if (data.videos && data.videos.length) {
+        baseScore = Math.round(
+          data.videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0) / data.videos.length
+        );
+      }
+
+      const normalized = Math.max(0, Math.min(100, Math.round(baseScore)));
 
       document.getElementById("heroScore").textContent = `${normalized}%`;
 
@@ -830,23 +839,34 @@
         level = "Early";
       }
 
-      if (data.cached) {
+      if (data.source === "cache") {
         caption = "Showing cached radar snapshot";
+      } else if (data.source === "seed" || data.source === "no-key") {
+        caption = "Showing offline fallback snapshot";
       }
 
       document.getElementById("heroBadge").textContent = level;
       document.getElementById("heroCaption").textContent = caption;
       document.getElementById("heroSubtitle").textContent =
-        data.cached
+        data.source === "cache"
           ? "Fallback mode using the latest available saved dataset"
+          : data.source === "seed" || data.source === "no-key"
+          ? "Offline seed snapshot while live radar is unavailable"
           : "Momentum estimate based on current radar feed";
     }
 
     function renderSignalStrip(data = {}) {
       const videos = data.videos || [];
-      const topChannel = (data.topChannels && data.topChannels[0]) ? data.topChannels[0].channelTitle : "—";
-      const avgSmoke = Number(data?.summary?.avgSmokeScore || 0);
-      const totalViews = Number(data?.summary?.totalViews || 0);
+      const topChannel = (data.topChannels && data.topChannels[0]) ? data.topChannels[0].channelTitle : (videos[0]?.channel || "—");
+      const avgSmoke = data?.summary?.avgSmokeScore
+        ? Number(data.summary.avgSmokeScore)
+        : videos.length
+        ? Math.round(videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0) / videos.length)
+        : 0;
+
+      const totalViews = data?.summary?.totalViews
+        ? Number(data.summary.totalViews)
+        : videos.reduce((sum, v) => sum + Number(v.views || v.viewCount || 0), 0);
 
       document.getElementById("signalStrip").innerHTML = `
         <div class="signal-card">
@@ -856,7 +876,7 @@
         </div>
         <div class="signal-card">
           <div class="signal-label">Top Channel</div>
-          <div class="signal-value">${escapeHtml(topChannel.length > 14 ? topChannel.slice(0, 14) + "..." : topChannel)}</div>
+          <div class="signal-value">${escapeHtml(String(topChannel).length > 14 ? String(topChannel).slice(0, 14) + "..." : String(topChannel))}</div>
           <div class="signal-sub">Highest current average</div>
         </div>
         <div class="signal-card">
@@ -926,12 +946,10 @@
       const videos = allData?.videos || [];
 
       if (currentTab === "rising") {
-        return [...videos]
-          .sort((a, b) => Number(b.viewsPerHour || 0) - Number(a.viewsPerHour || 0));
+        return [...videos].sort((a, b) => Number(b.viewsPerHour || 0) - Number(a.viewsPerHour || 0));
       }
 
-      return [...videos]
-        .sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
+      return [...videos].sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
     }
 
     function renderVideos(videos) {
@@ -942,43 +960,51 @@
         return;
       }
 
-      el.innerHTML = videos.map(v => `
-        <div class="card">
-          <div class="thumb">
-            <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
-            <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour)}` : `Smoke ${formatNum(v.smokeScore)}`}</div>
-          </div>
+      el.innerHTML = videos.map(v => {
+        const viewCount = v.viewCount ?? v.views ?? 0;
+        const likeCount = v.likeCount ?? v.likes ?? 0;
+        const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
+        const channelLink = v.channelId ? `https://youtube.com/channel/${v.channelId}` : "#";
+        const watchLink = v.url ? v.url : `https://youtube.com/watch?v=${v.id}`;
 
-          <div class="card-body">
-            <div class="title">${escapeHtml(v.title)}</div>
-            <div class="channel">${escapeHtml(v.channelTitle)}</div>
-
-            <div class="stats">
-              <div class="stat">
-                <small>Views</small>
-                <strong>${formatNum(v.viewCount)}</strong>
-              </div>
-              <div class="stat">
-                <small>Likes</small>
-                <strong>${formatNum(v.likeCount)}</strong>
-              </div>
-              <div class="stat">
-                <small>Views / Hour</small>
-                <strong>${formatNum(v.viewsPerHour)}</strong>
-              </div>
-              <div class="stat">
-                <small>Subscribers</small>
-                <strong>${formatNum(v.subscriberCount)}</strong>
-              </div>
+        return `
+          <div class="card">
+            <div class="thumb">
+              <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
+              <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour || 0)}` : `Smoke ${formatNum(v.smokeScore || 0)}`}</div>
             </div>
 
-            <div class="links">
-              <a class="watch-link" href="https://youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer">Watch</a>
-              <a class="secondary-link" href="https://youtube.com/channel/${v.channelId}" target="_blank" rel="noopener noreferrer">Channel</a>
+            <div class="card-body">
+              <div class="title">${escapeHtml(v.title)}</div>
+              <div class="channel">${escapeHtml(channelTitle)}</div>
+
+              <div class="stats">
+                <div class="stat">
+                  <small>Views</small>
+                  <strong>${formatNum(viewCount)}</strong>
+                </div>
+                <div class="stat">
+                  <small>Likes</small>
+                  <strong>${formatNum(likeCount)}</strong>
+                </div>
+                <div class="stat">
+                  <small>Views / Hour</small>
+                  <strong>${formatNum(v.viewsPerHour || 0)}</strong>
+                </div>
+                <div class="stat">
+                  <small>Subscribers</small>
+                  <strong>${formatNum(v.subscriberCount || 0)}</strong>
+                </div>
+              </div>
+
+              <div class="links">
+                <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">Watch</a>
+                <a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>
+              </div>
             </div>
           </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     function renderScoreChart(videos) {
@@ -998,7 +1024,7 @@
           }),
           datasets: [{
             label: isRising ? "Views / Hour" : "Smoke Score",
-            data: top.map(x => isRising ? x.viewsPerHour : x.smokeScore),
+            data: top.map(x => isRising ? (x.viewsPerHour || 0) : (x.smokeScore || 0)),
             borderColor: "#ff8f5c",
             backgroundColor: isRising ? "#ff6b2c" : "rgba(255,107,44,0.18)",
             tension: 0.35,
@@ -1088,10 +1114,12 @@
 
         if (!data.videos || data.videos.length === 0) {
           status.textContent = "No videos returned in the current scan.";
-        } else if (data.cached) {
-          status.textContent = `Showing cached results · ${data.total} videos loaded`;
+        } else if (data.source === "cache") {
+          status.textContent = `Showing cached results · ${data.videos.length} videos loaded`;
+        } else if (data.source === "seed" || data.source === "no-key") {
+          status.textContent = `Showing offline snapshot · ${data.videos.length} videos loaded`;
         } else {
-          status.textContent = `${data.total} videos loaded into the radar`;
+          status.textContent = `${data.videos.length} videos loaded into the radar`;
         }
       } catch (error) {
         console.error(error);
