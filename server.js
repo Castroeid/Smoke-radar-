@@ -9,6 +9,12 @@ app.use(express.static(path.join(__dirname, "public")));
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
+// 30-minute in-memory cache
+let cache = {
+  timestamp: 0,
+  data: null
+};
+
 function getHoursSince(dateString) {
   const now = Date.now();
   const then = new Date(dateString).getTime();
@@ -48,7 +54,7 @@ function extractKeywords(title) {
   const blacklist = new Set([
     "the", "and", "with", "from", "this", "that", "your", "you", "for",
     "bbq", "how", "make", "made", "best", "recipe", "food", "meat",
-    "smoked", "smoke", "grill", "grilling"
+    "smoked", "smoke", "grill", "grilling", "video"
   ]);
 
   return title
@@ -62,33 +68,35 @@ app.get("/api/smoke-radar", async (req, res) => {
   try {
     if (!API_KEY) {
       return res.status(500).json({
-        error: "Missing API key in Render",
-        hasKey: false
+        error: "Missing API key in Render"
       });
     }
 
+    const now = Date.now();
+    const cacheAgeMs = now - cache.timestamp;
+
+    if (cache.data && cacheAgeMs < 30 * 60 * 1000) {
+      return res.json({
+        ...cache.data,
+        cached: true,
+        cacheMinutesRemaining: Math.ceil((30 * 60 * 1000 - cacheAgeMs) / 60000)
+      });
+    }
+
+    // Only 2 expensive search calls
     const queries = [
-      "bbq",
-      "brisket",
-      "smoked meat",
-      "tomahawk steak",
-      "wagyu steak",
-      "beef ribs",
-      "pitmaster",
-      "reverse sear steak",
-      "steak grill",
-      "barbecue beef"
+      "bbq brisket steak",
+      "wagyu tomahawk beef ribs"
     ];
 
     let searchItems = [];
 
     for (const query of queries) {
       const searchUrl =
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&order=date&q=${encodeURIComponent(query)}&key=${API_KEY}`;
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&order=date&q=${encodeURIComponent(query)}&key=${API_KEY}`;
 
       const searchData = await fetchJson(searchUrl);
-      const items = searchData.items || [];
-      searchItems = searchItems.concat(items);
+      searchItems = searchItems.concat(searchData.items || []);
     }
 
     const uniqueVideoIds = [...new Set(
@@ -96,7 +104,7 @@ app.get("/api/smoke-radar", async (req, res) => {
     )];
 
     if (!uniqueVideoIds.length) {
-      return res.json({
+      const emptyPayload = {
         videos: [],
         total: 0,
         summary: {
@@ -107,15 +115,47 @@ app.get("/api/smoke-radar", async (req, res) => {
         },
         topChannels: [],
         topKeywords: [],
-        chartData: []
-      });
+        chartData: [],
+        debug: "No video IDs returned from YouTube search"
+      };
+
+      cache = {
+        timestamp: now,
+        data: emptyPayload
+      };
+
+      return res.json({ ...emptyPayload, cached: false });
     }
 
     const videosUrl =
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${uniqueVideoIds.join(",")}&maxResults=50&key=${API_KEY}`;
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
 
     const videosData = await fetchJson(videosUrl);
     const rawVideos = videosData.items || [];
+
+    if (!rawVideos.length) {
+      const emptyPayload = {
+        videos: [],
+        total: 0,
+        summary: {
+          totalViews: 0,
+          avgViews: 0,
+          avgLikes: 0,
+          avgSmokeScore: 0
+        },
+        topChannels: [],
+        topKeywords: [],
+        chartData: [],
+        debug: "Video details request returned no items"
+      };
+
+      cache = {
+        timestamp: now,
+        data: emptyPayload
+      };
+
+      return res.json({ ...emptyPayload, cached: false });
+    }
 
     const uniqueChannelIds = [...new Set(
       rawVideos.map(v => v.snippet.channelId).filter(Boolean)
@@ -172,7 +212,6 @@ app.get("/api/smoke-radar", async (req, res) => {
           videos: 0,
           totalViews: 0,
           totalLikes: 0,
-          avgSmokeScore: 0,
           smokeSum: 0
         };
       }
@@ -212,8 +251,8 @@ app.get("/api/smoke-radar", async (req, res) => {
       viewsPerHour: v.viewsPerHour
     }));
 
-    res.json({
-      videos: videos.slice(0, 30),
+    const payload = {
+      videos: videos.slice(0, 24),
       total: videos.length,
       summary: {
         totalViews,
@@ -224,10 +263,21 @@ app.get("/api/smoke-radar", async (req, res) => {
       topChannels,
       topKeywords,
       chartData
+    };
+
+    cache = {
+      timestamp: now,
+      data: payload
+    };
+
+    return res.json({
+      ...payload,
+      cached: false,
+      cacheMinutesRemaining: 30
     });
   } catch (error) {
     console.error("Smoke Radar error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Server error",
       details: error.message
     });
