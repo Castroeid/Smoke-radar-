@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -11,19 +11,19 @@
 
   <style>
     :root {
-      --bg: #06080d;
-      --panel: #0c1118;
+      --bg: #05070b;
+      --panel: #0b1017;
       --panel-2: #101722;
-      --border: #1d2735;
-      --text: #edf2f7;
-      --muted: #95a2b8;
+      --border: #1b2534;
+      --text: #eef3f8;
+      --muted: #97a5bb;
       --accent: #ff6b2c;
-      --accent-2: #ff8f5c;
+      --accent-2: #ff955f;
       --green: #2ecc71;
       --yellow: #f5b041;
-      --red: #ff6b6b;
+      --red: #ff5f57;
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
-      --radius: 18px;
+      --radius: 22px;
     }
 
     * {
@@ -33,68 +33,98 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: radial-gradient(circle at top, #0a0f17 0%, #06080d 45%);
+      background: radial-gradient(circle at top, #0b1018 0%, #05070b 46%);
       color: var(--text);
       font-family: "Inter", Arial, sans-serif;
     }
 
+    body {
+      min-height: 100vh;
+    }
+
     .container {
-      max-width: 1440px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 28px 20px 40px;
+      padding: 20px 16px 40px;
     }
 
     .topbar {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.1));
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 24px;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
     }
 
     .brand h1 {
       margin: 0;
-      font-size: 48px;
+      font-size: 28px;
+      letter-spacing: -1px;
       line-height: 1;
-      letter-spacing: -1.5px;
       font-weight: 800;
-      color: var(--accent);
     }
 
     .brand p {
-      margin: 10px 0 0;
+      margin: 6px 0 0;
       color: var(--muted);
-      font-size: 15px;
+      font-size: 13px;
     }
 
-    .actions {
+    .top-actions {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
 
-    button {
-      border: none;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      padding: 14px 20px;
-      font-size: 15px;
+    .meta-pill,
+    .pill-btn,
+    .icon-btn,
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      border-radius: 16px;
       font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .pill-btn {
+      padding: 10px 14px;
+      font-size: 14px;
+      gap: 8px;
       cursor: pointer;
-      box-shadow: var(--shadow);
-      transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
-    button:hover {
-      transform: translateY(-1px);
-    }
-
-    button:disabled {
-      opacity: 0.7;
-      cursor: default;
-      transform: none;
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      font-size: 18px;
+      cursor: pointer;
     }
 
     .meta-strip {
@@ -105,115 +135,244 @@
     }
 
     .meta-pill {
-      display: inline-flex;
-      align-items: center;
       gap: 8px;
       border-radius: 999px;
       padding: 9px 12px;
       font-size: 13px;
       font-weight: 600;
-      border: 1px solid var(--border);
       background: #0f1621;
       color: #d9e3ef;
     }
 
     .meta-pill.live {
-      border-color: rgba(46, 204, 113, 0.35);
       color: #dff8ea;
+      border-color: rgba(46, 204, 113, 0.35);
       background: rgba(46, 204, 113, 0.08);
     }
 
     .meta-pill.cached {
-      border-color: rgba(245, 176, 65, 0.35);
       color: #fff0d6;
+      border-color: rgba(245, 176, 65, 0.35);
       background: rgba(245, 176, 65, 0.08);
     }
 
     .status {
-      margin: 0 0 18px;
-      color: #ffd4c3;
       min-height: 22px;
+      margin: 0 0 16px;
+      color: #ffd7c8;
       font-size: 14px;
     }
 
     .error-banner {
-      margin-bottom: 18px;
-      border: 1px solid rgba(255, 107, 107, 0.28);
-      background: linear-gradient(180deg, rgba(255, 107, 107, 0.10), rgba(255, 107, 107, 0.04));
-      border-radius: 18px;
-      padding: 18px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 95, 87, 0.28);
+      background: linear-gradient(180deg, rgba(255,95,87,0.11), rgba(255,95,87,0.04));
+      border-radius: 20px;
+      padding: 16px;
       box-shadow: var(--shadow);
     }
 
     .error-banner h3 {
       margin: 0 0 8px;
-      color: #ffd6d6;
+      color: #ffd8d4;
       font-size: 18px;
     }
 
     .error-banner p {
       margin: 0;
-      color: #ffdede;
+      color: #ffe8e5;
+      font-size: 14px;
       line-height: 1.6;
+    }
+
+    .hero-card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 24px 18px 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -120px auto;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255,107,44,0.16), transparent 65%);
+      pointer-events: none;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #b6c3d7;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .hero-subtitle {
+      color: var(--muted);
       font-size: 14px;
     }
 
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
+    .hero-badge {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,107,44,0.14);
+      color: #ffd6c6;
+      flex-shrink: 0;
     }
 
-    .kpi {
+    .gauge-wrap {
+      margin: 10px auto 0;
+      max-width: 430px;
+      text-align: center;
+    }
+
+    .gauge-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .hero-score {
+      margin-top: -18px;
+      font-size: 76px;
+      line-height: 0.95;
+      font-weight: 800;
+      letter-spacing: -3px;
+      color: #fff3ee;
+    }
+
+    .hero-caption {
+      color: #aab7ca;
+      font-size: 16px;
+      margin-top: 8px;
+    }
+
+    .signal-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .signal-card {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
+      border-radius: 18px;
+      padding: 14px;
       box-shadow: var(--shadow);
+      min-width: 0;
     }
 
-    .kpi-label {
+    .signal-label {
       color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 10px;
-      font-weight: 500;
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .kpi-value {
-      font-size: 30px;
+    .signal-value {
+      font-size: 24px;
       font-weight: 800;
       letter-spacing: -1px;
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 18px;
-      margin-bottom: 18px;
+    .signal-sub {
+      margin-top: 6px;
+      color: #b9c5d8;
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      padding: 10px 14px;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.10));
+      border-color: rgba(255,107,44,0.28);
+      color: #fff2eb;
     }
 
     .panel {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 24px;
       padding: 18px;
       box-shadow: var(--shadow);
+      margin-bottom: 16px;
     }
 
     .panel h2 {
-      margin: 0 0 14px;
-      font-size: 20px;
+      margin: 0 0 8px;
+      font-size: 21px;
       font-weight: 700;
-      letter-spacing: -0.4px;
-      color: #f6f8fb;
+      letter-spacing: -0.3px;
     }
 
     .subtle {
       color: var(--muted);
       font-size: 13px;
-      margin-top: -4px;
       margin-bottom: 14px;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi {
+      background: #111927;
+      border: 1px solid #1f2a3a;
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
     }
 
     .keywords {
@@ -232,6 +391,13 @@
       font-weight: 600;
     }
 
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -242,6 +408,7 @@
       padding: 11px 8px;
       text-align: left;
       border-bottom: 1px solid #182231;
+      vertical-align: top;
     }
 
     th {
@@ -252,20 +419,16 @@
       letter-spacing: 0.04em;
     }
 
-    .feed-panel {
-      margin-top: 18px;
-    }
-
     .video-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 18px;
+      grid-template-columns: 1fr;
+      gap: 16px;
     }
 
     .card {
       background: linear-gradient(180deg, #0b1017, #101722);
       border: 1px solid var(--border);
-      border-radius: 20px;
+      border-radius: 22px;
       overflow: hidden;
       box-shadow: var(--shadow);
     }
@@ -373,34 +536,38 @@
     .empty {
       color: var(--muted);
       font-size: 15px;
-      padding: 12px 0 0;
+      padding: 8px 0 0;
+    }
+
+    .hidden {
+      display: none;
     }
 
     canvas {
-      max-height: 340px;
+      max-height: 320px;
     }
 
-    @media (max-width: 1100px) {
-      .kpis {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (min-width: 760px) {
+      .video-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
 
-      .layout {
-        grid-template-columns: 1fr;
+      .two-col {
+        grid-template-columns: 1.3fr 1fr;
       }
     }
 
     @media (max-width: 640px) {
+      .signal-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       .brand h1 {
-        font-size: 38px;
+        font-size: 26px;
       }
 
-      .kpis {
-        grid-template-columns: 1fr;
-      }
-
-      .video-grid {
-        grid-template-columns: 1fr;
+      .hero-score {
+        font-size: 62px;
       }
     }
   </style>
@@ -408,13 +575,17 @@
 <body>
   <div class="container">
     <div class="topbar">
-      <div class="brand">
-        <h1>Smoke Radar 🥩</h1>
-        <p>Live meat content intelligence dashboard</p>
+      <div class="brand-wrap">
+        <div class="brand-icon">🥩</div>
+        <div class="brand">
+          <h1>Smoke Radar</h1>
+          <p>Live meat content intelligence dashboard</p>
+        </div>
       </div>
 
-      <div class="actions">
-        <button id="loadBtn" onclick="loadData()">Refresh Radar</button>
+      <div class="top-actions">
+        <div class="meta-pill live" id="miniLiveBadge">Live</div>
+        <button class="pill-btn" id="loadBtn" onclick="loadData()">Refresh</button>
       </div>
     </div>
 
@@ -422,29 +593,84 @@
     <div class="status" id="status"></div>
     <div id="errorMount"></div>
 
-    <div class="kpis" id="kpis"></div>
-
-    <div class="layout">
-      <div class="panel">
-        <h2>Top Smoke Score</h2>
-        <div class="subtle">Highest-ranking videos across the current feed</div>
-        <canvas id="scoreChart"></canvas>
+    <div class="hero-card">
+      <div class="hero-top">
+        <div>
+          <div class="hero-title">Current Smoke Index</div>
+          <div class="hero-subtitle" id="heroSubtitle">Momentum estimate based on current radar feed</div>
+        </div>
+        <div class="hero-badge" id="heroBadge">Scanning</div>
       </div>
 
-      <div class="panel">
-        <h2>Hot Keywords</h2>
-        <div class="subtle">Recurring terms extracted from current titles</div>
-        <div class="keywords" id="keywords"></div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 300 190" aria-hidden="true">
+          <defs>
+            <linearGradient id="smokeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#2ecc71"></stop>
+              <stop offset="50%" stop-color="#f5b041"></stop>
+              <stop offset="100%" stop-color="#ff5f57"></stop>
+            </linearGradient>
+          </defs>
+
+          <path
+            d="M 40 150 A 110 110 0 0 1 260 150"
+            fill="none"
+            stroke="#172130"
+            stroke-width="18"
+            stroke-linecap="round">
+          </path>
+
+          <path
+            d="M 40 150 A 110 110 0 0 1 260 150"
+            fill="none"
+            stroke="url(#smokeGradient)"
+            stroke-width="18"
+            stroke-linecap="round">
+          </path>
+        </svg>
+
+        <div class="hero-score" id="heroScore">0%</div>
+        <div class="hero-caption" id="heroCaption">Projected content heat · current snapshot</div>
       </div>
     </div>
 
-    <div class="layout">
-      <div class="panel">
-        <h2>Channel Comparison</h2>
-        <div class="subtle">Average Smoke Score by channel</div>
-        <canvas id="channelChart"></canvas>
+    <div class="signal-strip" id="signalStrip">
+      <div class="signal-card">
+        <div class="signal-label">Tracked Videos</div>
+        <div class="signal-value">0</div>
+        <div class="signal-sub">Current feed size</div>
       </div>
+      <div class="signal-card">
+        <div class="signal-label">Top Channel</div>
+        <div class="signal-value">—</div>
+        <div class="signal-sub">Highest current average</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label">Avg Smoke</div>
+        <div class="signal-value">0</div>
+        <div class="signal-sub">Across current scan</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label">Total Views</div>
+        <div class="signal-value">0</div>
+        <div class="signal-sub">Visible radar sample</div>
+      </div>
+    </div>
 
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="hot">Hot Feed</button>
+      <button class="tab-btn" data-tab="rising">Rising</button>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="panel">
+      <h2 id="chartTitle">Momentum Trend</h2>
+      <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
+      <canvas id="scoreChart"></canvas>
+    </div>
+
+    <div class="two-col">
       <div class="panel">
         <h2>Top Channels</h2>
         <div class="subtle">Best-performing creators in the current dataset</div>
@@ -460,18 +686,25 @@
           <tbody id="channelTable"></tbody>
         </table>
       </div>
+
+      <div class="panel">
+        <h2>Hot Keywords</h2>
+        <div class="subtle">Recurring terms extracted from current titles</div>
+        <div class="keywords" id="keywords"></div>
+      </div>
     </div>
 
-    <div class="panel feed-panel">
-      <h2>Radar Feed</h2>
-      <div class="subtle">Live-discovered videos ranked by momentum</div>
+    <div class="panel">
+      <h2 id="feedTitle">Radar Feed</h2>
+      <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
     </div>
   </div>
 
   <script>
     let scoreChartInstance = null;
-    let channelChartInstance = null;
+    let allData = null;
+    let currentTab = "hot";
 
     function formatNum(n) {
       return Number(n || 0).toLocaleString("en-US");
@@ -517,14 +750,14 @@
       if (text.includes("quotaExceeded")) {
         return {
           title: "Quota limit reached",
-          message: "YouTube API daily quota has been exhausted. The dashboard is temporarily unable to fetch fresh results. Cached data will be shown automatically when available."
+          message: "The YouTube API daily quota has been exhausted. Fresh data is temporarily unavailable. Cached results will appear automatically when available."
         };
       }
 
       if (text.includes("PERMISSION_DENIED") || text.includes("forbidden")) {
         return {
           title: "API access blocked",
-          message: "The server could not access the YouTube API. This usually means an API key restriction or permission issue."
+          message: "The backend could not access the YouTube API. This usually indicates an API key restriction or permission issue."
         };
       }
 
@@ -541,74 +774,30 @@
       };
     }
 
-    async function loadData() {
-      const button = document.getElementById("loadBtn");
-      const status = document.getElementById("status");
-      const results = document.getElementById("results");
-
-      button.disabled = true;
-      status.textContent = "Loading live radar data...";
-      results.innerHTML = "";
-      clearErrorBanner();
-
-      try {
-        const res = await fetch("/api/smoke-radar");
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.details || data.error || "Unknown error");
-        }
-
-        renderMeta(data);
-        renderKpis(data.summary || {});
-        renderKeywords(data.topKeywords || []);
-        renderChannelTable(data.topChannels || []);
-        renderVideos(data.videos || []);
-        renderScoreChart(data.chartData || []);
-        renderChannelChart(data.topChannels || []);
-
-        if (!data.videos || data.videos.length === 0) {
-          status.textContent = "No videos returned in the current scan.";
-        } else if (data.cached) {
-          status.textContent = `Showing cached results · ${data.total} videos loaded`;
-        } else {
-          status.textContent = `${data.total} videos loaded into the radar`;
-        }
-      } catch (error) {
-        console.error(error);
-
-        renderMeta({});
-        renderKpis({});
-        renderKeywords([]);
-        renderChannelTable([]);
-        renderVideos([]);
-        renderScoreChart([]);
-        renderChannelChart([]);
-
-        const friendly = getFriendlyErrorMessage(error);
-        renderErrorBanner(friendly.title, friendly.message);
-        status.textContent = "Radar data currently unavailable";
-      } finally {
-        button.disabled = false;
-      }
-    }
-
     function renderMeta(data) {
       const metaStrip = document.getElementById("metaStrip");
+      const miniLiveBadge = document.getElementById("miniLiveBadge");
       const pills = [];
 
       if (data.cached) {
         pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
+        miniLiveBadge.textContent = "Cached";
+        miniLiveBadge.className = "meta-pill cached";
       } else if (data.lastUpdated || data.total !== undefined) {
         pills.push(`<div class="meta-pill live">Live Data</div>`);
+        miniLiveBadge.textContent = "Live";
+        miniLiveBadge.className = "meta-pill live";
+      } else {
+        miniLiveBadge.textContent = "Offline";
+        miniLiveBadge.className = "meta-pill";
+      }
+
+      if (data.lastUpdated) {
+        pills.push(`<div class="meta-pill">Updated ${escapeHtml(formatDateTime(data.lastUpdated))}</div>`);
       }
 
       if (data.cacheSource) {
         pills.push(`<div class="meta-pill">Source: ${escapeHtml(data.cacheSource)}</div>`);
-      }
-
-      if (data.lastUpdated) {
-        pills.push(`<div class="meta-pill">Last Updated: ${escapeHtml(formatDateTime(data.lastUpdated))}</div>`);
       }
 
       if (data.fallbackReason) {
@@ -620,6 +809,67 @@
       }
 
       metaStrip.innerHTML = pills.join("");
+    }
+
+    function renderHero(data = {}) {
+      const avgSmoke = Number(data?.summary?.avgSmokeScore || 0);
+      const normalized = Math.max(0, Math.min(100, Math.round(avgSmoke / 120)));
+
+      document.getElementById("heroScore").textContent = `${normalized}%`;
+
+      let level = "Scanning";
+      let caption = "Projected content heat · current snapshot";
+
+      if (normalized >= 75) {
+        level = "Breakout";
+      } else if (normalized >= 50) {
+        level = "Hot";
+      } else if (normalized >= 25) {
+        level = "Rising";
+      } else if (normalized > 0) {
+        level = "Early";
+      }
+
+      if (data.cached) {
+        caption = "Showing cached radar snapshot";
+      }
+
+      document.getElementById("heroBadge").textContent = level;
+      document.getElementById("heroCaption").textContent = caption;
+      document.getElementById("heroSubtitle").textContent =
+        data.cached
+          ? "Fallback mode using the latest available saved dataset"
+          : "Momentum estimate based on current radar feed";
+    }
+
+    function renderSignalStrip(data = {}) {
+      const videos = data.videos || [];
+      const topChannel = (data.topChannels && data.topChannels[0]) ? data.topChannels[0].channelTitle : "—";
+      const avgSmoke = Number(data?.summary?.avgSmokeScore || 0);
+      const totalViews = Number(data?.summary?.totalViews || 0);
+
+      document.getElementById("signalStrip").innerHTML = `
+        <div class="signal-card">
+          <div class="signal-label">Tracked Videos</div>
+          <div class="signal-value">${formatNum(videos.length)}</div>
+          <div class="signal-sub">Current feed size</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Top Channel</div>
+          <div class="signal-value">${escapeHtml(topChannel.length > 14 ? topChannel.slice(0, 14) + "..." : topChannel)}</div>
+          <div class="signal-sub">Highest current average</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Avg Smoke</div>
+          <div class="signal-value">${formatNum(avgSmoke)}</div>
+          <div class="signal-sub">Across current scan</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Total Views</div>
+          <div class="signal-value">${formatNum(totalViews)}</div>
+          <div class="signal-sub">Visible radar sample</div>
+        </div>
+      `;
     }
 
     function renderKpis(summary = {}) {
@@ -672,6 +922,18 @@
       `).join("");
     }
 
+    function getTabVideos() {
+      const videos = allData?.videos || [];
+
+      if (currentTab === "rising") {
+        return [...videos]
+          .sort((a, b) => Number(b.viewsPerHour || 0) - Number(a.viewsPerHour || 0));
+      }
+
+      return [...videos]
+        .sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
+    }
+
     function renderVideos(videos) {
       const el = document.getElementById("results");
 
@@ -684,7 +946,7 @@
         <div class="card">
           <div class="thumb">
             <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
-            <div class="badge">Smoke ${formatNum(v.smokeScore)}</div>
+            <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour)}` : `Smoke ${formatNum(v.smokeScore)}`}</div>
           </div>
 
           <div class="card-body">
@@ -719,20 +981,31 @@
       `).join("");
     }
 
-    function renderScoreChart(chartData) {
+    function renderScoreChart(videos) {
       const ctx = document.getElementById("scoreChart").getContext("2d");
 
       if (scoreChartInstance) scoreChartInstance.destroy();
 
+      const top = videos.slice(0, 10);
+      const isRising = currentTab === "rising";
+
       scoreChartInstance = new Chart(ctx, {
-        type: "bar",
+        type: isRising ? "bar" : "line",
         data: {
-          labels: chartData.map(x => x.title),
+          labels: top.map(x => {
+            const t = x.title || "";
+            return t.length > 24 ? t.slice(0, 24) + "..." : t;
+          }),
           datasets: [{
-            label: "Smoke Score",
-            data: chartData.map(x => x.smokeScore),
-            backgroundColor: "#ff6b2c",
-            borderRadius: 8
+            label: isRising ? "Views / Hour" : "Smoke Score",
+            data: top.map(x => isRising ? x.viewsPerHour : x.smokeScore),
+            borderColor: "#ff8f5c",
+            backgroundColor: isRising ? "#ff6b2c" : "rgba(255,107,44,0.18)",
+            tension: 0.35,
+            fill: !isRising,
+            pointRadius: isRising ? 0 : 4,
+            pointBackgroundColor: "#ff6b2c",
+            borderRadius: isRising ? 8 : 0
           }]
         },
         options: {
@@ -754,49 +1027,93 @@
           }
         }
       });
+
+      document.getElementById("chartTitle").textContent = isRising ? "Rising Momentum" : "Momentum Trend";
+      document.getElementById("chartSubtitle").textContent = isRising
+        ? "Fastest current movers by views per hour"
+        : "Highest-ranking videos across the current feed";
+
+      document.getElementById("feedTitle").textContent = isRising ? "Rising Feed" : "Radar Feed";
+      document.getElementById("feedSubtitle").textContent = isRising
+        ? "Videos currently accelerating fastest"
+        : "Live-discovered videos ranked by momentum";
     }
 
-    function renderChannelChart(channels) {
-      const ctx = document.getElementById("channelChart").getContext("2d");
+    function renderTabState() {
+      const videos = getTabVideos();
+      renderVideos(videos);
+      renderScoreChart(videos);
 
-      if (channelChartInstance) channelChartInstance.destroy();
-
-      channelChartInstance = new Chart(ctx, {
-        type: "radar",
-        data: {
-          labels: channels.map(c =>
-            c.channelTitle.length > 18 ? c.channelTitle.slice(0, 18) + "..." : c.channelTitle
-          ),
-          datasets: [{
-            label: "Avg Smoke Score",
-            data: channels.map(c => c.avgSmokeScore),
-            borderColor: "#ff8f5c",
-            backgroundColor: "rgba(255,107,44,0.18)",
-            pointBackgroundColor: "#ff6b2c"
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              labels: { color: "#edf2f7" }
-            }
-          },
-          scales: {
-            r: {
-              angleLines: { color: "#233043" },
-              grid: { color: "#233043" },
-              pointLabels: { color: "#c5d0e0" },
-              ticks: {
-                color: "#c5d0e0",
-                backdropColor: "transparent"
-              }
-            }
-          }
-        }
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === currentTab);
       });
     }
 
+    function attachTabs() {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentTab = btn.dataset.tab;
+          renderTabState();
+        });
+      });
+    }
+
+    async function loadData() {
+      const button = document.getElementById("loadBtn");
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+
+      button.disabled = true;
+      status.textContent = "Loading live radar data...";
+      results.innerHTML = "";
+      clearErrorBanner();
+
+      try {
+        const res = await fetch("/api/smoke-radar");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.details || data.error || "Unknown error");
+        }
+
+        allData = data;
+
+        renderMeta(data);
+        renderHero(data);
+        renderSignalStrip(data);
+        renderKpis(data.summary || {});
+        renderKeywords(data.topKeywords || []);
+        renderChannelTable(data.topChannels || []);
+        renderTabState();
+
+        if (!data.videos || data.videos.length === 0) {
+          status.textContent = "No videos returned in the current scan.";
+        } else if (data.cached) {
+          status.textContent = `Showing cached results · ${data.total} videos loaded`;
+        } else {
+          status.textContent = `${data.total} videos loaded into the radar`;
+        }
+      } catch (error) {
+        console.error(error);
+
+        renderMeta({});
+        renderHero({});
+        renderSignalStrip({});
+        renderKpis({});
+        renderKeywords([]);
+        renderChannelTable([]);
+        renderVideos([]);
+        renderScoreChart([]);
+
+        const friendly = getFriendlyErrorMessage(error);
+        renderErrorBanner(friendly.title, friendly.message);
+        status.textContent = "Radar data currently unavailable";
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    attachTabs();
     loadData();
   </script>
 </body>
