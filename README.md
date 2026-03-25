@@ -2,66 +2,42 @@
 
 Smoke Radar is a mobile-first trend intelligence dashboard focused on meat-related video content.
 
-The project tracks and presents video momentum in a clean, signal-driven interface inspired by modern live-data products. It was built as an experimental product concept that combines content discovery, lightweight analytics, and a strong visual identity.
+It was built as a product experiment that turns niche video discovery into a live-feeling signal dashboard. Instead of presenting content as a simple media feed, Smoke Radar frames it as a momentum-driven intelligence product.
 
-## What the project does
+## What Smoke Radar does
 
-Smoke Radar is designed to surface meat-related content signals from YouTube and present them as a structured dashboard instead of a simple list of videos.
+Smoke Radar monitors meat-related content signals and presents them through a structured dashboard experience.
 
-The interface includes:
+The current product includes:
 - a central **Smoke Index**
-- a **Hot / Rising** content view
-- momentum-oriented video cards
-- top channel comparison
+- **Hot** and **Rising** content views
+- top-performing video tracking
 - keyword clustering
-- fallback handling for quota limits and unavailable live data
+- top channel comparison
+- momentum-oriented ranking
+- live, cached, and offline fallback modes
 
-## Product idea
+## Product concept
 
-The goal of Smoke Radar is not just to show videos, but to translate content activity into something that feels closer to a live intelligence product.
+The main idea behind Smoke Radar is to treat meat content discovery as a signal problem, not just a browsing problem.
 
-Instead of treating the feed like a standard media page, the project frames video discovery through:
-- momentum
-- trend signals
-- visual hierarchy
-- fast mobile readability
+The product explores what happens when food content, especially BBQ, brisket, steak, smoking, and related creators, is presented in the language of dashboards, movement, and trend intelligence.
 
-## Current state
+## Current modes
 
-This project is currently an MVP / prototype.
+Because the project depends on the YouTube Data API, it can operate in multiple modes:
 
-It already includes:
-- a deployed frontend and backend
-- YouTube API integration
-- low-quota handling
-- cached / fallback modes
-- a responsive UI with a custom dashboard look
+- **Live** — fresh data fetched successfully from the API
+- **Cache** — previously saved data returned when live requests fail
+- **Seed / Offline Snapshot** — fallback sample data used when live access and cache are unavailable
 
-At the same time, it is still intentionally lightweight and evolving.
-
-## Important note about live data
-
-Smoke Radar depends on the YouTube Data API, which has daily quota limits.
-
-Because of that, the project currently supports different data states:
-- **Live** — fresh data fetched successfully
-- **Cached** — previously saved results shown when live requests fail
-- **Offline Snapshot** — fallback content shown when no live data is available
-
-This makes the UI more stable and avoids a broken experience when API limits are reached.
-
-## Why this project exists
-
-Smoke Radar was built as a creative product experiment:
-- part content analytics concept
-- part dashboard design exercise
-- part branding / interface prototype
-
-It explores what a niche “trend radar” product could look like if it focused on a very specific vertical: meat, BBQ, smoking, steak, brisket, and related food creators.
+This makes the product more resilient and prevents a broken UI when API quota is exhausted.
 
 ## Tech stack
 
-- HTML / CSS / JavaScript
+- HTML
+- CSS
+- JavaScript
 - Node.js
 - Express
 - Chart.js
@@ -69,27 +45,52 @@ It explores what a niche “trend radar” product could look like if it focused
 
 ## Design direction
 
-The design aims to feel:
+The UI is designed to feel:
+- mobile-first
 - clean
 - premium
-- mobile-first
-- slightly playful, but still professional
+- slightly playful
+- dashboard-oriented rather than editorial
 
-The visual direction is inspired by live signal dashboards, while being adapted into its own product language around food and meat content.
+The visual language is inspired by live signal products, while being adapted into its own product identity around meat and food content.
 
-## Planned improvements
+## Why this project exists
 
-Possible next steps for the project:
+Smoke Radar was built as:
+- a product design exercise
+- a frontend / backend prototype
+- a branding concept
+- an experiment in niche intelligence dashboards
+
+It is intentionally focused on a specific vertical in order to explore what a highly opinionated media-tracking product could feel like.
+
+## Roadmap
+
+Planned or possible next steps include:
 - country-level content breakdown
-- smarter scoring logic
-- longer-term caching or database persistence
-- product recommendations
+- stronger scoring logic
+- better persistence for cached data
+- embedded recipe generator
+- meat product recommendations
 - expert quote modules
 - richer trend history
-- more advanced content categories
+- additional signal views
+
+## Recipe Generator (planned)
+
+One of the planned product expansions is an embedded recipe generator.
+
+The idea is to allow users to choose:
+- meat type
+- cut
+- cooking style
+
+and receive a structured recipe in return.
+
+This feature is intended to connect the dashboard side of the product with practical cooking value, making Smoke Radar not only a content tracker, but also a useful meat-focused experience.
 
 ## Final note
 
 Smoke Radar is an honest prototype with a strong concept behind it.
 
-It is already functional, but it is also still in progress. The value of the project is not only in the current feature set, but in the product direction it demonstrates: turning niche video discovery into a focused, visual, live-feeling intelligence tool.
+It is already functional, but still evolving. Its value is not only in its current features, but also in the product direction it explores: turning meat content discovery into a focused, visual, resilient intelligence tool.
