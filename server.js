@@ -23,12 +23,13 @@ function calculateSmokeScore(video) {
 
   const viewsPerHour = views / hours;
   const likeRate = views > 0 ? likes / views : 0;
+  const subscriberPenalty = subscribers > 0 ? Math.max(1, subscribers / 50000) : 1;
 
   return Math.round(
-    (viewsPerHour * 0.7) +
-    (likes * 2) +
-    (likeRate * 100000) +
-    (subscribers < 100000 ? 5000 : 1000)
+    (viewsPerHour * 1.2) +
+    (likes * 3) +
+    (likeRate * 150000) +
+    (8000 / subscriberPenalty)
   );
 }
 
@@ -43,6 +44,20 @@ async function fetchJson(url) {
   return data;
 }
 
+function extractKeywords(title) {
+  const blacklist = new Set([
+    "the", "and", "with", "from", "this", "that", "your", "you", "for",
+    "bbq", "how", "make", "made", "best", "recipe", "food", "meat",
+    "smoked", "smoke", "grill", "grilling"
+  ]);
+
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter(word => word.length > 3 && !blacklist.has(word));
+}
+
 app.get("/api/smoke-radar", async (req, res) => {
   try {
     if (!API_KEY) {
@@ -52,23 +67,24 @@ app.get("/api/smoke-radar", async (req, res) => {
       });
     }
 
-    const days = Number(req.query.days || "30");
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-
     const queries = [
       "bbq",
       "brisket",
       "smoked meat",
       "tomahawk steak",
       "wagyu steak",
-      "beef ribs"
+      "beef ribs",
+      "pitmaster",
+      "reverse sear steak",
+      "steak grill",
+      "barbecue beef"
     ];
 
     let searchItems = [];
 
     for (const query of queries) {
       const searchUrl =
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(query)}&key=${API_KEY}`;
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&order=date&q=${encodeURIComponent(query)}&key=${API_KEY}`;
 
       const searchData = await fetchJson(searchUrl);
       const items = searchData.items || [];
@@ -76,40 +92,33 @@ app.get("/api/smoke-radar", async (req, res) => {
     }
 
     const uniqueVideoIds = [...new Set(
-      searchItems
-        .map(item => item?.id?.videoId)
-        .filter(Boolean)
+      searchItems.map(item => item?.id?.videoId).filter(Boolean)
     )];
 
     if (!uniqueVideoIds.length) {
       return res.json({
         videos: [],
         total: 0,
-        debug: "No video IDs returned from YouTube search"
+        summary: {
+          totalViews: 0,
+          avgViews: 0,
+          avgLikes: 0,
+          avgSmokeScore: 0
+        },
+        topChannels: [],
+        topKeywords: [],
+        chartData: []
       });
     }
 
     const videosUrl =
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${uniqueVideoIds.join(",")}&maxResults=50&key=${API_KEY}`;
 
     const videosData = await fetchJson(videosUrl);
     const rawVideos = videosData.items || [];
 
-    const filteredVideos = rawVideos.filter(v => {
-      const publishedAt = new Date(v.snippet.publishedAt).getTime();
-      return publishedAt >= cutoff;
-    });
-
-    if (!filteredVideos.length) {
-      return res.json({
-        videos: [],
-        total: 0,
-        debug: "Videos found, but none matched the date filter"
-      });
-    }
-
     const uniqueChannelIds = [...new Set(
-      filteredVideos.map(v => v.snippet.channelId).filter(Boolean)
+      rawVideos.map(v => v.snippet.channelId).filter(Boolean)
     )];
 
     const channelsUrl =
@@ -122,7 +131,7 @@ app.get("/api/smoke-radar", async (req, res) => {
       channelMap[ch.id] = ch.statistics || {};
     });
 
-    const videos = filteredVideos.map(v => {
+    const videos = rawVideos.map(v => {
       const stats = v.statistics || {};
       const chStats = channelMap[v.snippet.channelId] || {};
 
@@ -143,14 +152,78 @@ app.get("/api/smoke-radar", async (req, res) => {
       };
 
       video.smokeScore = calculateSmokeScore(video);
+      video.hoursSince = getHoursSince(video.publishedAt);
+      video.viewsPerHour = Math.round(video.viewCount / video.hoursSince);
+
       return video;
     });
 
     videos.sort((a, b) => b.smokeScore - a.smokeScore);
 
+    const totalViews = videos.reduce((sum, v) => sum + v.viewCount, 0);
+    const totalLikes = videos.reduce((sum, v) => sum + v.likeCount, 0);
+    const totalSmoke = videos.reduce((sum, v) => sum + v.smokeScore, 0);
+
+    const channelAgg = {};
+    for (const v of videos) {
+      if (!channelAgg[v.channelTitle]) {
+        channelAgg[v.channelTitle] = {
+          channelTitle: v.channelTitle,
+          videos: 0,
+          totalViews: 0,
+          totalLikes: 0,
+          avgSmokeScore: 0,
+          smokeSum: 0
+        };
+      }
+
+      channelAgg[v.channelTitle].videos += 1;
+      channelAgg[v.channelTitle].totalViews += v.viewCount;
+      channelAgg[v.channelTitle].totalLikes += v.likeCount;
+      channelAgg[v.channelTitle].smokeSum += v.smokeScore;
+    }
+
+    const topChannels = Object.values(channelAgg)
+      .map(ch => ({
+        ...ch,
+        avgSmokeScore: Math.round(ch.smokeSum / ch.videos)
+      }))
+      .sort((a, b) => b.avgSmokeScore - a.avgSmokeScore)
+      .slice(0, 8);
+
+    const keywordMap = {};
+    for (const v of videos) {
+      const words = extractKeywords(v.title);
+      for (const word of words) {
+        keywordMap[word] = (keywordMap[word] || 0) + 1;
+      }
+    }
+
+    const topKeywords = Object.entries(keywordMap)
+      .map(([keyword, count]) => ({ keyword, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 12);
+
+    const chartData = videos.slice(0, 12).map(v => ({
+      title: v.title.length > 26 ? v.title.slice(0, 26) + "..." : v.title,
+      smokeScore: v.smokeScore,
+      views: v.viewCount,
+      likes: v.likeCount,
+      viewsPerHour: v.viewsPerHour
+    }));
+
     res.json({
-      videos: videos.slice(0, 24),
-      total: videos.length
+      videos: videos.slice(0, 30),
+      total: videos.length,
+      summary: {
+        totalViews,
+        avgViews: Math.round(totalViews / Math.max(videos.length, 1)),
+        avgLikes: Math.round(totalLikes / Math.max(videos.length, 1)),
+        avgSmokeScore: Math.round(totalSmoke / Math.max(videos.length, 1))
+      },
+      topChannels,
+      topKeywords,
+      chartData
     });
   } catch (error) {
     console.error("Smoke Radar error:", error);
