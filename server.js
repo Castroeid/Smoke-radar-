@@ -32,47 +32,91 @@ function calculateSmokeScore(video) {
   );
 }
 
+async function fetchJson(url) {
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(JSON.stringify(data));
+  }
+
+  return data;
+}
+
 app.get("/api/smoke-radar", async (req, res) => {
   try {
-    const topic = req.query.topic || "bbq steak brisket smoked meat";
-    const days = req.query.days || "30";
+    const days = Number(req.query.days || "30");
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
 
-    const publishedAfter = new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000).toISOString();
+    const queries = [
+      "bbq",
+      "brisket",
+      "smoked meat",
+      "tomahawk steak",
+      "wagyu steak",
+      "beef ribs"
+    ];
 
-    const searchRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic)}&type=video&maxResults=12&publishedAfter=${publishedAfter}&key=${API_KEY}`
-    );
+    let searchItems = [];
 
-    const searchData = await searchRes.json();
-    const items = searchData.items || [];
+    for (const query of queries) {
+      const searchUrl =
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(query)}&key=${API_KEY}`;
 
-    if (!items.length) {
-      return res.json({ videos: [], total: 0 });
+      const searchData = await fetchJson(searchUrl);
+      const items = searchData.items || [];
+      searchItems = searchItems.concat(items);
     }
 
-    const videoIds = items.map(v => v.id.videoId).join(",");
+    const uniqueVideoIds = [...new Set(
+      searchItems
+        .map(item => item?.id?.videoId)
+        .filter(Boolean)
+    )];
 
-    const videosRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds}&key=${API_KEY}`
-    );
+    if (!uniqueVideoIds.length) {
+      return res.json({
+        videos: [],
+        total: 0,
+        debug: "No video IDs returned from YouTube search"
+      });
+    }
 
-    const videosData = await videosRes.json();
+    const videosUrl =
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
 
-    const channelIds = videosData.items.map(v => v.snippet.channelId).join(",");
+    const videosData = await fetchJson(videosUrl);
+    const rawVideos = videosData.items || [];
 
-    const channelsRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelIds}&key=${API_KEY}`
-    );
-
-    const channelsData = await channelsRes.json();
-
-    const channelMap = {};
-    channelsData.items.forEach(ch => {
-      channelMap[ch.id] = ch.statistics;
+    const filteredVideos = rawVideos.filter(v => {
+      const publishedAt = new Date(v.snippet.publishedAt).getTime();
+      return publishedAt >= cutoff;
     });
 
-    const videos = videosData.items.map(v => {
-      const stats = v.statistics;
+    if (!filteredVideos.length) {
+      return res.json({
+        videos: [],
+        total: 0,
+        debug: "Videos found, but none matched the date filter"
+      });
+    }
+
+    const uniqueChannelIds = [...new Set(
+      filteredVideos.map(v => v.snippet.channelId).filter(Boolean)
+    )];
+
+    const channelsUrl =
+      `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${uniqueChannelIds.join(",")}&key=${API_KEY}`;
+
+    const channelsData = await fetchJson(channelsUrl);
+    const channelMap = {};
+
+    (channelsData.items || []).forEach(ch => {
+      channelMap[ch.id] = ch.statistics || {};
+    });
+
+    const videos = filteredVideos.map(v => {
+      const stats = v.statistics || {};
       const chStats = channelMap[v.snippet.channelId] || {};
 
       const video = {
@@ -81,7 +125,11 @@ app.get("/api/smoke-radar", async (req, res) => {
         channelTitle: v.snippet.channelTitle,
         channelId: v.snippet.channelId,
         publishedAt: v.snippet.publishedAt,
-        thumbnail: v.snippet.thumbnails.high.url,
+        thumbnail:
+          v.snippet.thumbnails?.high?.url ||
+          v.snippet.thumbnails?.medium?.url ||
+          v.snippet.thumbnails?.default?.url ||
+          "",
         viewCount: Number(stats.viewCount || 0),
         likeCount: Number(stats.likeCount || 0),
         subscriberCount: Number(chStats.subscriberCount || 0)
@@ -94,12 +142,15 @@ app.get("/api/smoke-radar", async (req, res) => {
     videos.sort((a, b) => b.smokeScore - a.smokeScore);
 
     res.json({
-      total: videos.length,
-      videos
+      videos: videos.slice(0, 24),
+      total: videos.length
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Smoke Radar error:", error);
+    res.status(500).json({
+      error: "Server error",
+      details: error.message
+    });
   }
 });
 
