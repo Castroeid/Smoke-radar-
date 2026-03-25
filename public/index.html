@@ -21,6 +21,7 @@
       --accent-2: #ff8f5c;
       --green: #2ecc71;
       --yellow: #f5b041;
+      --red: #ff6b6b;
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
       --radius: 18px;
     }
@@ -132,6 +133,28 @@
       margin: 0 0 18px;
       color: #ffd4c3;
       min-height: 22px;
+      font-size: 14px;
+    }
+
+    .error-banner {
+      margin-bottom: 18px;
+      border: 1px solid rgba(255, 107, 107, 0.28);
+      background: linear-gradient(180deg, rgba(255, 107, 107, 0.10), rgba(255, 107, 107, 0.04));
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .error-banner h3 {
+      margin: 0 0 8px;
+      color: #ffd6d6;
+      font-size: 18px;
+    }
+
+    .error-banner p {
+      margin: 0;
+      color: #ffdede;
+      line-height: 1.6;
       font-size: 14px;
     }
 
@@ -397,6 +420,7 @@
 
     <div class="meta-strip" id="metaStrip"></div>
     <div class="status" id="status"></div>
+    <div id="errorMount"></div>
 
     <div class="kpis" id="kpis"></div>
 
@@ -474,6 +498,49 @@
         .replaceAll("'", "&#039;");
     }
 
+    function clearErrorBanner() {
+      document.getElementById("errorMount").innerHTML = "";
+    }
+
+    function renderErrorBanner(title, message) {
+      document.getElementById("errorMount").innerHTML = `
+        <div class="error-banner">
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    function getFriendlyErrorMessage(error) {
+      const text = String(error?.message || error || "");
+
+      if (text.includes("quotaExceeded")) {
+        return {
+          title: "Quota limit reached",
+          message: "YouTube API daily quota has been exhausted. The dashboard is temporarily unable to fetch fresh results. Cached data will be shown automatically when available."
+        };
+      }
+
+      if (text.includes("PERMISSION_DENIED") || text.includes("forbidden")) {
+        return {
+          title: "API access blocked",
+          message: "The server could not access the YouTube API. This usually means an API key restriction or permission issue."
+        };
+      }
+
+      if (text.includes("Missing API key")) {
+        return {
+          title: "Missing API key",
+          message: "The backend is running without a valid YouTube API key in the environment settings."
+        };
+      }
+
+      return {
+        title: "Unable to load radar data",
+        message: "The dashboard could not fetch data right now. Please try again later."
+      };
+    }
+
     async function loadData() {
       const button = document.getElementById("loadBtn");
       const status = document.getElementById("status");
@@ -482,6 +549,7 @@
       button.disabled = true;
       status.textContent = "Loading live radar data...";
       results.innerHTML = "";
+      clearErrorBanner();
 
       try {
         const res = await fetch("/api/smoke-radar");
@@ -508,9 +576,18 @@
         }
       } catch (error) {
         console.error(error);
+
         renderMeta({});
-        status.textContent = "Failed to load radar data";
-        results.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+        renderKpis({});
+        renderKeywords([]);
+        renderChannelTable([]);
+        renderVideos([]);
+        renderScoreChart([]);
+        renderChannelChart([]);
+
+        const friendly = getFriendlyErrorMessage(error);
+        renderErrorBanner(friendly.title, friendly.message);
+        status.textContent = "Radar data currently unavailable";
       } finally {
         button.disabled = false;
       }
