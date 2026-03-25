@@ -1,108 +1,163 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smoke Radar</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    body {
+    :root {
+      --bg: #06080d;
+      --panel: #0c1118;
+      --panel-2: #101722;
+      --border: #1d2735;
+      --text: #edf2f7;
+      --muted: #95a2b8;
+      --accent: #ff6b2c;
+      --accent-2: #ff8f5c;
+      --success: #38d39f;
+      --shadow: 0 10px 30px rgba(0,0,0,0.28);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #06080d;
-      color: #f3f5f7;
+      padding: 0;
+      background: radial-gradient(circle at top, #0a0f17 0%, #06080d 45%);
+      color: var(--text);
+      font-family: "Inter", Arial, sans-serif;
     }
 
     .container {
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 28px 20px 40px;
     }
 
-    .hero {
+    .topbar {
       display: flex;
+      align-items: flex-start;
       justify-content: space-between;
-      align-items: center;
       gap: 20px;
-      margin-bottom: 28px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 48px;
+      line-height: 1;
+      letter-spacing: -1.5px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .brand p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 54px;
-      color: #ff6b2c;
-      letter-spacing: 1px;
-    }
-
-    .sub {
-      color: #aab2c3;
-      margin-top: 8px;
-    }
-
     button {
-      padding: 14px 22px;
-      background: linear-gradient(135deg, #ff6b2c, #ff8b57);
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
       color: white;
-      font-size: 17px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
-      font-weight: bold;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
-    #status {
-      margin-bottom: 20px;
-      color: #ffcfbb;
-      min-height: 24px;
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: default;
+      transform: none;
+    }
+
+    .status {
+      margin: 0 0 18px;
+      color: #ffd4c3;
+      min-height: 22px;
+      font-size: 14px;
     }
 
     .kpis {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .kpi {
-      background: linear-gradient(180deg, #0f141d, #0b1017);
-      border: 1px solid #1c2432;
-      border-radius: 18px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 18px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      box-shadow: var(--shadow);
     }
 
-    .kpi-title {
-      color: #94a0b8;
+    .kpi-label {
+      color: var(--muted);
       font-size: 13px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      font-weight: 500;
     }
 
     .kpi-value {
-      font-size: 28px;
-      color: #ffffff;
-      font-weight: bold;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -1px;
     }
 
-    .section-grid {
+    .layout {
       display: grid;
-      grid-template-columns: 2fr 1.1fr;
+      grid-template-columns: 2fr 1fr;
       gap: 18px;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
 
     .panel {
-      background: #0d121a;
-      border: 1px solid #1a2230;
-      border-radius: 18px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 18px;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+      box-shadow: var(--shadow);
     }
 
     .panel h2 {
-      margin-top: 0;
-      font-size: 22px;
-      color: #ff8b57;
+      margin: 0 0 14px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: #f6f8fb;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: -4px;
+      margin-bottom: 14px;
     }
 
     .keywords {
@@ -112,12 +167,13 @@
     }
 
     .keyword {
-      background: #131b27;
-      border: 1px solid #263245;
-      color: #dbe3ef;
+      padding: 9px 12px;
       border-radius: 999px;
-      padding: 8px 12px;
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
       font-size: 13px;
+      font-weight: 600;
     }
 
     table {
@@ -127,144 +183,219 @@
     }
 
     th, td {
-      padding: 10px;
-      border-bottom: 1px solid #1c2432;
-      text-align: right;
+      padding: 11px 8px;
+      text-align: left;
+      border-bottom: 1px solid #182231;
     }
 
     th {
-      color: #9eabc3;
+      color: var(--muted);
       font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .feed-panel {
+      margin-top: 18px;
     }
 
     .video-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 18px;
-      margin-top: 24px;
     }
 
     .card {
-      background: #0d121a;
-      border: 1px solid #1b2432;
-      border-radius: 18px;
+      background: linear-gradient(180deg, #0b1017, #101722);
+      border: 1px solid var(--border);
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+      box-shadow: var(--shadow);
     }
 
-    .card img {
+    .thumb {
+      position: relative;
+    }
+
+    .thumb img {
       width: 100%;
       display: block;
       aspect-ratio: 16 / 9;
       object-fit: cover;
+      background: #111;
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(8, 12, 20, 0.82);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 12px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
     }
 
     .card-body {
-      padding: 14px;
+      padding: 16px;
     }
 
     .title {
       font-size: 18px;
       line-height: 1.45;
+      font-weight: 700;
       margin-bottom: 8px;
+      letter-spacing: -0.2px;
     }
 
     .channel {
-      color: #99a7bf;
-      margin-bottom: 12px;
+      color: var(--muted);
       font-size: 14px;
+      margin-bottom: 14px;
     }
 
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .stat {
-      background: #131a24;
-      border: 1px solid #202a3a;
-      border-radius: 12px;
-      padding: 10px;
+      background: #121925;
+      border: 1px solid #202b3b;
+      border-radius: 14px;
+      padding: 11px;
     }
 
     .stat small {
       display: block;
-      color: #97a3ba;
-      margin-bottom: 4px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .stat strong {
       font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+
+    .links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .watch-link, .secondary-link {
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .watch-link {
-      display: inline-block;
-      margin-top: 6px;
-      background: linear-gradient(135deg, #ff6b2c, #ff8b57);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
       color: white;
-      text-decoration: none;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-weight: bold;
+    }
+
+    .secondary-link {
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 15px;
+      padding: 12px 0 0;
     }
 
     canvas {
       max-height: 340px;
     }
 
-    @media (max-width: 980px) {
-      .section-grid {
+    @media (max-width: 1100px) {
+      .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .brand h1 {
+        font-size: 38px;
+      }
+
+      .kpis {
         grid-template-columns: 1fr;
       }
 
-      h1 {
-        font-size: 40px;
+      .video-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="hero">
-      <div>
+    <div class="topbar">
+      <div class="brand">
         <h1>Smoke Radar 🥩</h1>
-        <div class="sub">Live meat content intelligence dashboard</div>
+        <p>Live meat content intelligence dashboard</p>
       </div>
-      <button id="loadBtn" onclick="loadData()">רענן רדאר</button>
+
+      <div class="actions">
+        <button id="loadBtn" onclick="loadData()">Refresh Radar</button>
+      </div>
     </div>
 
-    <div id="status"></div>
+    <div class="status" id="status"></div>
 
     <div class="kpis" id="kpis"></div>
 
-    <div class="section-grid">
+    <div class="layout">
       <div class="panel">
         <h2>Top Smoke Score</h2>
+        <div class="subtle">Highest-ranking videos across the current feed</div>
         <canvas id="scoreChart"></canvas>
       </div>
 
       <div class="panel">
         <h2>Hot Keywords</h2>
+        <div class="subtle">Recurring terms extracted from current titles</div>
         <div class="keywords" id="keywords"></div>
       </div>
     </div>
 
-    <div class="section-grid">
+    <div class="layout">
       <div class="panel">
         <h2>Channel Comparison</h2>
+        <div class="subtle">Average Smoke Score by channel</div>
         <canvas id="channelChart"></canvas>
       </div>
 
       <div class="panel">
         <h2>Top Channels</h2>
+        <div class="subtle">Best-performing creators in the current dataset</div>
         <table>
           <thead>
             <tr>
-              <th>ערוץ</th>
-              <th>וידאו</th>
-              <th>צפיות</th>
+              <th>Channel</th>
+              <th>Videos</th>
+              <th>Views</th>
               <th>Smoke</th>
             </tr>
           </thead>
@@ -273,8 +404,9 @@
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel feed-panel">
       <h2>Radar Feed</h2>
+      <div class="subtle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
     </div>
   </div>
@@ -302,7 +434,7 @@
       const results = document.getElementById("results");
 
       button.disabled = true;
-      status.textContent = "טוען את הרדאר...";
+      status.textContent = "Loading live radar data...";
       results.innerHTML = "";
 
       try {
@@ -313,18 +445,22 @@
           throw new Error(data.details || data.error || "Unknown error");
         }
 
-        renderKpis(data.summary);
+        renderKpis(data.summary || {});
         renderKeywords(data.topKeywords || []);
         renderChannelTable(data.topChannels || []);
         renderVideos(data.videos || []);
         renderScoreChart(data.chartData || []);
         renderChannelChart(data.topChannels || []);
 
-        status.textContent = `נטענו ${data.total} סרטונים מהרדאר`;
+        if (!data.videos || data.videos.length === 0) {
+          status.textContent = "No videos returned in the current scan.";
+        } else {
+          status.textContent = `${data.total} videos loaded into the radar`;
+        }
       } catch (error) {
         console.error(error);
-        status.textContent = "שגיאה בטעינת הנתונים";
-        results.innerHTML = `<div>${escapeHtml(error.message)}</div>`;
+        status.textContent = "Failed to load radar data";
+        results.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
       } finally {
         button.disabled = false;
       }
@@ -333,32 +469,44 @@
     function renderKpis(summary = {}) {
       document.getElementById("kpis").innerHTML = `
         <div class="kpi">
-          <div class="kpi-title">Total Views</div>
+          <div class="kpi-label">Total Views</div>
           <div class="kpi-value">${formatNum(summary.totalViews)}</div>
         </div>
         <div class="kpi">
-          <div class="kpi-title">Avg Views</div>
+          <div class="kpi-label">Average Views</div>
           <div class="kpi-value">${formatNum(summary.avgViews)}</div>
         </div>
         <div class="kpi">
-          <div class="kpi-title">Avg Likes</div>
+          <div class="kpi-label">Average Likes</div>
           <div class="kpi-value">${formatNum(summary.avgLikes)}</div>
         </div>
         <div class="kpi">
-          <div class="kpi-title">Avg Smoke Score</div>
+          <div class="kpi-label">Average Smoke Score</div>
           <div class="kpi-value">${formatNum(summary.avgSmokeScore)}</div>
         </div>
       `;
     }
 
     function renderKeywords(keywords) {
-      document.getElementById("keywords").innerHTML = keywords.map(k =>
+      const el = document.getElementById("keywords");
+      if (!keywords.length) {
+        el.innerHTML = `<div class="empty">No keyword clusters yet.</div>`;
+        return;
+      }
+
+      el.innerHTML = keywords.map(k =>
         `<span class="keyword">${escapeHtml(k.keyword)} · ${k.count}</span>`
       ).join("");
     }
 
     function renderChannelTable(channels) {
-      document.getElementById("channelTable").innerHTML = channels.map(ch => `
+      const el = document.getElementById("channelTable");
+      if (!channels.length) {
+        el.innerHTML = `<tr><td colspan="4" class="empty">No channel comparison data yet.</td></tr>`;
+        return;
+      }
+
+      el.innerHTML = channels.map(ch => `
         <tr>
           <td>${escapeHtml(ch.channelTitle)}</td>
           <td>${formatNum(ch.videos)}</td>
@@ -369,9 +517,20 @@
     }
 
     function renderVideos(videos) {
-      document.getElementById("results").innerHTML = videos.map(v => `
+      const el = document.getElementById("results");
+
+      if (!videos.length) {
+        el.innerHTML = `<div class="empty">No videos available right now.</div>`;
+        return;
+      }
+
+      el.innerHTML = videos.map(v => `
         <div class="card">
-          <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
+          <div class="thumb">
+            <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
+            <div class="badge">Smoke ${formatNum(v.smokeScore)}</div>
+          </div>
+
           <div class="card-body">
             <div class="title">${escapeHtml(v.title)}</div>
             <div class="channel">${escapeHtml(v.channelTitle)}</div>
@@ -386,16 +545,19 @@
                 <strong>${formatNum(v.likeCount)}</strong>
               </div>
               <div class="stat">
-                <small>Smoke Score</small>
-                <strong>${formatNum(v.smokeScore)}</strong>
-              </div>
-              <div class="stat">
                 <small>Views / Hour</small>
                 <strong>${formatNum(v.viewsPerHour)}</strong>
               </div>
+              <div class="stat">
+                <small>Subscribers</small>
+                <strong>${formatNum(v.subscriberCount)}</strong>
+              </div>
             </div>
 
-            <a class="watch-link" href="https://youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer">צפייה ▶</a>
+            <div class="links">
+              <a class="watch-link" href="https://youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer">Watch</a>
+              <a class="secondary-link" href="https://youtube.com/channel/${v.channelId}" target="_blank" rel="noopener noreferrer">Channel</a>
+            </div>
           </div>
         </div>
       `).join("");
@@ -412,20 +574,26 @@
           labels: chartData.map(x => x.title),
           datasets: [{
             label: "Smoke Score",
-            data: chartData.map(x => x.smokeScore)
+            data: chartData.map(x => x.smokeScore),
+            backgroundColor: "#ff6b2c",
+            borderRadius: 8
           }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { labels: { color: "#fff" } }
+            legend: {
+              labels: { color: "#edf2f7" }
+            }
           },
           scales: {
             x: {
-              ticks: { color: "#b5c0d4" }
+              ticks: { color: "#a7b4c9" },
+              grid: { color: "#182231" }
             },
             y: {
-              ticks: { color: "#b5c0d4" }
+              ticks: { color: "#a7b4c9" },
+              grid: { color: "#182231" }
             }
           }
         }
@@ -440,23 +608,33 @@
       channelChartInstance = new Chart(ctx, {
         type: "radar",
         data: {
-          labels: channels.map(c => c.channelTitle.length > 16 ? c.channelTitle.slice(0, 16) + "..." : c.channelTitle),
+          labels: channels.map(c =>
+            c.channelTitle.length > 18 ? c.channelTitle.slice(0, 18) + "..." : c.channelTitle
+          ),
           datasets: [{
             label: "Avg Smoke Score",
-            data: channels.map(c => c.avgSmokeScore)
+            data: channels.map(c => c.avgSmokeScore),
+            borderColor: "#ff8f5c",
+            backgroundColor: "rgba(255,107,44,0.18)",
+            pointBackgroundColor: "#ff6b2c"
           }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { labels: { color: "#fff" } }
+            legend: {
+              labels: { color: "#edf2f7" }
+            }
           },
           scales: {
             r: {
-              angleLines: { color: "#2c3647" },
-              grid: { color: "#2c3647" },
-              pointLabels: { color: "#c7d1e0" },
-              ticks: { color: "#c7d1e0", backdropColor: "transparent" }
+              angleLines: { color: "#233043" },
+              grid: { color: "#233043" },
+              pointLabels: { color: "#c5d0e0" },
+              ticks: {
+                color: "#c5d0e0",
+                backdropColor: "transparent"
+              }
             }
           }
         }
