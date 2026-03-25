@@ -390,6 +390,84 @@
       margin-bottom: 16px;
     }
 
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .recipe-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .recipe-field label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .recipe-field select {
+      width: 100%;
+      background: #111927;
+      color: var(--text);
+      border: 1px solid #1f2a3a;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .recipe-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .recipe-output {
+      background: #111927;
+      border: 1px solid #1f2a3a;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .recipe-output h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .recipe-output h4 {
+      margin: 16px 0 8px;
+      font-size: 14px;
+      color: #d8e2ef;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .recipe-output p,
+    .recipe-output li {
+      color: #d7dfeb;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .recipe-output ul,
+    .recipe-output ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .recipe-placeholder {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -555,6 +633,10 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
+      .recipe-grid {
+        grid-template-columns: 1fr;
+      }
+
       .brand h1 {
         font-size: 26px;
       }
@@ -684,6 +766,65 @@
         <h2>Hot Keywords</h2>
         <div class="subtle">Recurring terms extracted from current titles</div>
         <div class="keywords" id="keywords"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Recipe Generator</h2>
+      <div class="subtle">Build a meat recipe by cut, method, and flavor profile</div>
+
+      <div class="recipe-grid">
+        <div class="recipe-field">
+          <label for="meatType">Meat Type</label>
+          <select id="meatType">
+            <option value="beef">Beef</option>
+            <option value="lamb">Lamb</option>
+            <option value="veal">Veal</option>
+          </select>
+        </div>
+
+        <div class="recipe-field">
+          <label for="cutType">Cut</label>
+          <select id="cutType">
+            <option value="brisket">Brisket</option>
+            <option value="ribeye">Ribeye</option>
+            <option value="short_ribs">Short Ribs</option>
+            <option value="tomahawk">Tomahawk</option>
+            <option value="picanha">Picanha</option>
+          </select>
+        </div>
+
+        <div class="recipe-field">
+          <label for="cookingMethod">Cooking Method</label>
+          <select id="cookingMethod">
+            <option value="smoking">Smoking</option>
+            <option value="long_cook">Long Cook</option>
+            <option value="cast_iron">Cast Iron</option>
+            <option value="bbq">BBQ</option>
+            <option value="oven_roast">Oven Roast</option>
+          </select>
+        </div>
+
+        <div class="recipe-field">
+          <label for="flavorProfile">Flavor Profile</label>
+          <select id="flavorProfile">
+            <option value="classic">Classic</option>
+            <option value="peppery">Peppery</option>
+            <option value="garlic_herb">Garlic & Herb</option>
+            <option value="sweet_smoky">Sweet & Smoky</option>
+            <option value="spicy">Spicy</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="recipe-actions">
+        <button class="pill-btn" onclick="generateRecipe()">Generate Recipe</button>
+      </div>
+
+      <div class="recipe-output" id="recipeOutput">
+        <div class="recipe-placeholder">
+          Choose a meat type, cut, cooking method, and flavor profile to generate a recipe.
+        </div>
       </div>
     </div>
 
@@ -1096,6 +1237,190 @@
           renderTabState();
         });
       });
+    }
+
+    function generateRecipe() {
+      const meatType = document.getElementById("meatType").value;
+      const cutType = document.getElementById("cutType").value;
+      const cookingMethod = document.getElementById("cookingMethod").value;
+      const flavorProfile = document.getElementById("flavorProfile").value;
+      const output = document.getElementById("recipeOutput");
+
+      const cutLabels = {
+        brisket: "Brisket",
+        ribeye: "Ribeye",
+        short_ribs: "Short Ribs",
+        tomahawk: "Tomahawk",
+        picanha: "Picanha"
+      };
+
+      const methodLabels = {
+        smoking: "Smoking",
+        long_cook: "Long Cook",
+        cast_iron: "Cast Iron",
+        bbq: "BBQ",
+        oven_roast: "Oven Roast"
+      };
+
+      const flavorLabels = {
+        classic: "Classic",
+        peppery: "Peppery",
+        garlic_herb: "Garlic & Herb",
+        sweet_smoky: "Sweet & Smoky",
+        spicy: "Spicy"
+      };
+
+      const flavorMap = {
+        classic: {
+          rub: ["kosher salt", "black pepper", "paprika"],
+          addOns: ["olive oil", "butter"],
+          tip: "Keep the seasoning minimal and let the meat lead."
+        },
+        peppery: {
+          rub: ["coarse black pepper", "kosher salt", "crushed coriander"],
+          addOns: ["olive oil", "a touch of butter"],
+          tip: "Pepper should build a crust, not overpower the meat."
+        },
+        garlic_herb: {
+          rub: ["kosher salt", "black pepper", "garlic powder", "rosemary", "thyme"],
+          addOns: ["butter", "fresh garlic"],
+          tip: "Add fresh herbs late so they stay fragrant."
+        },
+        sweet_smoky: {
+          rub: ["brown sugar", "paprika", "kosher salt", "black pepper", "smoked chili"],
+          addOns: ["butter", "apple cider vinegar"],
+          tip: "Balance sweetness with enough salt and smoke."
+        },
+        spicy: {
+          rub: ["kosher salt", "black pepper", "chili flakes", "cayenne", "smoked paprika"],
+          addOns: ["butter", "lime juice"],
+          tip: "Use heat in layers so the meat still stays center stage."
+        }
+      };
+
+      const methodMap = {
+        smoking: {
+          prep: "Trim the surface lightly, pat dry, and coat evenly with oil and rub. Let it sit 30–45 minutes before smoking.",
+          steps: [
+            "Preheat the smoker to 120–135°C.",
+            "Place the meat away from direct flame and smoke until bark and color develop.",
+            "Spritz lightly if needed during the cook.",
+            "Cook until tender or until the internal temperature suits the cut.",
+            "Rest well before slicing."
+          ]
+        },
+        long_cook: {
+          prep: "Season generously and let the meat sit at room temperature for 20–30 minutes before cooking.",
+          steps: [
+            "Sear the meat first for deep color.",
+            "Move to a low oven or covered pot at low heat.",
+            "Add a little stock or cooking liquid if needed.",
+            "Cook slowly until the texture softens and the meat yields easily.",
+            "Rest briefly, then slice or shred."
+          ]
+        },
+        cast_iron: {
+          prep: "Pat the meat very dry, season well, and let it sit while the pan gets very hot.",
+          steps: [
+            "Heat a cast iron pan until very hot.",
+            "Add a little neutral oil and sear both sides deeply.",
+            "Lower heat and baste with butter if desired.",
+            "Cook to your preferred internal temperature.",
+            "Rest before slicing."
+          ]
+        },
+        bbq: {
+          prep: "Coat lightly with oil, apply rub evenly, and let it sit while the grill heats up.",
+          steps: [
+            "Prepare two-zone heat on the grill.",
+            "Sear over direct heat first.",
+            "Move to indirect heat to finish gently.",
+            "Brush lightly if using glaze or butter.",
+            "Rest before serving."
+          ]
+        },
+        oven_roast: {
+          prep: "Season thoroughly and place on a rack so heat circulates around the meat.",
+          steps: [
+            "Preheat the oven to a moderate temperature.",
+            "Roast until the outer crust forms and the center reaches the target doneness.",
+            "Use a thermometer for accuracy.",
+            "Let the meat rest before carving.",
+            "Slice against the grain where relevant."
+          ]
+        }
+      };
+
+      const cutSpecific = {
+        brisket: {
+          title: "Smoked Brisket Build",
+          ingredients: ["1 brisket", "yellow mustard or oil binder"],
+          extraTip: "Slice against the grain and do not rush the rest."
+        },
+        ribeye: {
+          title: "Ribeye Precision Cook",
+          ingredients: ["2 ribeye steaks"],
+          extraTip: "Ribeye loves a hard crust and a shorter rest."
+        },
+        short_ribs: {
+          title: "Short Ribs Low & Slow",
+          ingredients: ["beef short ribs"],
+          extraTip: "Short ribs reward patience more than almost any cut."
+        },
+        tomahawk: {
+          title: "Tomahawk Showcase Cook",
+          ingredients: ["1 tomahawk steak"],
+          extraTip: "Use indirect heat after searing so the inside catches up cleanly."
+        },
+        picanha: {
+          title: "Picanha Fire Finish",
+          ingredients: ["1 picanha roast or picanha steaks"],
+          extraTip: "Score the fat cap lightly to render it better."
+        }
+      };
+
+      const flavor = flavorMap[flavorProfile];
+      const method = methodMap[cookingMethod];
+      const cut = cutSpecific[cutType];
+
+      const title = `${cut.title} · ${methodLabels[cookingMethod]} · ${flavorLabels[flavorProfile]}`;
+
+      const ingredients = [
+        ...cut.ingredients,
+        ...flavor.rub,
+        ...flavor.addOns
+      ];
+
+      output.innerHTML = `
+        <h3>${title}</h3>
+
+        <h4>Overview</h4>
+        <p>
+          This recipe is designed for <strong>${cutLabels[cutType]}</strong> using
+          <strong>${methodLabels[cookingMethod]}</strong> with a
+          <strong>${flavorLabels[flavorProfile]}</strong> profile.
+        </p>
+
+        <h4>Ingredients</h4>
+        <ul>
+          ${ingredients.map(item => `<li>${item}</li>`).join("")}
+        </ul>
+
+        <h4>Preparation</h4>
+        <p>${method.prep}</p>
+
+        <h4>Cooking Steps</h4>
+        <ol>
+          ${method.steps.map(step => `<li>${step}</li>`).join("")}
+        </ol>
+
+        <h4>Pitmaster Tips</h4>
+        <ul>
+          <li>${flavor.tip}</li>
+          <li>${cut.extraTip}</li>
+          <li>Let the meat rest before slicing so juices redistribute properly.</li>
+        </ul>
+      `;
     }
 
     async function loadData() {
