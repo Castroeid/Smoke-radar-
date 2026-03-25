@@ -40,54 +40,56 @@ function saveCache(data) {
   }
 }
 
-// ===== Seed fallback data =====
+// ===== Better seed fallback data =====
 function getSeedData() {
+  const now = new Date().toISOString();
+
   const videos = [
     {
-      id: "seed-1",
-      title: "Perfect Smoked Brisket Guide",
+      id: "LazioSeed001",
+      title: "Texas Style Smoked Brisket",
       channelTitle: "BBQ Masters",
-      channelId: "",
-      publishedAt: new Date().toISOString(),
-      thumbnail: "https://i.ytimg.com/vi/3v6jM3KpX6g/hqdefault.jpg",
+      channelId: "UCBBQMasters001",
+      publishedAt: now,
+      thumbnail: "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80",
       viewCount: 124000,
       likeCount: 5200,
       subscriberCount: 185000,
       smokeScore: 82,
       viewsPerHour: 3400,
-      url: "https://youtube.com/watch?v=3v6jM3KpX6g"
+      url: "https://www.youtube.com/results?search_query=Texas+Style+Smoked+Brisket"
     },
     {
-      id: "seed-2",
-      title: "Top 5 Steak Techniques",
+      id: "LazioSeed002",
+      title: "Reverse Sear Ribeye on Cast Iron",
       channelTitle: "Meat Lab",
-      channelId: "",
-      publishedAt: new Date().toISOString(),
-      thumbnail: "https://i.ytimg.com/vi/1-SJGQ2HLp8/hqdefault.jpg",
+      channelId: "UCMeatLab002",
+      publishedAt: now,
+      thumbnail: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
       viewCount: 89000,
       likeCount: 3400,
       subscriberCount: 96000,
       smokeScore: 75,
       viewsPerHour: 2500,
-      url: "https://youtube.com/watch?v=1-SJGQ2HLp8"
+      url: "https://www.youtube.com/results?search_query=Reverse+Sear+Ribeye+Cast+Iron"
     },
     {
-      id: "seed-3",
-      title: "Reverse Sear Ribeye at Home",
-      channelTitle: "Steak Signal",
-      channelId: "",
-      publishedAt: new Date().toISOString(),
-      thumbnail: "https://i.ytimg.com/vi/8m5xW4l7d5Q/hqdefault.jpg",
+      id: "LazioSeed003",
+      title: "Beef Short Ribs Low and Slow",
+      channelTitle: "Smoke House",
+      channelId: "UCSmokeHouse003",
+      publishedAt: now,
+      thumbnail: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80",
       viewCount: 54000,
       likeCount: 2100,
       subscriberCount: 42000,
       smokeScore: 68,
       viewsPerHour: 1800,
-      url: "https://youtube.com/watch?v=8m5xW4l7d5Q"
+      url: "https://www.youtube.com/results?search_query=Beef+Short+Ribs+Low+and+Slow"
     }
   ];
 
-  return buildPayload(videos, "seed", new Date().toISOString(), null);
+  return buildPayload(videos, "seed", now, null);
 }
 
 // ===== Utility functions =====
@@ -118,8 +120,7 @@ function calculateSmokeScore(video) {
 function extractKeywords(title) {
   const blacklist = new Set([
     "the", "and", "with", "from", "this", "that", "your", "you", "for",
-    "bbq", "how", "make", "made", "best", "recipe", "food", "meat",
-    "smoked", "smoke", "grill", "grilling", "video", "guide", "home"
+    "bbq", "how", "make", "made", "best", "recipe", "food", "video", "guide", "home"
   ]);
 
   return String(title || "")
@@ -127,6 +128,27 @@ function extractKeywords(title) {
     .replace(/[^\w\s]/g, " ")
     .split(/\s+/)
     .filter(word => word.length > 3 && !blacklist.has(word));
+}
+
+function isMeatRelevant(title = "", description = "") {
+  const text = `${title} ${description}`.toLowerCase();
+
+  const includeWords = [
+    "beef", "steak", "brisket", "ribeye", "tomahawk", "wagyu", "short ribs",
+    "beef ribs", "smoked beef", "bbq beef", "tri tip", "picanha", "sirloin",
+    "strip steak", "t bone", "porterhouse", "prime rib", "chuck roast",
+    "brisket burnt ends", "brisket", "ribs", "meat"
+  ];
+
+  const excludeWords = [
+    "pizza", "pasta", "cake", "cookie", "vegan", "vegetarian", "tofu",
+    "salad", "dessert", "bread", "soup", "ice cream", "sandwich cookies"
+  ];
+
+  const hasInclude = includeWords.some(word => text.includes(word));
+  const hasExclude = excludeWords.some(word => text.includes(word));
+
+  return hasInclude && !hasExclude;
 }
 
 async function fetchJson(url) {
@@ -170,7 +192,14 @@ function buildPayload(videosInput, source, lastUpdated, fallbackReason = null) {
     return normalized;
   });
 
-  const sortedVideos = [...videos].sort((a, b) => b.smokeScore - a.smokeScore);
+  const cleanedVideos = videos.filter(v =>
+    v.title &&
+    v.thumbnail &&
+    (v.id || v.url) &&
+    isMeatRelevant(v.title)
+  );
+
+  const sortedVideos = [...cleanedVideos].sort((a, b) => b.smokeScore - a.smokeScore);
 
   const totalViews = sortedVideos.reduce((sum, v) => sum + v.viewCount, 0);
   const totalLikes = sortedVideos.reduce((sum, v) => sum + v.likeCount, 0);
@@ -247,10 +276,9 @@ async function fetchLiveData() {
     throw new Error("Missing API key");
   }
 
-  // low quota mode: only 2 search calls
   const queries = [
-    "bbq brisket steak",
-    "wagyu tomahawk beef ribs"
+    "smoked brisket steak bbq beef",
+    "wagyu ribeye tomahawk beef ribs"
   ];
 
   let searchItems = [];
@@ -264,21 +292,33 @@ async function fetchLiveData() {
   }
 
   const uniqueVideoIds = [...new Set(
-    searchItems.map(item => item?.id?.videoId).filter(Boolean)
+    searchItems
+      .filter(item =>
+        item?.id?.videoId &&
+        item?.snippet?.title &&
+        isMeatRelevant(item.snippet.title, item.snippet.description || "")
+      )
+      .map(item => item.id.videoId)
   )];
 
   if (!uniqueVideoIds.length) {
-    return buildPayload([], "live", new Date().toISOString(), "No video IDs returned from YouTube search");
+    return buildPayload([], "live", new Date().toISOString(), "No relevant meat video IDs returned from YouTube search");
   }
 
   const videosUrl =
-    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,status&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
 
   const videosData = await fetchJson(videosUrl);
-  const rawVideos = videosData.items || [];
+  const rawVideos = (videosData.items || []).filter(v =>
+    v?.id &&
+    v?.snippet?.title &&
+    v?.snippet?.channelId &&
+    v?.status?.uploadStatus === "processed" &&
+    isMeatRelevant(v.snippet.title, v.snippet.description || "")
+  );
 
   if (!rawVideos.length) {
-    return buildPayload([], "live", new Date().toISOString(), "Video details request returned no items");
+    return buildPayload([], "live", new Date().toISOString(), "Video details request returned no relevant items");
   }
 
   const uniqueChannelIds = [...new Set(
