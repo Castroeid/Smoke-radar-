@@ -525,6 +525,11 @@
       color: #dbe5f2;
     }
 
+    .secondary-link.disabled {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
     .empty {
       color: var(--muted);
       font-size: 15px;
@@ -857,7 +862,11 @@
 
     function renderSignalStrip(data = {}) {
       const videos = data.videos || [];
-      const topChannel = (data.topChannels && data.topChannels[0]) ? data.topChannels[0].channelTitle : (videos[0]?.channel || "—");
+      const topChannel =
+        (data.topChannels && data.topChannels[0])
+          ? data.topChannels[0].channelTitle
+          : (videos[0]?.channelTitle || videos[0]?.channel || "—");
+
       const avgSmoke = data?.summary?.avgSmokeScore
         ? Number(data.summary.avgSmokeScore)
         : videos.length
@@ -964,8 +973,10 @@
         const viewCount = v.viewCount ?? v.views ?? 0;
         const likeCount = v.likeCount ?? v.likes ?? 0;
         const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
-        const channelLink = v.channelId ? `https://youtube.com/channel/${v.channelId}` : "#";
-        const watchLink = v.url ? v.url : `https://youtube.com/watch?v=${v.id}`;
+        const channelLink = v.channelId
+          ? `https://youtube.com/channel/${v.channelId}`
+          : (v.url || "https://youtube.com");
+        const watchLink = v.url ? v.url : (v.id ? `https://youtube.com/watch?v=${v.id}` : "https://youtube.com");
 
         return `
           <div class="card">
@@ -999,7 +1010,10 @@
 
               <div class="links">
                 <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">Watch</a>
-                <a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>
+                ${v.channelId
+                  ? `<a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>`
+                  : `<span class="secondary-link disabled">Channel</span>`
+                }
               </div>
             </div>
           </div>
