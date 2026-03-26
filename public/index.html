@@ -25,6 +25,7 @@
       --yellow: #f5b041;
       --red: #ff5f57;
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
+      --glow: 0 0 24px rgba(255,107,44,0.18);
     }
 
     * {
@@ -37,10 +38,30 @@
       background: radial-gradient(circle at top, #0b1018 0%, #05070b 46%);
       color: var(--text);
       font-family: "Inter", Arial, sans-serif;
+      scroll-behavior: smooth;
     }
 
     body {
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-enter {
+      opacity: 0;
+      transform: translateY(12px);
+      animation: appEnter 700ms ease forwards;
+    }
+
+    .app-enter-delay-1 { animation-delay: 70ms; }
+    .app-enter-delay-2 { animation-delay: 130ms; }
+    .app-enter-delay-3 { animation-delay: 190ms; }
+    .app-enter-delay-4 { animation-delay: 250ms; }
+
+    @keyframes appEnter {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .container {
@@ -75,6 +96,23 @@
       font-size: 25px;
       box-shadow: var(--shadow);
       flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-icon::after {
+      content: "";
+      position: absolute;
+      inset: -30% -60%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+      transform: rotate(16deg);
+      animation: brandSweep 4s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes brandSweep {
+      0% { transform: translateX(-120%) rotate(16deg); }
+      100% { transform: translateX(120%) rotate(16deg); }
     }
 
     .brand h1 {
@@ -118,11 +156,60 @@
       font-size: 14px;
       gap: 8px;
       cursor: pointer;
+      transition: 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pill-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,154,104,0.55);
+      box-shadow: var(--glow);
     }
 
     .pill-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.75;
       cursor: wait;
+    }
+
+    .refresh-loader {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      display: none;
+      position: relative;
+      background: radial-gradient(circle, #ff9d6c 0%, #ff6b2c 55%, #c94d1e 100%);
+      box-shadow: 0 0 12px rgba(255,107,44,0.4);
+      flex-shrink: 0;
+    }
+
+    .refresh-loader::before,
+    .refresh-loader::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255,149,95,0.4);
+      animation: refreshPulse 1.4s ease-out infinite;
+    }
+
+    .refresh-loader::after {
+      animation-delay: 0.35s;
+    }
+
+    @keyframes refreshPulse {
+      0% {
+        transform: scale(0.9);
+        opacity: 0.7;
+      }
+      100% {
+        transform: scale(1.9);
+        opacity: 0;
+      }
+    }
+
+    .pill-btn.loading .refresh-loader {
+      display: inline-block;
     }
 
     .meta-strip {
@@ -195,7 +282,6 @@
     .card,
     .kpi,
     .recipe-output,
-    .cut-info,
     .cuts-image-wrap,
     .cut-grid-card {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
@@ -333,6 +419,7 @@
       font-size: 14px;
       white-space: nowrap;
       cursor: pointer;
+      transition: 0.18s ease;
     }
 
     .tab-btn.active {
@@ -457,20 +544,17 @@
       flex-wrap: wrap;
     }
 
-    .recipe-output,
-    .cut-info {
+    .recipe-output {
       border-radius: 18px;
       padding: 16px;
     }
 
-    .recipe-output h3,
-    .cut-info h3 {
+    .recipe-output h3 {
       margin: 0 0 10px;
       font-size: 20px;
     }
 
-    .recipe-output h4,
-    .cut-info h4 {
+    .recipe-output h4 {
       margin: 16px 0 8px;
       font-size: 14px;
       color: #d8e2ef;
@@ -479,17 +563,14 @@
     }
 
     .recipe-output p,
-    .recipe-output li,
-    .cut-info p,
-    .cut-info li {
+    .recipe-output li {
       color: #d7dfeb;
       line-height: 1.7;
       font-size: 14px;
     }
 
     .recipe-output ul,
-    .recipe-output ol,
-    .cut-info ul {
+    .recipe-output ol {
       margin: 0;
       padding-left: 20px;
     }
@@ -546,23 +627,6 @@
       color: white;
       border-color: transparent;
       box-shadow: 0 0 18px rgba(255,107,44,0.24);
-    }
-
-    .cut-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 10px 0 0;
-    }
-
-    .cut-badge {
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: #131b27;
-      border: 1px solid #243043;
-      color: #dbe5f2;
-      font-size: 12px;
-      font-weight: 600;
     }
 
     table {
@@ -722,6 +786,7 @@
       justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
+      transition: 0.18s ease;
     }
 
     .info-btn.active {
@@ -741,10 +806,24 @@
       box-shadow: var(--shadow);
       z-index: 1000;
       display: none;
+      max-height: 62vh;
+      overflow: auto;
     }
 
     .popover.show {
       display: block;
+      animation: popIn 180ms ease;
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .popover-title {
@@ -755,6 +834,27 @@
       margin-bottom: 8px;
       font-weight: 800;
       color: white;
+    }
+
+    .popover-content h4 {
+      margin: 14px 0 6px;
+      font-size: 13px;
+      color: #d8e2ef;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .popover-content p,
+    .popover-content li {
+      margin: 0;
+      color: #d7dfeb;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .popover-content ul {
+      margin: 0;
+      padding-left: 18px;
     }
 
     .popover-close {
@@ -789,7 +889,7 @@
 
       .popover {
         inset: auto auto 24px 50%;
-        width: min(420px, calc(100vw - 32px));
+        width: min(460px, calc(100vw - 32px));
         transform: translateX(-50%);
       }
     }
@@ -824,7 +924,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="topbar">
+    <div class="topbar app-enter">
       <div class="brand-wrap">
         <div class="brand-icon">🥩</div>
         <div class="brand">
@@ -835,15 +935,18 @@
 
       <div class="top-actions">
         <div class="meta-pill live" id="miniLiveBadge">Live</div>
-        <button class="pill-btn" id="loadBtn" onclick="loadData()">Refresh</button>
+        <button class="pill-btn" id="loadBtn" onclick="loadData()">
+          <span class="refresh-loader" id="refreshLoader"></span>
+          <span id="refreshLabel">Refresh</span>
+        </button>
       </div>
     </div>
 
-    <div class="meta-strip" id="metaStrip"></div>
-    <div class="status" id="status"></div>
-    <div id="errorMount"></div>
+    <div class="meta-strip app-enter app-enter-delay-1" id="metaStrip"></div>
+    <div class="status app-enter app-enter-delay-1" id="status"></div>
+    <div class="app-enter app-enter-delay-1" id="errorMount"></div>
 
-    <div class="hero-card">
+    <div class="hero-card app-enter app-enter-delay-1">
       <div class="hero-top">
         <div>
           <div class="hero-title">
@@ -873,7 +976,7 @@
       </div>
     </div>
 
-    <div class="signal-strip" id="signalStrip">
+    <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
       <div class="signal-card">
         <div class="signal-label">Tracked Videos</div>
         <div class="signal-value">0</div>
@@ -896,14 +999,14 @@
       </div>
     </div>
 
-    <div class="tabs">
+    <div class="tabs app-enter app-enter-delay-2">
       <button class="tab-btn active" data-tab="hot">Hot Feed</button>
       <button class="tab-btn" data-tab="rising">Rising</button>
     </div>
 
-    <div class="kpis" id="kpis"></div>
+    <div class="kpis app-enter app-enter-delay-2" id="kpis"></div>
 
-    <div class="panel">
+    <div class="panel app-enter app-enter-delay-2">
       <div class="panel-heading">
         <h2 id="chartTitle">Momentum Trend</h2>
         <button class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
@@ -912,7 +1015,7 @@
       <canvas id="scoreChart"></canvas>
     </div>
 
-    <div class="two-col">
+    <div class="two-col app-enter app-enter-delay-3">
       <div class="panel">
         <div class="panel-heading">
           <h2>Top Channels</h2>
@@ -942,12 +1045,12 @@
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel app-enter app-enter-delay-3">
       <div class="panel-heading">
         <h2>Beef Cuts Explorer</h2>
-        <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="A visual reference image plus a clear tap-friendly cut selector. Tap a cut below to see its location on the cow and best cooking styles.">i</button>
+        <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="A visual reference image plus a clear tap-friendly cut selector. Tap a cut below to view its location and recommended cooking styles.">i</button>
       </div>
-      <div class="subtle">Explore a cut, where it sits on the cow, and how to cook it best</div>
+      <div class="subtle">Tap a cut to open a quick guide</div>
 
       <div class="cuts-grid">
         <div>
@@ -958,33 +1061,21 @@
           <div class="cuts-grid-new" id="cutsGrid"></div>
         </div>
 
-        <div class="cut-info" id="cutInfo">
-          <h3>Ribeye</h3>
-          <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
-
-          <h4>Location on the cow</h4>
-          <p>Upper rib section, along the center-back of the animal.</p>
-
-          <h4>Profile</h4>
-          <div class="cut-badges">
-            <span class="cut-badge">Fat: High</span>
-            <span class="cut-badge">Tenderness: High</span>
+        <div class="panel" style="margin:0;">
+          <div class="panel-heading">
+            <h2 style="font-size:18px;">How it works</h2>
           </div>
-
-          <h4>Best Uses</h4>
-          <ul>
-            <li>Cast iron</li>
-            <li>Grill</li>
-            <li>Reverse sear</li>
-          </ul>
-
-          <h4>Tip</h4>
-          <p>A strong crust and a short rest usually give ribeye its best result.</p>
+          <div class="subtle" style="margin-bottom:8px;">
+            Each cut opens a quick info card with location, suitable cooking styles, and a short tip.
+          </div>
+          <div class="subtle" style="margin-bottom:0;">
+            This keeps the layout cleaner on mobile while still surfacing the useful details.
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel app-enter app-enter-delay-4">
       <div class="panel-heading">
         <h2>Recipe Generator</h2>
         <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
@@ -1046,7 +1137,7 @@
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel app-enter app-enter-delay-4">
       <div class="panel-heading">
         <h2 id="feedTitle">Radar Feed</h2>
         <button class="info-btn" data-popover-title="Radar Feed" data-popover-text="The main video feed powering Smoke Radar. Results come from live YouTube queries when available, or from cached/offline fallback data when live access is unavailable.">i</button>
@@ -1061,7 +1152,7 @@
       <span id="popoverTitle">Info</span>
       <button class="popover-close" id="popoverClose">Close</button>
     </div>
-    <div id="popoverText"></div>
+    <div class="popover-content" id="popoverText"></div>
   </div>
 
   <script>
@@ -1073,73 +1164,57 @@
       brisket: {
         title: "Brisket",
         location: "Lower chest, toward the front underside of the cow.",
-        description: "Brisket comes from the lower chest and carries a lot of connective tissue. It becomes rich and tender when cooked slowly.",
-        fat: "Medium",
-        tenderness: "Low raw / High when slow-cooked",
-        methods: ["Smoking", "Long braise", "Low and slow oven cook"],
+        description: "Brisket comes from the lower chest and carries a lot of connective tissue.",
+        suitable: ["Smoking", "Long braise", "Low and slow oven cook"],
         tip: "Brisket rewards patience. Resting is almost as important as the cook itself."
       },
       chuck: {
         title: "Chuck",
         location: "Shoulder and upper front section of the cow.",
-        description: "Chuck comes from the shoulder. It is beefy, flavorful, and ideal for long cooking or grinding.",
-        fat: "Medium to High",
-        tenderness: "Medium",
-        methods: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
+        description: "Chuck is beefy, flavorful, and ideal for long cooking or grinding.",
+        suitable: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
         tip: "Chuck shines when given time to break down and soften."
       },
       ribeye: {
         title: "Ribeye",
         location: "Upper rib section, along the center-back of the animal.",
-        description: "Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.",
-        fat: "High",
-        tenderness: "High",
-        methods: ["Cast iron", "Grill", "Reverse sear"],
+        description: "Ribeye is one of the most flavorful cuts, with generous marbling.",
+        suitable: ["Cast iron", "Grill", "Reverse sear"],
         tip: "A strong crust and a short rest usually give ribeye its best result."
       },
       short_ribs: {
         title: "Short Ribs",
         location: "Lower rib cage and plate section.",
-        description: "Short ribs are deeply beefy and loaded with connective tissue, making them ideal for slow cooking.",
-        fat: "Medium to High",
-        tenderness: "Low raw / High when slow-cooked",
-        methods: ["Smoking", "Braising", "Long oven cook"],
+        description: "Short ribs are deeply beefy and loaded with connective tissue.",
+        suitable: ["Smoking", "Braising", "Long oven cook"],
         tip: "Short ribs need time, but they pay it back in flavor."
       },
       sirloin: {
         title: "Sirloin",
         location: "Rear upper back, behind the rib section.",
-        description: "Sirloin is leaner than rib cuts but still flavorful and versatile for steaks or roasting.",
-        fat: "Medium",
-        tenderness: "Medium to High",
-        methods: ["Grilling", "Cast iron", "Roasting"],
+        description: "Sirloin is leaner than rib cuts but still flavorful and versatile.",
+        suitable: ["Grilling", "Cast iron", "Roasting"],
         tip: "Do not overcook it. Sirloin is best when sliced properly and rested."
       },
       flank: {
         title: "Flank",
         location: "Lower abdominal muscles, behind the plate section.",
-        description: "Flank is a lean, fibrous cut with bold flavor. It works best with fast cooking and correct slicing.",
-        fat: "Low",
-        tenderness: "Medium",
-        methods: ["High-heat grill", "Cast iron", "Marinated sear"],
+        description: "Flank is a lean, fibrous cut with bold flavor.",
+        suitable: ["High-heat grill", "Cast iron", "Marinated sear"],
         tip: "Always slice flank against the grain."
       },
       filet: {
         title: "Filet / Tenderloin",
         location: "Inside the rear back, tucked under the spine.",
-        description: "Tenderloin is extremely tender and lean, known more for texture than aggressive beef flavor.",
-        fat: "Low",
-        tenderness: "Very High",
-        methods: ["Cast iron", "Quick roast", "Gentle grill"],
+        description: "Tenderloin is extremely tender and lean, known more for texture.",
+        suitable: ["Cast iron", "Quick roast", "Gentle grill"],
         tip: "Because it is lean, avoid overcooking and consider butter-based finishing."
       },
       picanha: {
         title: "Picanha",
         location: "Top rear rump cap, near the tail end.",
-        description: "Picanha is prized for its fat cap and big flavor. It is especially popular in Brazilian-style cooking.",
-        fat: "Medium to High",
-        tenderness: "High",
-        methods: ["BBQ", "Grill", "Reverse sear", "Roast"],
+        description: "Picanha is prized for its fat cap and big flavor.",
+        suitable: ["BBQ", "Grill", "Reverse sear", "Roast"],
         tip: "Score the fat cap lightly and render it carefully."
       }
     };
@@ -1223,12 +1298,12 @@
       };
     }
 
-    function openPopover(title, text, buttonEl = null) {
+    function openPopover(title, html, buttonEl = null) {
       document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
       if (buttonEl) buttonEl.classList.add("active");
 
       document.getElementById("popoverTitle").textContent = title;
-      document.getElementById("popoverText").textContent = text;
+      document.getElementById("popoverText").innerHTML = html;
       document.getElementById("infoPopover").classList.add("show");
     }
 
@@ -1252,7 +1327,7 @@
             return;
           }
 
-          openPopover(title, text, btn);
+          openPopover(title, `<p>${escapeHtml(text)}</p>`, btn);
         });
       });
 
@@ -1601,10 +1676,29 @@
       `).join("");
 
       grid.querySelectorAll(".cut-grid-card").forEach(btn => {
-        btn.addEventListener("click", () => {
-          renderCutInfo(btn.dataset.cutId);
+        btn.addEventListener("click", (e) => {
+          const key = btn.dataset.cutId;
+          renderCutsGrid(key);
+          openCutPopover(key, e.currentTarget);
         });
       });
+    }
+
+    function openCutPopover(cutKey, buttonEl = null) {
+      const cut = cutData[cutKey];
+      if (!cut) return;
+
+      const html = `
+        <p>${escapeHtml(cut.description)}</p>
+        <h4>Location on the cow</h4>
+        <p>${escapeHtml(cut.location)}</p>
+        <h4>Best cooking styles</h4>
+        <ul>${cut.suitable.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        <h4>Tip</h4>
+        <p>${escapeHtml(cut.tip)}</p>
+      `;
+
+      openPopover(cut.title, html, buttonEl);
     }
 
     function generateRecipe() {
@@ -1776,50 +1870,21 @@
       `;
     }
 
-    function renderCutInfo(cutKey) {
-      const cut = cutData[cutKey];
-      if (!cut) return;
+    function setRefreshLoading(isLoading) {
+      const btn = document.getElementById("loadBtn");
+      const label = document.getElementById("refreshLabel");
+      if (!btn || !label) return;
 
-      renderCutsGrid(cutKey);
-
-      document.getElementById("cutInfo").innerHTML = `
-        <h3>${cut.title}</h3>
-        <p>${cut.description}</p>
-
-        <h4>Location on the cow</h4>
-        <p>${cut.location}</p>
-
-        <h4>Profile</h4>
-        <div class="cut-badges">
-          <span class="cut-badge">Fat: ${cut.fat}</span>
-          <span class="cut-badge">Tenderness: ${cut.tenderness}</span>
-        </div>
-
-        <h4>Best Uses</h4>
-        <ul>${cut.methods.map(method => `<li>${method}</li>`).join("")}</ul>
-
-        <h4>Tip</h4>
-        <p>${cut.tip}</p>
-      `;
-
-      const cutSelect = document.getElementById("cutType");
-      if (cutSelect) {
-        const map = {
-          brisket: "brisket",
-          ribeye: "ribeye",
-          short_ribs: "short_ribs",
-          picanha: "picanha"
-        };
-        if (map[cutKey]) cutSelect.value = map[cutKey];
-      }
+      btn.classList.toggle("loading", isLoading);
+      btn.disabled = isLoading;
+      label.textContent = isLoading ? "Scanning..." : "Refresh";
     }
 
     async function loadData() {
-      const button = document.getElementById("loadBtn");
       const status = document.getElementById("status");
       const results = document.getElementById("results");
 
-      button.disabled = true;
+      setRefreshLoading(true);
       status.textContent = "Loading radar data...";
       results.innerHTML = "";
       clearErrorBanner();
@@ -1867,7 +1932,7 @@
         renderErrorBanner(friendly.title, friendly.message);
         status.textContent = "Radar data currently unavailable";
       } finally {
-        button.disabled = false;
+        setRefreshLoading(false);
       }
     }
 
@@ -1875,7 +1940,6 @@
       attachTabs();
       attachPopovers();
       renderCutsGrid("ribeye");
-      renderCutInfo("ribeye");
       loadData();
     });
   </script>
