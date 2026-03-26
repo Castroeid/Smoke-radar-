@@ -25,7 +25,9 @@
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     html, body {
       margin: 0;
@@ -35,7 +37,9 @@
       font-family: "Inter", Arial, sans-serif;
     }
 
-    body { min-height: 100vh; }
+    body {
+      min-height: 100vh;
+    }
 
     .container {
       max-width: 860px;
@@ -112,6 +116,11 @@
       font-size: 14px;
       gap: 8px;
       cursor: pointer;
+    }
+
+    .pill-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
     }
 
     .meta-strip {
@@ -218,6 +227,10 @@
       color: #b6c3d7;
       font-weight: 700;
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .hero-subtitle {
@@ -1081,4 +1094,754 @@
       },
       ribeye: {
         title: "Ribeye",
-        description: "Ribeye is one of the most flavorful steak cuts,
+        description: "Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.",
+        fat: "High",
+        tenderness: "High",
+        methods: ["Cast iron", "Grill", "Reverse sear"],
+        tip: "A strong crust and a short rest usually give ribeye its best result."
+      },
+      short_ribs: {
+        title: "Short Ribs",
+        description: "Short ribs are deeply beefy and loaded with connective tissue, making them ideal for slow cooking.",
+        fat: "Medium to High",
+        tenderness: "Low raw / High when slow-cooked",
+        methods: ["Smoking", "Braising", "Long oven cook"],
+        tip: "Short ribs need time, but they pay it back in flavor."
+      },
+      sirloin: {
+        title: "Sirloin",
+        description: "Sirloin is leaner than rib cuts but still flavorful and versatile for steaks or roasting.",
+        fat: "Medium",
+        tenderness: "Medium to High",
+        methods: ["Grilling", "Cast iron", "Roasting"],
+        tip: "Do not overcook it. Sirloin is best when sliced properly and rested."
+      },
+      flank: {
+        title: "Flank",
+        description: "Flank is a lean, fibrous cut with bold flavor. It works best with fast cooking and correct slicing.",
+        fat: "Low",
+        tenderness: "Medium",
+        methods: ["High-heat grill", "Cast iron", "Marinated sear"],
+        tip: "Always slice flank against the grain."
+      },
+      tenderloin: {
+        title: "Filet / Tenderloin",
+        description: "Tenderloin is extremely tender and lean, known more for texture than aggressive beef flavor.",
+        fat: "Low",
+        tenderness: "Very High",
+        methods: ["Cast iron", "Quick roast", "Gentle grill"],
+        tip: "Because it is lean, avoid overcooking and consider butter-based finishing."
+      },
+      picanha: {
+        title: "Picanha",
+        description: "Picanha is prized for its fat cap and big flavor. It is especially popular in Brazilian-style cooking.",
+        fat: "Medium to High",
+        tenderness: "High",
+        methods: ["BBQ", "Grill", "Reverse sear", "Roast"],
+        tip: "Score the fat cap lightly and render it carefully."
+      }
+    };
+
+    function formatNum(n) {
+      return Number(n || 0).toLocaleString("en-US");
+    }
+
+    function formatDateTime(isoString) {
+      if (!isoString) return "Unknown";
+      const d = new Date(isoString);
+      return d.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function clearErrorBanner() {
+      document.getElementById("errorMount").innerHTML = "";
+    }
+
+    function renderErrorBanner(title, message) {
+      document.getElementById("errorMount").innerHTML = `
+        <div class="error-banner">
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    function getFriendlyErrorMessage(error) {
+      const text = String(error?.message || error || "");
+
+      if (text.includes("quotaExceeded")) {
+        return {
+          title: "Quota limit reached",
+          message: "The YouTube API daily quota has been exhausted. Fresh data is temporarily unavailable. Cached results will appear automatically when available."
+        };
+      }
+
+      if (text.includes("PERMISSION_DENIED") || text.includes("forbidden")) {
+        return {
+          title: "API access blocked",
+          message: "The backend could not access the YouTube API. This usually indicates an API key restriction or permission issue."
+        };
+      }
+
+      if (text.includes("Missing API key")) {
+        return {
+          title: "Missing API key",
+          message: "The backend is running without a valid YouTube API key in the environment settings."
+        };
+      }
+
+      return {
+        title: "Unable to load radar data",
+        message: "The dashboard could not fetch data right now. Please try again later."
+      };
+    }
+
+    function openPopover(title, text, buttonEl = null) {
+      document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
+      if (buttonEl) buttonEl.classList.add("active");
+
+      document.getElementById("popoverTitle").textContent = title;
+      document.getElementById("popoverText").textContent = text;
+      document.getElementById("infoPopover").classList.add("show");
+    }
+
+    function closePopover() {
+      document.getElementById("infoPopover").classList.remove("show");
+      document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
+    }
+
+    function attachPopovers() {
+      document.querySelectorAll(".info-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const title = btn.dataset.popoverTitle || "Info";
+          const text = btn.dataset.popoverText || "";
+          const alreadyOpen =
+            btn.classList.contains("active") &&
+            document.getElementById("infoPopover").classList.contains("show");
+
+          if (alreadyOpen) {
+            closePopover();
+            return;
+          }
+
+          openPopover(title, text, btn);
+        });
+      });
+
+      document.getElementById("popoverClose").addEventListener("click", closePopover);
+
+      document.addEventListener("click", (e) => {
+        const pop = document.getElementById("infoPopover");
+        if (!pop.contains(e.target) && !e.target.classList.contains("info-btn")) {
+          closePopover();
+        }
+      });
+    }
+
+    function renderMeta(data) {
+      const metaStrip = document.getElementById("metaStrip");
+      const miniLiveBadge = document.getElementById("miniLiveBadge");
+      const pills = [];
+
+      if (data.source === "live") {
+        pills.push(`<div class="meta-pill live">Live Data</div>`);
+        miniLiveBadge.textContent = "Live";
+        miniLiveBadge.className = "meta-pill live";
+      } else if (data.source === "cache") {
+        pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
+        miniLiveBadge.textContent = "Cached";
+        miniLiveBadge.className = "meta-pill cached";
+      } else if (data.source === "seed" || data.source === "no-key") {
+        pills.push(`<div class="meta-pill">Offline Snapshot</div>`);
+        miniLiveBadge.textContent = "Offline";
+        miniLiveBadge.className = "meta-pill";
+      } else {
+        miniLiveBadge.textContent = "Offline";
+        miniLiveBadge.className = "meta-pill";
+      }
+
+      if (data.lastUpdated) {
+        pills.push(`<div class="meta-pill">Updated ${escapeHtml(formatDateTime(data.lastUpdated))}</div>`);
+      }
+
+      if (typeof data.cacheAgeMinutes === "number" && Number.isFinite(data.cacheAgeMinutes)) {
+        pills.push(`<div class="meta-pill">Cache Age: ${escapeHtml(String(data.cacheAgeMinutes))} min</div>`);
+      }
+
+      if (data.ttlMinutes) {
+        pills.push(`<div class="meta-pill">TTL: ${escapeHtml(String(data.ttlMinutes))} min</div>`);
+      }
+
+      if (data.fallbackReason) {
+        pills.push(`<div class="meta-pill cached">${escapeHtml(data.fallbackReason)}</div>`);
+      }
+
+      metaStrip.innerHTML = pills.join("");
+    }
+
+    function renderHero(data = {}) {
+      let baseScore = 0;
+
+      if (data.summary && typeof data.summary.avgSmokeScore !== "undefined") {
+        baseScore = Number(data.summary.avgSmokeScore || 0);
+      } else if (data.videos && data.videos.length) {
+        baseScore = Math.round(
+          data.videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0) / data.videos.length
+        );
+      }
+
+      const normalized = Math.max(0, Math.min(100, Math.round(baseScore)));
+
+      document.getElementById("heroScore").textContent = `${normalized}%`;
+
+      let level = "Scanning";
+      let caption = "Projected content heat · current snapshot";
+
+      if (normalized >= 75) level = "Breakout";
+      else if (normalized >= 50) level = "Hot";
+      else if (normalized >= 25) level = "Rising";
+      else if (normalized > 0) level = "Early";
+
+      if (data.source === "cache") {
+        caption = "Showing cached radar snapshot";
+      } else if (data.source === "seed" || data.source === "no-key") {
+        caption = "Showing offline fallback snapshot";
+      }
+
+      document.getElementById("heroBadge").textContent = level;
+      document.getElementById("heroCaption").textContent = caption;
+      document.getElementById("heroSubtitle").textContent =
+        data.source === "cache"
+          ? "Cache-first mode to preserve quota and keep the feed alive"
+          : data.source === "seed" || data.source === "no-key"
+          ? "Offline seed snapshot while live radar is unavailable"
+          : "Momentum estimate based on current radar feed";
+    }
+
+    function renderSignalStrip(data = {}) {
+      const videos = data.videos || [];
+      const topChannel =
+        (data.topChannels && data.topChannels[0])
+          ? data.topChannels[0].channelTitle
+          : (videos[0]?.channelTitle || videos[0]?.channel || "—");
+
+      const avgSmoke = data?.summary?.avgSmokeScore
+        ? Number(data.summary.avgSmokeScore)
+        : videos.length
+        ? Math.round(videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0) / videos.length)
+        : 0;
+
+      const totalViews = data?.summary?.totalViews
+        ? Number(data.summary.totalViews)
+        : videos.reduce((sum, v) => sum + Number(v.views || v.viewCount || 0), 0);
+
+      document.getElementById("signalStrip").innerHTML = `
+        <div class="signal-card">
+          <div class="signal-label">Tracked Videos</div>
+          <div class="signal-value">${formatNum(videos.length)}</div>
+          <div class="signal-sub">Current feed size</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Top Channel</div>
+          <div class="signal-value">${escapeHtml(String(topChannel).length > 14 ? String(topChannel).slice(0, 14) + "..." : String(topChannel))}</div>
+          <div class="signal-sub">Highest current average</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Avg Smoke</div>
+          <div class="signal-value">${formatNum(avgSmoke)}</div>
+          <div class="signal-sub">Across current scan</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Total Views</div>
+          <div class="signal-value">${formatNum(totalViews)}</div>
+          <div class="signal-sub">Visible radar sample</div>
+        </div>
+      `;
+    }
+
+    function renderKpis(summary = {}) {
+      document.getElementById("kpis").innerHTML = `
+        <div class="kpi">
+          <div class="kpi-label">Total Views</div>
+          <div class="kpi-value">${formatNum(summary.totalViews)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Average Views</div>
+          <div class="kpi-value">${formatNum(summary.avgViews)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Average Likes</div>
+          <div class="kpi-value">${formatNum(summary.avgLikes)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Average Smoke Score</div>
+          <div class="kpi-value">${formatNum(summary.avgSmokeScore)}</div>
+        </div>
+      `;
+    }
+
+    function renderKeywords(keywords) {
+      const el = document.getElementById("keywords");
+      if (!keywords.length) {
+        el.innerHTML = `<div class="empty">No keyword clusters yet.</div>`;
+        return;
+      }
+
+      el.innerHTML = keywords.map(k =>
+        `<span class="keyword">${escapeHtml(k.keyword)} · ${k.count}</span>`
+      ).join("");
+    }
+
+    function renderChannelTable(channels) {
+      const el = document.getElementById("channelTable");
+      if (!channels.length) {
+        el.innerHTML = `<tr><td colspan="4" class="empty">No channel comparison data yet.</td></tr>`;
+        return;
+      }
+
+      el.innerHTML = channels.map(ch => `
+        <tr>
+          <td>${escapeHtml(ch.channelTitle)}</td>
+          <td>${formatNum(ch.videos)}</td>
+          <td>${formatNum(ch.totalViews)}</td>
+          <td>${formatNum(ch.avgSmokeScore)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function getTabVideos() {
+      const videos = allData?.videos || [];
+
+      if (currentTab === "rising") {
+        return [...videos].sort((a, b) => Number(b.viewsPerHour || 0) - Number(a.viewsPerHour || 0));
+      }
+
+      return [...videos].sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
+    }
+
+    function renderVideos(videos) {
+      const el = document.getElementById("results");
+
+      if (!videos.length) {
+        el.innerHTML = `<div class="empty">No videos available right now.</div>`;
+        return;
+      }
+
+      el.innerHTML = videos.map(v => {
+        const viewCount = v.viewCount ?? v.views ?? 0;
+        const likeCount = v.likeCount ?? v.likes ?? 0;
+        const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
+        const channelLink = v.channelId
+          ? `https://youtube.com/channel/${v.channelId}`
+          : (v.url || "https://youtube.com");
+        const watchLink = v.url ? v.url : (v.id ? `https://youtube.com/watch?v=${v.id}` : "https://youtube.com");
+
+        return `
+          <div class="card">
+            <div class="thumb">
+              <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
+              <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour || 0)}` : `Smoke ${formatNum(v.smokeScore || 0)}`}</div>
+            </div>
+
+            <div class="card-body">
+              <div class="title">${escapeHtml(v.title)}</div>
+              <div class="channel">${escapeHtml(channelTitle)}</div>
+
+              <div class="stats">
+                <div class="stat">
+                  <small>Views</small>
+                  <strong>${formatNum(viewCount)}</strong>
+                </div>
+                <div class="stat">
+                  <small>Likes</small>
+                  <strong>${formatNum(likeCount)}</strong>
+                </div>
+                <div class="stat">
+                  <small>Views / Hour</small>
+                  <strong>${formatNum(v.viewsPerHour || 0)}</strong>
+                </div>
+                <div class="stat">
+                  <small>Subscribers</small>
+                  <strong>${formatNum(v.subscriberCount || 0)}</strong>
+                </div>
+              </div>
+
+              <div class="links">
+                <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">Watch</a>
+                ${v.channelId
+                  ? `<a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>`
+                  : `<span class="secondary-link disabled">Channel</span>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderScoreChart(videos) {
+      const ctx = document.getElementById("scoreChart").getContext("2d");
+
+      if (scoreChartInstance) scoreChartInstance.destroy();
+
+      const top = videos.slice(0, 10);
+      const isRising = currentTab === "rising";
+
+      scoreChartInstance = new Chart(ctx, {
+        type: isRising ? "bar" : "line",
+        data: {
+          labels: top.map(x => {
+            const t = x.title || "";
+            return t.length > 24 ? t.slice(0, 24) + "..." : t;
+          }),
+          datasets: [{
+            label: isRising ? "Views / Hour" : "Smoke Score",
+            data: top.map(x => isRising ? (x.viewsPerHour || 0) : (x.smokeScore || 0)),
+            borderColor: "#ff8f5c",
+            backgroundColor: isRising ? "#ff6b2c" : "rgba(255,107,44,0.18)",
+            tension: 0.35,
+            fill: !isRising,
+            pointRadius: isRising ? 0 : 4,
+            pointBackgroundColor: "#ff6b2c",
+            borderRadius: isRising ? 8 : 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "#edf2f7" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#a7b4c9" },
+              grid: { color: "#182231" }
+            },
+            y: {
+              ticks: { color: "#a7b4c9" },
+              grid: { color: "#182231" }
+            }
+          }
+        }
+      });
+
+      document.getElementById("chartTitle").textContent = isRising ? "Rising Momentum" : "Momentum Trend";
+      document.getElementById("chartSubtitle").textContent = isRising
+        ? "Fastest current movers by views per hour"
+        : "Highest-ranking videos across the current feed";
+
+      document.getElementById("feedTitle").textContent = isRising ? "Rising Feed" : "Radar Feed";
+      document.getElementById("feedSubtitle").textContent = isRising
+        ? "Videos currently accelerating fastest"
+        : "Live-discovered videos ranked by momentum";
+    }
+
+    function renderTabState() {
+      const videos = getTabVideos();
+      renderVideos(videos);
+      renderScoreChart(videos);
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === currentTab);
+      });
+    }
+
+    function attachTabs() {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentTab = btn.dataset.tab;
+          renderTabState();
+        });
+      });
+    }
+
+    function generateRecipe() {
+      const cutType = document.getElementById("cutType").value;
+      const cookingMethod = document.getElementById("cookingMethod").value;
+      const flavorProfile = document.getElementById("flavorProfile").value;
+      const output = document.getElementById("recipeOutput");
+
+      const cutLabels = {
+        brisket: "Brisket",
+        ribeye: "Ribeye",
+        short_ribs: "Short Ribs",
+        tomahawk: "Tomahawk",
+        picanha: "Picanha"
+      };
+
+      const methodLabels = {
+        smoking: "Smoking",
+        long_cook: "Long Cook",
+        cast_iron: "Cast Iron",
+        bbq: "BBQ",
+        oven_roast: "Oven Roast"
+      };
+
+      const flavorLabels = {
+        classic: "Classic",
+        peppery: "Peppery",
+        garlic_herb: "Garlic & Herb",
+        sweet_smoky: "Sweet & Smoky",
+        spicy: "Spicy"
+      };
+
+      const flavorMap = {
+        classic: {
+          rub: ["kosher salt", "black pepper", "paprika"],
+          addOns: ["olive oil", "butter"],
+          tip: "Keep the seasoning minimal and let the meat lead."
+        },
+        peppery: {
+          rub: ["coarse black pepper", "kosher salt", "crushed coriander"],
+          addOns: ["olive oil", "a touch of butter"],
+          tip: "Pepper should build a crust, not overpower the meat."
+        },
+        garlic_herb: {
+          rub: ["kosher salt", "black pepper", "garlic powder", "rosemary", "thyme"],
+          addOns: ["butter", "fresh garlic"],
+          tip: "Add fresh herbs late so they stay fragrant."
+        },
+        sweet_smoky: {
+          rub: ["brown sugar", "paprika", "kosher salt", "black pepper", "smoked chili"],
+          addOns: ["butter", "apple cider vinegar"],
+          tip: "Balance sweetness with enough salt and smoke."
+        },
+        spicy: {
+          rub: ["kosher salt", "black pepper", "chili flakes", "cayenne", "smoked paprika"],
+          addOns: ["butter", "lime juice"],
+          tip: "Use heat in layers so the meat still stays center stage."
+        }
+      };
+
+      const methodMap = {
+        smoking: {
+          prep: "Trim the surface lightly, pat dry, and coat evenly with oil and rub. Let it sit 30–45 minutes before smoking.",
+          steps: [
+            "Preheat the smoker to 120–135°C.",
+            "Place the meat away from direct flame and smoke until bark and color develop.",
+            "Spritz lightly if needed during the cook.",
+            "Cook until tender or until the internal temperature suits the cut.",
+            "Rest well before slicing."
+          ]
+        },
+        long_cook: {
+          prep: "Season generously and let the meat sit at room temperature for 20–30 minutes before cooking.",
+          steps: [
+            "Sear the meat first for deep color.",
+            "Move to a low oven or covered pot at low heat.",
+            "Add a little stock or cooking liquid if needed.",
+            "Cook slowly until the texture softens and the meat yields easily.",
+            "Rest briefly, then slice or shred."
+          ]
+        },
+        cast_iron: {
+          prep: "Pat the meat very dry, season well, and let it sit while the pan gets very hot.",
+          steps: [
+            "Heat a cast iron pan until very hot.",
+            "Add a little neutral oil and sear both sides deeply.",
+            "Lower heat and baste with butter if desired.",
+            "Cook to your preferred internal temperature.",
+            "Rest before slicing."
+          ]
+        },
+        bbq: {
+          prep: "Coat lightly with oil, apply rub evenly, and let it sit while the grill heats up.",
+          steps: [
+            "Prepare two-zone heat on the grill.",
+            "Sear over direct heat first.",
+            "Move to indirect heat to finish gently.",
+            "Brush lightly if using glaze or butter.",
+            "Rest before serving."
+          ]
+        },
+        oven_roast: {
+          prep: "Season thoroughly and place on a rack so heat circulates around the meat.",
+          steps: [
+            "Preheat the oven to a moderate temperature.",
+            "Roast until the outer crust forms and the center reaches the target doneness.",
+            "Use a thermometer for accuracy.",
+            "Let the meat rest before carving.",
+            "Slice against the grain where relevant."
+          ]
+        }
+      };
+
+      const cutSpecific = {
+        brisket: {
+          title: "Smoked Brisket Build",
+          ingredients: ["1 brisket", "yellow mustard or oil binder"],
+          extraTip: "Slice against the grain and do not rush the rest."
+        },
+        ribeye: {
+          title: "Ribeye Precision Cook",
+          ingredients: ["2 ribeye steaks"],
+          extraTip: "Ribeye loves a hard crust and a shorter rest."
+        },
+        short_ribs: {
+          title: "Short Ribs Low & Slow",
+          ingredients: ["beef short ribs"],
+          extraTip: "Short ribs reward patience more than almost any cut."
+        },
+        tomahawk: {
+          title: "Tomahawk Showcase Cook",
+          ingredients: ["1 tomahawk steak"],
+          extraTip: "Use indirect heat after searing so the inside catches up cleanly."
+        },
+        picanha: {
+          title: "Picanha Fire Finish",
+          ingredients: ["1 picanha roast or picanha steaks"],
+          extraTip: "Score the fat cap lightly to render it better."
+        }
+      };
+
+      const flavor = flavorMap[flavorProfile];
+      const method = methodMap[cookingMethod];
+      const cut = cutSpecific[cutType];
+
+      const title = `${cut.title} · ${methodLabels[cookingMethod]} · ${flavorLabels[flavorProfile]}`;
+      const ingredients = [...cut.ingredients, ...flavor.rub, ...flavor.addOns];
+
+      output.innerHTML = `
+        <h3>${title}</h3>
+        <h4>Overview</h4>
+        <p>
+          This recipe is designed for <strong>${cutLabels[cutType]}</strong> using
+          <strong>${methodLabels[cookingMethod]}</strong> with a
+          <strong>${flavorLabels[flavorProfile]}</strong> profile.
+        </p>
+        <h4>Ingredients</h4>
+        <ul>${ingredients.map(item => `<li>${item}</li>`).join("")}</ul>
+        <h4>Preparation</h4>
+        <p>${method.prep}</p>
+        <h4>Cooking Steps</h4>
+        <ol>${method.steps.map(step => `<li>${step}</li>`).join("")}</ol>
+        <h4>Pitmaster Tips</h4>
+        <ul>
+          <li>${flavor.tip}</li>
+          <li>${cut.extraTip}</li>
+          <li>Let the meat rest before slicing so juices redistribute properly.</li>
+        </ul>
+      `;
+    }
+
+    function renderCutInfo(cutKey) {
+      const cut = cutData[cutKey];
+      if (!cut) return;
+
+      document.querySelectorAll(".cut-zone").forEach(el => el.classList.remove("active"));
+      const zone = document.getElementById(`cut-${cutKey}`);
+      if (zone) zone.classList.add("active");
+
+      document.getElementById("cutInfo").innerHTML = `
+        <h3>${cut.title}</h3>
+        <p>${cut.description}</p>
+        <h4>Profile</h4>
+        <div class="cut-badges">
+          <span class="cut-badge">Fat: ${cut.fat}</span>
+          <span class="cut-badge">Tenderness: ${cut.tenderness}</span>
+        </div>
+        <h4>Best Uses</h4>
+        <ul>${cut.methods.map(method => `<li>${method}</li>`).join("")}</ul>
+        <h4>Tip</h4>
+        <p>${cut.tip}</p>
+      `;
+
+      const cutSelect = document.getElementById("cutType");
+      if (cutSelect) {
+        const map = {
+          brisket: "brisket",
+          ribeye: "ribeye",
+          short_ribs: "short_ribs",
+          picanha: "picanha"
+        };
+        if (map[cutKey]) cutSelect.value = map[cutKey];
+      }
+    }
+
+    function attachCutMap() {
+      document.querySelectorAll(".cut-zone").forEach(zone => {
+        zone.addEventListener("click", () => {
+          const cutKey = zone.id.replace("cut-", "");
+          renderCutInfo(cutKey);
+        });
+      });
+    }
+
+    async function loadData() {
+      const button = document.getElementById("loadBtn");
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+
+      button.disabled = true;
+      status.textContent = "Loading radar data...";
+      results.innerHTML = "";
+      clearErrorBanner();
+
+      try {
+        const res = await fetch("/api/smoke-radar");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.details || data.error || "Unknown error");
+        }
+
+        allData = data;
+
+        renderMeta(data);
+        renderHero(data);
+        renderSignalStrip(data);
+        renderKpis(data.summary || {});
+        renderKeywords(data.topKeywords || []);
+        renderChannelTable(data.topChannels || []);
+        renderTabState();
+
+        if (!data.videos || data.videos.length === 0) {
+          status.textContent = "No videos returned in the current scan.";
+        } else if (data.source === "cache") {
+          status.textContent = `Showing cached results · ${data.videos.length} videos loaded`;
+        } else if (data.source === "seed" || data.source === "no-key") {
+          status.textContent = `Showing offline snapshot · ${data.videos.length} videos loaded`;
+        } else {
+          status.textContent = `${data.videos.length} videos loaded into the radar`;
+        }
+      } catch (error) {
+        console.error(error);
+
+        renderMeta({});
+        renderHero({});
+        renderSignalStrip({});
+        renderKpis({});
+        renderKeywords([]);
+        renderChannelTable([]);
+        renderVideos([]);
+        renderScoreChart([]);
+
+        const friendly = getFriendlyErrorMessage(error);
+        renderErrorBanner(friendly.title, friendly.message);
+        status.textContent = "Radar data currently unavailable";
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    attachTabs();
+    attachCutMap();
+    attachPopovers();
+    loadData();
+  </script>
+</body>
+</html>
