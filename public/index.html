@@ -42,7 +42,7 @@
     }
 
     .container {
-      max-width: 860px;
+      max-width: 980px;
       margin: 0 auto;
       padding: 20px 16px 40px;
     }
@@ -152,6 +152,12 @@
       background: rgba(245, 176, 65, 0.08);
     }
 
+    .meta-pill.warn {
+      color: #ffe6d6;
+      border-color: rgba(255,107,44,0.35);
+      background: rgba(255,107,44,0.10);
+    }
+
     .status {
       min-height: 22px;
       margin: 0 0 16px;
@@ -187,8 +193,7 @@
     .card,
     .kpi,
     .recipe-output,
-    .cut-info,
-    .cuts-map-shell {
+    .cut-info {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
@@ -411,8 +416,8 @@
     .recipe-grid,
     .cuts-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: 1fr;
+      gap: 16px;
       margin-bottom: 14px;
     }
 
@@ -491,72 +496,63 @@
       line-height: 1.7;
     }
 
+    /* ===== BEEF MAP FINAL ===== */
+
     .cuts-map-shell {
       border-radius: 22px;
-      padding: 18px;
-      position: relative;
-      min-height: 320px;
+      padding: 14px;
       overflow: hidden;
       background:
         radial-gradient(circle at top right, rgba(255,107,44,0.08), transparent 28%),
         linear-gradient(180deg, rgba(15,22,33,0.96), rgba(10,16,24,0.98));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
     }
 
-    .cuts-map-svg {
+    .cuts-map-stage {
+      position: relative;
       width: 100%;
-      height: auto;
-      display: block;
-      max-height: 340px;
+      aspect-ratio: 16 / 10;
+      border-radius: 18px;
+      overflow: hidden;
+      background-color: #05070b;
+      background-image: url("/images/beef-map-premium.png");
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: contain;
     }
 
-    .cow-silhouette {
-      fill: rgba(17, 26, 39, 0.96);
-      stroke: #35465d;
-      stroke-width: 3.5;
-    }
-
-    .cow-detail {
-      stroke: #35465d;
-      stroke-width: 5.5;
-      stroke-linecap: round;
-      fill: none;
-      opacity: 0.95;
-    }
-
-    .cut-zone {
-      fill: rgba(28, 40, 58, 0.88);
-      stroke: #41556f;
-      stroke-width: 2;
-      cursor: pointer;
-      transition: transform 0.18s ease, fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease;
-      transform-box: fill-box;
-      transform-origin: center;
-    }
-
-    .cut-zone:hover,
-    .cut-zone.active {
-      fill: rgba(255,107,44,0.30);
-      stroke: #ff9a68;
-      filter: drop-shadow(0 0 12px rgba(255,107,44,0.18));
-      transform: scale(1.03);
-    }
-
-    .cut-label {
-      fill: #eef3f8;
+    .cut-hotspot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      min-width: 54px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(16, 22, 32, 0.72);
+      color: #e8eef7;
       font-size: 10px;
       font-weight: 800;
-      text-anchor: middle;
-      pointer-events: none;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      z-index: 2;
     }
 
-    .cut-mini-label {
-      fill: #c9d6e7;
-      font-size: 8px;
-      font-weight: 700;
-      text-anchor: middle;
-      pointer-events: none;
-      opacity: 0.9;
+    .cut-hotspot:hover {
+      background: rgba(255,107,44,0.18);
+      border-color: rgba(255,154,104,0.65);
+      transform: translate(-50%, -50%) scale(1.04);
+    }
+
+    .cut-hotspot.active {
+      background: linear-gradient(135deg, #ff6b2c, #ff955f);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 0 20px rgba(255,107,44,0.28);
     }
 
     .cut-badges {
@@ -782,6 +778,13 @@
       max-height: 320px;
     }
 
+    @media (min-width: 860px) {
+      .cuts-grid {
+        grid-template-columns: 1.15fr 0.85fr;
+        align-items: start;
+      }
+    }
+
     @media (min-width: 760px) {
       .video-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -803,8 +806,7 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
-      .recipe-grid,
-      .cuts-grid {
+      .recipe-grid {
         grid-template-columns: 1fr;
       }
 
@@ -817,207 +819,20 @@
       }
 
       .cuts-map-shell {
-        min-height: 280px;
-        padding: 12px;
+        padding: 10px;
       }
 
-      .cuts-map-svg {
-        max-height: 280px;
+      .cuts-map-stage {
+        aspect-ratio: 16 / 11;
+      }
+
+      .cut-hotspot {
+        min-width: 42px;
+        padding: 6px 8px;
+        font-size: 8px;
+        border-radius: 12px;
       }
     }
-  /* כל הCSS הקיים שלך */
-
-  ...
-
-  /* ===== FIX FOR BEEF MAP IMAGE ===== */
-  .cuts-map-stage {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .cuts-map-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #05070b;
-    max-height: 320px;
-    border-radius: 16px;
-  }
- /* ===== HOTSPOTS ===== */
-
-.cuts-map-stage {
-  position: relative;
-}
-
-.cut-hotspot {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 10px;
-  background: rgba(15, 20, 30, 0.75);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #dbe5f2;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  transition: all 0.2s ease;
-}
-
-/* hover */
-.cut-hotspot:hover {
-  background: rgba(255,107,44,0.2);
-  border-color: rgba(255,107,44,0.4);
-  color: #fff;
-  transform: translate(-50%, -50%) scale(1.05);
-}
-
-/* active (כמו ribeye אצלך) */
-.cut-hotspot.active {
-  background: linear-gradient(135deg, #ff6b2c, #ff955f);
-  color: white;
-  border: none;
-  box-shadow: 0 0 12px rgba(255,107,44,0.5);
-}
- /* ===== BEEF MAP FINAL FIX ===== */
-
-.cuts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-.cuts-map-shell {
-  border-radius: 22px;
-  padding: 14px;
-  min-height: auto;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top right, rgba(255,107,44,0.08), transparent 28%),
-    linear-gradient(180deg, rgba(15,22,33,0.96), rgba(10,16,24,0.98));
-  border: 1px solid var(--border);
-}
-
-.cuts-map-stage {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: 18px;
-  overflow: hidden;
-  background-color: #05070b;
-  background-image: url("/images/beef-map-premium.png");
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: contain;
-}
-
-.cut-hotspot {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  min-width: 54px;
-  padding: 8px 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(16, 22, 32, 0.72);
-  color: #e8eef7;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: all 0.18s ease;
-  white-space: nowrap;
-  z-index: 2;
-}
-
-.cut-hotspot:hover {
-  background: rgba(255,107,44,0.18);
-  border-color: rgba(255,154,104,0.65);
-  transform: translate(-50%, -50%) scale(1.04);
-}
-
-.cut-hotspot.active {
-  background: linear-gradient(135deg, #ff6b2c, #ff955f);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 0 20px rgba(255,107,44,0.28);
-}
-
-.cut-info {
-  border-radius: 18px;
-  padding: 16px;
-  background: linear-gradient(180deg, var(--panel), var(--panel-2));
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-
-.cut-info h3 {
-  margin: 0 0 10px;
-  font-size: 20px;
-}
-
-.cut-info h4 {
-  margin: 16px 0 8px;
-  font-size: 14px;
-  color: #d8e2ef;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.cut-info p,
-.cut-info li {
-  color: #d7dfeb;
-  line-height: 1.7;
-  font-size: 14px;
-}
-
-.cut-info ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.cut-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0 0;
-}
-
-.cut-badge {
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: #131b27;
-  border: 1px solid #243043;
-  color: #dbe5f2;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-@media (min-width: 860px) {
-  .cuts-grid {
-    grid-template-columns: 1.15fr 0.85fr;
-    align-items: start;
-  }
-}
-
-@media (max-width: 640px) {
-  .cuts-map-shell {
-    padding: 10px;
-  }
-
-  .cuts-map-stage {
-    aspect-ratio: 16 / 11;
-  }
-
-  .cut-hotspot {
-    min-width: 42px;
-    padding: 6px 8px;
-    font-size: 8px;
-    border-radius: 12px;
-  }
-}
   </style>
 </head>
 <body>
@@ -1140,58 +955,29 @@
       </div>
     </div>
 
- <div class="panel">
-  <div class="panel-heading">
-    <h2>Beef Cuts Map</h2>
-    <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="Tap a region to explore the cut and recommended cooking styles.">
-      i
-    </button>
-  </div>
-
-  <div class="subtle">Tap a cut to see what it is and how to cook it</div>
-
-  <div class="cuts-grid">
-    <div class="cuts-map-shell">
-      <div class="cuts-map-stage">
-        <button class="cut-hotspot" id="cut-chuck" style="left:22%; top:40%;">Chuck</button>
-        <button class="cut-hotspot active" id="cut-ribeye" style="left:42%; top:38%;">Ribeye</button>
-        <button class="cut-hotspot" id="cut-sirloin" style="left:60%; top:38%;">Sirloin</button>
-        <button class="cut-hotspot" id="cut-brisket" style="left:20%; top:65%;">Brisket</button>
-        <button class="cut-hotspot" id="cut-short_ribs" style="left:42%; top:65%;">Short Ribs</button>
-        <button class="cut-hotspot" id="cut-flank" style="left:59%; top:62%;">Flank</button>
-        <button class="cut-hotspot" id="cut-tenderloin" style="left:74%; top:48%;">Filet</button>
-        <button class="cut-hotspot" id="cut-picanha" style="left:74%; top:24%;">Picanha</button>
-      </div>
-    </div>
-
-    <div class="cut-info" id="cutInfo">
-      <h3>Ribeye</h3>
-      <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
-
-      <h4>Profile</h4>
-      <div class="cut-badges">
-        <span class="cut-badge">Fat: High</span>
-        <span class="cut-badge">Tenderness: High</span>
+    <div class="panel">
+      <div class="panel-heading">
+        <h2>Beef Cuts Map</h2>
+        <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="Tap a region to explore the cut and recommended cooking styles.">i</button>
       </div>
 
-      <h4>Best Uses</h4>
-      <ul>
-        <li>Cast iron</li>
-        <li>Grill</li>
-        <li>Reverse sear</li>
-      </ul>
+      <div class="subtle">Tap a cut to see what it is and how to cook it</div>
 
-      <h4>Tip</h4>
-      <p>A strong crust and a short rest usually give ribeye its best result.</p>
-    </div>
-  </div>
-</div>  
-  </div>
+      <div class="cuts-grid">
+        <div class="cuts-map-shell">
+          <div class="cuts-map-stage">
+            <button class="cut-hotspot" id="cut-chuck" style="left:22%; top:40%;">Chuck</button>
+            <button class="cut-hotspot active" id="cut-ribeye" style="left:42%; top:38%;">Ribeye</button>
+            <button class="cut-hotspot" id="cut-sirloin" style="left:60%; top:38%;">Sirloin</button>
+            <button class="cut-hotspot" id="cut-brisket" style="left:20%; top:65%;">Brisket</button>
+            <button class="cut-hotspot" id="cut-short_ribs" style="left:42%; top:65%;">Short Ribs</button>
+            <button class="cut-hotspot" id="cut-flank" style="left:59%; top:62%;">Flank</button>
+            <button class="cut-hotspot" id="cut-tenderloin" style="left:74%; top:48%;">Filet</button>
+            <button class="cut-hotspot" id="cut-picanha" style="left:74%; top:24%;">Picanha</button>
+          </div>
+        </div>
 
-    <div class="cut-info" id="cutInfo"></div>
-
-  </div>
-</div>
+        <div class="cut-info" id="cutInfo">
           <h3>Ribeye</h3>
           <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
 
@@ -1213,11 +999,10 @@
         </div>
       </div>
     </div>
-
     <div class="panel">
       <div class="panel-heading">
         <h2>Recipe Generator</h2>
-        <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile. This version is template-driven and designed as an embedded product feature.">i</button>
+        <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
       </div>
       <div class="subtle">Build a meat recipe by cut, method, and flavor profile</div>
 
@@ -1491,12 +1276,12 @@
         miniLiveBadge.textContent = "Cached";
         miniLiveBadge.className = "meta-pill cached";
       } else if (data.source === "seed" || data.source === "no-key") {
-        pills.push(`<div class="meta-pill">Offline Snapshot</div>`);
+        pills.push(`<div class="meta-pill warn">Offline Snapshot</div>`);
         miniLiveBadge.textContent = "Offline";
-        miniLiveBadge.className = "meta-pill";
+        miniLiveBadge.className = "meta-pill warn";
       } else {
         miniLiveBadge.textContent = "Offline";
-        miniLiveBadge.className = "meta-pill";
+        miniLiveBadge.className = "meta-pill warn";
       }
 
       if (data.lastUpdated) {
@@ -1509,6 +1294,14 @@
 
       if (data.ttlMinutes) {
         pills.push(`<div class="meta-pill">TTL: ${escapeHtml(String(data.ttlMinutes))} min</div>`);
+      }
+
+      if (data.liveRefreshWindowMinutes) {
+        pills.push(`<div class="meta-pill">Live Window: ${escapeHtml(String(data.liveRefreshWindowMinutes))} min</div>`);
+      }
+
+      if (data.quotaBlockedUntil) {
+        pills.push(`<div class="meta-pill warn">Quota cooldown active</div>`);
       }
 
       if (data.fallbackReason) {
@@ -1966,7 +1759,7 @@
       const cut = cutData[cutKey];
       if (!cut) return;
 
-      document.querySelectorAll(".cut-zone").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".cut-hotspot").forEach(el => el.classList.remove("active"));
       const zone = document.getElementById(`cut-${cutKey}`);
       if (zone) zone.classList.add("active");
 
@@ -1997,7 +1790,7 @@
     }
 
     function attachCutMap() {
-      document.querySelectorAll(".cut-zone").forEach(zone => {
+      document.querySelectorAll(".cut-hotspot").forEach(zone => {
         zone.addEventListener("click", () => {
           const cutKey = zone.id.replace("cut-", "");
           renderCutInfo(cutKey);
@@ -2062,10 +1855,12 @@
       }
     }
 
-    attachTabs();
-    attachCutMap();
-    attachPopovers();
-    loadData();
+    document.addEventListener("DOMContentLoaded", () => {
+      attachTabs();
+      attachCutMap();
+      attachPopovers();
+      loadData();
+    });
   </script>
 </body>
 </html>
