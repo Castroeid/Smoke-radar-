@@ -6,6 +6,7 @@ const fs = require("fs");
 const app = express();
 
 app.use(cors());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 3000;
@@ -135,72 +136,9 @@ function shouldAttemptLive(cache, state, force = false) {
   if (isQuotaBlocked(state)) return false;
   if (!cache?.videos?.length) return true;
   if (!cache.fetchedAt) return true;
-
   const cacheAge = getCacheAgeMinutes(cache);
   if (cacheAge < LIVE_REFRESH_WINDOW_MINUTES) return false;
-
   return true;
-}
-
-// -------------------- seed fallback --------------------
-
-function getSeedData() {
-  const now = new Date().toISOString();
-
-  const videos = [
-    {
-      id: "seed-brisket",
-      title: "Texas Style Smoked Brisket",
-      channelTitle: "BBQ Masters",
-      channelId: "UCseedbrisket001",
-      publishedAt: now,
-      thumbnail:
-        "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80",
-      viewCount: 124000,
-      likeCount: 5200,
-      subscriberCount: 185000,
-      smokeScore: 82,
-      viewsPerHour: 3400,
-      url: "https://www.youtube.com/results?search_query=Texas+Style+Smoked+Brisket"
-    },
-    {
-      id: "seed-ribeye",
-      title: "Reverse Sear Ribeye on Cast Iron",
-      channelTitle: "Meat Lab",
-      channelId: "UCseedribeye002",
-      publishedAt: now,
-      thumbnail:
-        "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
-      viewCount: 89000,
-      likeCount: 3400,
-      subscriberCount: 96000,
-      smokeScore: 75,
-      viewsPerHour: 2500,
-      url: "https://www.youtube.com/results?search_query=Reverse+Sear+Ribeye+Cast+Iron"
-    },
-    {
-      id: "seed-ribs",
-      title: "Beef Short Ribs Low and Slow",
-      channelTitle: "Smoke House",
-      channelId: "UCseedribs003",
-      publishedAt: now,
-      thumbnail:
-        "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80",
-      viewCount: 54000,
-      likeCount: 2100,
-      subscriberCount: 42000,
-      smokeScore: 68,
-      viewsPerHour: 1800,
-      url: "https://www.youtube.com/results?search_query=Beef+Short+Ribs+Low+and+Slow"
-    }
-  ];
-
-  return buildPayload(videos, {
-    source: "seed",
-    fallbackReason: "Offline fallback snapshot",
-    fetchedAt: now,
-    lastUpdated: now
-  });
 }
 
 // -------------------- utilities --------------------
@@ -209,6 +147,28 @@ function getHoursSince(dateString) {
   const now = Date.now();
   const then = new Date(dateString).getTime();
   return Math.max((now - then) / (1000 * 60 * 60), 1);
+}
+
+function parseISODurationToSeconds(isoDuration) {
+  if (!isoDuration || typeof isoDuration !== "string") return 0;
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  const hours = Number(match[1] || 0);
+  const minutes = Number(match[2] || 0);
+  const seconds = Number(match[3] || 0);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+function formatDuration(seconds) {
+  const s = Number(seconds || 0);
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const secs = s % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+  return `${minutes}:${String(secs).padStart(2, "0")}`;
 }
 
 function calculateSmokeScore(video) {
@@ -264,6 +224,32 @@ function isMeatRelevant(title = "", description = "") {
   return hasInclude && !hasExclude;
 }
 
+function inferRegion(title = "", channelTitle = "") {
+  const text = `${title} ${channelTitle}`.trim();
+
+  if (/[\u0590-\u05FF]/.test(text)) return "Israel / Hebrew";
+  if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(text)) return "East Asia";
+  if (/[\uac00-\ud7af]/.test(text)) return "Korea";
+  if (/[\u0400-\u04FF]/.test(text)) return "Eastern Europe / Cyrillic";
+
+  const lower = text.toLowerCase();
+
+  if (/\b(brasil|brasileiro|churrasco|picanha)\b/.test(lower)) return "Brazil";
+  if (/\b(asado|parrilla|argentina|mexico|mexican|español|espanol)\b/.test(lower)) return "Latin America / Spanish";
+  if (/\b(texas|usa|america|american|bbq pit boys|kansas|memphis)\b/.test(lower)) return "United States";
+  if (/\b(uk|britain|british|england|london)\b/.test(lower)) return "United Kingdom";
+  if (/\b(australia|australian)\b/.test(lower)) return "Australia";
+  if (/\b(france|french)\b/.test(lower)) return "France";
+  if (/\b(germany|german)\b/.test(lower)) return "Germany";
+  if (/\b(italy|italian)\b/.test(lower)) return "Italy";
+
+  return "Global / English";
+}
+
+function fetchJsonErrorText(error) {
+  return String(error?.message || error || "");
+}
+
 async function fetchJson(url) {
   const res = await fetch(url);
   const data = await res.json();
@@ -276,7 +262,7 @@ async function fetchJson(url) {
 }
 
 function errorLooksLikeQuota(error) {
-  const text = String(error?.message || error || "");
+  const text = fetchJsonErrorText(error);
   return text.includes("quotaExceeded");
 }
 
@@ -294,15 +280,21 @@ function buildPayload(videosInput, meta = {}) {
       viewCount: Number(video.viewCount ?? video.views ?? 0),
       likeCount: Number(video.likeCount ?? video.likes ?? 0),
       subscriberCount: Number(video.subscriberCount ?? 0),
+      durationSeconds: Number(video.durationSeconds || 0),
+      durationLabel: video.durationLabel || "0:00",
+      regionLabel: video.regionLabel || inferRegion(video.title, video.channelTitle),
       url: video.url || (video.id ? `https://youtube.com/watch?v=${video.id}` : "#")
     };
 
     normalized.viewsPerHour = Number(video.viewsPerHour || 0);
     normalized.smokeScore = Number(video.smokeScore || 0);
+    normalized.isShortForm = normalized.durationSeconds > 0 && normalized.durationSeconds <= 300;
+    normalized.formatLabel = normalized.isShortForm ? "Short" : "Long-form";
+    normalized.hoursSincePublished = getHoursSince(normalized.publishedAt);
 
     if (!normalized.viewsPerHour) {
       normalized.viewsPerHour = Math.round(
-        normalized.viewCount / getHoursSince(normalized.publishedAt)
+        normalized.viewCount / normalized.hoursSincePublished
       );
     }
 
@@ -344,7 +336,6 @@ function buildPayload(videosInput, meta = {}) {
         smokeSum: 0
       };
     }
-
     channelMap[v.channelTitle].videos += 1;
     channelMap[v.channelTitle].totalViews += v.viewCount;
     channelMap[v.channelTitle].totalLikes += v.likeCount;
@@ -361,8 +352,7 @@ function buildPayload(videosInput, meta = {}) {
 
   const keywordCount = {};
   for (const v of sortedVideos) {
-    const words = extractKeywords(v.title);
-    for (const word of words) {
+    for (const word of extractKeywords(v.title)) {
       keywordCount[word] = (keywordCount[word] || 0) + 1;
     }
   }
@@ -371,6 +361,27 @@ function buildPayload(videosInput, meta = {}) {
     .map(([keyword, count]) => ({ keyword, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
+
+  const regionCount = {};
+  for (const v of sortedVideos) {
+    regionCount[v.regionLabel] = (regionCount[v.regionLabel] || 0) + 1;
+  }
+
+  const topRegions = Object.entries(regionCount)
+    .map(([region, count]) => ({ region, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  const fastestBreakout = sortedVideos.length
+    ? [...sortedVideos].sort((a, b) => b.viewsPerHour - a.viewsPerHour)[0]
+    : null;
+
+  const oldestActiveVideo = sortedVideos.length
+    ? [...sortedVideos].sort((a, b) => b.hoursSincePublished - a.hoursSincePublished)[0]
+    : null;
+
+  const shortCount = sortedVideos.filter(v => v.isShortForm).length;
+  const longCount = sortedVideos.length - shortCount;
 
   return {
     source: meta.source || "cache",
@@ -385,8 +396,82 @@ function buildPayload(videosInput, meta = {}) {
     videos: sortedVideos,
     summary,
     topChannels,
-    topKeywords
+    topKeywords,
+    topRegions,
+    fastestBreakout,
+    oldestActiveVideo,
+    formatStats: {
+      shortCount,
+      longCount
+    }
   };
+}
+
+// -------------------- seed fallback --------------------
+
+function getSeedData() {
+  const now = new Date().toISOString();
+
+  const videos = [
+    {
+      id: "seed-brisket",
+      title: "Texas Style Smoked Brisket",
+      channelTitle: "BBQ Masters Texas",
+      channelId: "UCseedbrisket001",
+      publishedAt: "2025-10-01T12:00:00.000Z",
+      thumbnail: "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80",
+      viewCount: 124000,
+      likeCount: 5200,
+      subscriberCount: 185000,
+      durationSeconds: 842,
+      durationLabel: "14:02",
+      regionLabel: "United States",
+      smokeScore: 82,
+      viewsPerHour: 3400,
+      url: "https://www.youtube.com/results?search_query=Texas+Style+Smoked+Brisket"
+    },
+    {
+      id: "seed-ribeye",
+      title: "Reverse Sear Ribeye on Cast Iron",
+      channelTitle: "Meat Lab",
+      channelId: "UCseedribeye002",
+      publishedAt: "2026-03-20T10:00:00.000Z",
+      thumbnail: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
+      viewCount: 89000,
+      likeCount: 3400,
+      subscriberCount: 96000,
+      durationSeconds: 255,
+      durationLabel: "4:15",
+      regionLabel: "Global / English",
+      smokeScore: 75,
+      viewsPerHour: 2500,
+      url: "https://www.youtube.com/results?search_query=Reverse+Sear+Ribeye+Cast+Iron"
+    },
+    {
+      id: "seed-ribs",
+      title: "Beef Short Ribs Low and Slow",
+      channelTitle: "Smoke House Brasil",
+      channelId: "UCseedribs003",
+      publishedAt: "2025-09-15T09:00:00.000Z",
+      thumbnail: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80",
+      viewCount: 54000,
+      likeCount: 2100,
+      subscriberCount: 42000,
+      durationSeconds: 1012,
+      durationLabel: "16:52",
+      regionLabel: "Brazil",
+      smokeScore: 68,
+      viewsPerHour: 1800,
+      url: "https://www.youtube.com/results?search_query=Beef+Short+Ribs+Low+and+Slow"
+    }
+  ];
+
+  return buildPayload(videos, {
+    source: "seed",
+    fallbackReason: "Offline fallback snapshot",
+    fetchedAt: now,
+    lastUpdated: now
+  });
 }
 
 // -------------------- live fetch --------------------
@@ -398,7 +483,8 @@ async function fetchLiveData() {
 
   const queries = [
     "smoked brisket steak bbq beef",
-    "wagyu ribeye tomahawk beef ribs"
+    "wagyu ribeye tomahawk beef ribs",
+    "picanha flank sirloin beef short ribs"
   ];
 
   let searchItems = [];
@@ -433,7 +519,7 @@ async function fetchLiveData() {
   }
 
   const videosUrl =
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,status&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,status,contentDetails&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
 
   const videosData = await fetchJson(videosUrl);
 
@@ -474,6 +560,7 @@ async function fetchLiveData() {
   const videos = rawVideos.map(v => {
     const stats = v.statistics || {};
     const chStats = channelStatsMap[v.snippet.channelId] || {};
+    const durationSeconds = parseISODurationToSeconds(v.contentDetails?.duration);
 
     return {
       id: v.id,
@@ -489,6 +576,9 @@ async function fetchLiveData() {
       viewCount: Number(stats.viewCount || 0),
       likeCount: Number(stats.likeCount || 0),
       subscriberCount: Number(chStats.subscriberCount || 0),
+      durationSeconds,
+      durationLabel: formatDuration(durationSeconds),
+      regionLabel: inferRegion(v.snippet.title, v.snippet.channelTitle),
       url: `https://youtube.com/watch?v=${v.id}`
     };
   });
