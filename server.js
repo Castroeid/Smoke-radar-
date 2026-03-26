@@ -10,49 +10,57 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.YOUTUBE_API_KEY;
+
 const CACHE_FILE = path.join(__dirname, "cache.json");
-const CACHE_TTL_MINUTES = Number(process.env.CACHE_TTL_MINUTES || 45);
+const STATE_FILE = path.join(__dirname, "runtime-state.json");
+
+const CACHE_TTL_MINUTES = Number(process.env.CACHE_TTL_MINUTES || 120);
+const LIVE_REFRESH_WINDOW_MINUTES = Number(process.env.LIVE_REFRESH_WINDOW_MINUTES || 90);
+const QUOTA_COOLDOWN_MINUTES = Number(process.env.QUOTA_COOLDOWN_MINUTES || 360);
+
+// -------------------- file helpers --------------------
+
+function readJsonFileSafe(filePath, fallback) {
+  try {
+    if (!fs.existsSync(filePath)) return fallback;
+    const raw = fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error(`Failed reading ${path.basename(filePath)}:`, error.message);
+    return fallback;
+  }
+}
+
+function writeJsonFileSafe(filePath, data) {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+  } catch (error) {
+    console.error(`Failed writing ${path.basename(filePath)}:`, error.message);
+  }
+}
 
 // -------------------- cache helpers --------------------
 
 function readCache() {
-  try {
-    if (!fs.existsSync(CACHE_FILE)) {
-      return { fetchedAt: null, lastUpdated: null, videos: [] };
-    }
+  const parsed = readJsonFileSafe(CACHE_FILE, {
+    fetchedAt: null,
+    lastUpdated: null,
+    videos: []
+  });
 
-    const raw = fs.readFileSync(CACHE_FILE, "utf-8");
-    const parsed = JSON.parse(raw);
-
-    return {
-      fetchedAt: parsed.fetchedAt || null,
-      lastUpdated: parsed.lastUpdated || null,
-      videos: Array.isArray(parsed.videos) ? parsed.videos : []
-    };
-  } catch (error) {
-    console.error("Cache read failed:", error.message);
-    return { fetchedAt: null, lastUpdated: null, videos: [] };
-  }
+  return {
+    fetchedAt: parsed.fetchedAt || null,
+    lastUpdated: parsed.lastUpdated || null,
+    videos: Array.isArray(parsed.videos) ? parsed.videos : []
+  };
 }
 
 function writeCache(payload) {
-  try {
-    fs.writeFileSync(
-      CACHE_FILE,
-      JSON.stringify(
-        {
-          fetchedAt: new Date().toISOString(),
-          lastUpdated: payload.lastUpdated || new Date().toISOString(),
-          videos: payload.videos || []
-        },
-        null,
-        2
-      ),
-      "utf-8"
-    );
-  } catch (error) {
-    console.error("Cache write failed:", error.message);
-  }
+  writeJsonFileSafe(CACHE_FILE, {
+    fetchedAt: new Date().toISOString(),
+    lastUpdated: payload.lastUpdated || new Date().toISOString(),
+    videos: payload.videos || []
+  });
 }
 
 function getCacheAgeMinutes(cache) {
@@ -63,10 +71,80 @@ function getCacheAgeMinutes(cache) {
 
 function isCacheFresh(cache) {
   return (
-    getCacheAgeMinutes(cache) < CACHE_TTL_MINUTES &&
-    Array.isArray(cache.videos) &&
-    cache.videos.length > 0
+    Array.isArray(cache?.videos) &&
+    cache.videos.length > 0 &&
+    getCacheAgeMinutes(cache) < CACHE_TTL_MINUTES
   );
+}
+
+// -------------------- runtime state helpers --------------------
+
+function readRuntimeState() {
+  const parsed = readJsonFileSafe(STATE_FILE, {
+    quotaBlockedUntil: null,
+    lastQuotaErrorAt: null,
+    lastLiveAttemptAt: null,
+    lastLiveSuccessAt: null,
+    lastFailureReason: null
+  });
+
+  return {
+    quotaBlockedUntil: parsed.quotaBlockedUntil || null,
+    lastQuotaErrorAt: parsed.lastQuotaErrorAt || null,
+    lastLiveAttemptAt: parsed.lastLiveAttemptAt || null,
+    lastLiveSuccessAt: parsed.lastLiveSuccessAt || null,
+    lastFailureReason: parsed.lastFailureReason || null
+  };
+}
+
+function writeRuntimeState(partial) {
+  const current = readRuntimeState();
+  writeJsonFileSafe(STATE_FILE, {
+    ...current,
+    ...partial
+  });
+}
+
+function minutesSince(isoString) {
+  if (!isoString) return Infinity;
+  return Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
+}
+
+function isQuotaBlocked(state) {
+  if (!state?.quotaBlockedUntil) return false;
+  return Date.now() < new Date(state.quotaBlockedUntil).getTime();
+}
+
+function setQuotaBlocked() {
+  const now = new Date();
+  const blockedUntil = new Date(now.getTime() + QUOTA_COOLDOWN_MINUTES * 60000).toISOString();
+
+  writeRuntimeState({
+    lastQuotaErrorAt: now.toISOString(),
+    quotaBlockedUntil: blockedUntil,
+    lastFailureReason: "quotaExceeded"
+  });
+
+  return blockedUntil;
+}
+
+function clearQuotaBlocked() {
+  writeRuntimeState({
+    quotaBlockedUntil: null,
+    lastFailureReason: null
+  });
+}
+
+function shouldAttemptLive(cache, state, force = false) {
+  if (force) return true;
+  if (isQuotaBlocked(state)) return false;
+  if (!cache?.videos?.length) return true;
+  if (!cache.fetchedAt) return true;
+
+  const cacheAge = getCacheAgeMinutes(cache);
+  if (cacheAge < LIVE_REFRESH_WINDOW_MINUTES) return false;
+
+  return true;
 }
 
 // -------------------- seed fallback --------------------
@@ -202,6 +280,11 @@ async function fetchJson(url) {
   return data;
 }
 
+function errorLooksLikeQuota(error) {
+  const text = String(error?.message || error || "");
+  return text.includes("quotaExceeded");
+}
+
 // -------------------- payload builder --------------------
 
 function buildPayload(videosInput, meta = {}) {
@@ -301,6 +384,8 @@ function buildPayload(videosInput, meta = {}) {
     fallbackReason: meta.fallbackReason || null,
     cacheAgeMinutes: typeof meta.cacheAgeMinutes === "number" ? meta.cacheAgeMinutes : null,
     ttlMinutes: CACHE_TTL_MINUTES,
+    liveRefreshWindowMinutes: LIVE_REFRESH_WINDOW_MINUTES,
+    quotaBlockedUntil: meta.quotaBlockedUntil || null,
     total: sortedVideos.length,
     videos: sortedVideos,
     summary,
@@ -316,7 +401,6 @@ async function fetchLiveData() {
     throw new Error("Missing API key");
   }
 
-  // מצומצם כדי לשמור quota
   const queries = [
     "smoked brisket steak bbq beef",
     "wagyu ribeye tomahawk beef ribs"
@@ -357,6 +441,7 @@ async function fetchLiveData() {
     `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,status&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
 
   const videosData = await fetchJson(videosUrl);
+
   const rawVideos = (videosData.items || []).filter(v =>
     v?.id &&
     v?.snippet?.title &&
@@ -424,6 +509,7 @@ async function fetchLiveData() {
 
 app.get("/api/smoke-radar", async (req, res) => {
   const cache = readCache();
+  const state = readRuntimeState();
   const force = req.query.force === "1";
 
   if (!API_KEY) {
@@ -435,19 +521,43 @@ app.get("/api/smoke-radar", async (req, res) => {
     });
   }
 
-  if (!force && isCacheFresh(cache)) {
+  if (!shouldAttemptLive(cache, state, force)) {
+    if (cache.videos && cache.videos.length > 0) {
+      const fallbackReason = isQuotaBlocked(state)
+        ? "Quota cooldown active, serving cached snapshot"
+        : `Smart quota mode: serving cache until refresh window (${LIVE_REFRESH_WINDOW_MINUTES} min)`;
+
+      return res.json(
+        buildPayload(cache.videos, {
+          source: "cache",
+          fetchedAt: cache.fetchedAt,
+          lastUpdated: cache.lastUpdated,
+          cacheAgeMinutes: getCacheAgeMinutes(cache),
+          quotaBlockedUntil: state.quotaBlockedUntil,
+          fallbackReason
+        })
+      );
+    }
+  }
+
+  if (!force && isCacheFresh(cache) && cache.videos.length > 0) {
     return res.json(
       buildPayload(cache.videos, {
         source: "cache",
         fetchedAt: cache.fetchedAt,
         lastUpdated: cache.lastUpdated,
         cacheAgeMinutes: getCacheAgeMinutes(cache),
+        quotaBlockedUntil: state.quotaBlockedUntil,
         fallbackReason: `Fresh cached snapshot served (TTL ${CACHE_TTL_MINUTES} min)`
       })
     );
   }
 
   try {
+    writeRuntimeState({
+      lastLiveAttemptAt: new Date().toISOString()
+    });
+
     const liveData = await fetchLiveData();
 
     if (liveData.videos.length > 0) {
@@ -457,9 +567,40 @@ app.get("/api/smoke-radar", async (req, res) => {
       });
     }
 
+    writeRuntimeState({
+      lastLiveSuccessAt: new Date().toISOString(),
+      lastFailureReason: null,
+      quotaBlockedUntil: null
+    });
+
+    clearQuotaBlocked();
+
     return res.json(liveData);
   } catch (error) {
     console.error("Live fetch failed:", error.message);
+
+    const isQuota = errorLooksLikeQuota(error);
+
+    if (isQuota) {
+      const blockedUntil = setQuotaBlocked();
+
+      if (cache.videos && cache.videos.length > 0) {
+        return res.json(
+          buildPayload(cache.videos, {
+            source: "cache",
+            fetchedAt: cache.fetchedAt,
+            lastUpdated: cache.lastUpdated,
+            cacheAgeMinutes: getCacheAgeMinutes(cache),
+            quotaBlockedUntil: blockedUntil,
+            fallbackReason: "YouTube quota exceeded, cached snapshot locked in smart cooldown mode"
+          })
+        );
+      }
+    } else {
+      writeRuntimeState({
+        lastFailureReason: "liveFetchFailed"
+      });
+    }
 
     if (cache.videos && cache.videos.length > 0) {
       return res.json(
@@ -468,6 +609,7 @@ app.get("/api/smoke-radar", async (req, res) => {
           fetchedAt: cache.fetchedAt,
           lastUpdated: cache.lastUpdated,
           cacheAgeMinutes: getCacheAgeMinutes(cache),
+          quotaBlockedUntil: readRuntimeState().quotaBlockedUntil,
           fallbackReason: "Live fetch failed, serving saved cache"
         })
       );
@@ -477,13 +619,17 @@ app.get("/api/smoke-radar", async (req, res) => {
     return res.json({
       ...seed,
       source: "seed",
-      fallbackReason: "Live fetch failed and no cache was available"
+      quotaBlockedUntil: readRuntimeState().quotaBlockedUntil,
+      fallbackReason: isQuota
+        ? "Quota exceeded and no cache available, serving offline seed"
+        : "Live fetch failed and no cache was available"
     });
   }
 });
 
 app.get("/api/debug/quota-mode", (req, res) => {
   const cache = readCache();
+  const state = readRuntimeState();
 
   res.json({
     ok: true,
@@ -491,7 +637,16 @@ app.get("/api/debug/quota-mode", (req, res) => {
     cacheFresh: isCacheFresh(cache),
     cacheAgeMinutes: getCacheAgeMinutes(cache),
     ttlMinutes: CACHE_TTL_MINUTES,
-    cachedVideos: Array.isArray(cache.videos) ? cache.videos.length : 0
+    liveRefreshWindowMinutes: LIVE_REFRESH_WINDOW_MINUTES,
+    quotaCooldownMinutes: QUOTA_COOLDOWN_MINUTES,
+    quotaBlocked: isQuotaBlocked(state),
+    quotaBlockedUntil: state.quotaBlockedUntil,
+    lastQuotaErrorAt: state.lastQuotaErrorAt,
+    lastLiveAttemptAt: state.lastLiveAttemptAt,
+    lastLiveSuccessAt: state.lastLiveSuccessAt,
+    lastFailureReason: state.lastFailureReason,
+    cachedVideos: Array.isArray(cache.videos) ? cache.videos.length : 0,
+    shouldAttemptLiveNow: shouldAttemptLive(cache, state, false)
   });
 });
 
