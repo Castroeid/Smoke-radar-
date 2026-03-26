@@ -25,9 +25,7 @@
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -37,9 +35,7 @@
       font-family: "Inter", Arial, sans-serif;
     }
 
-    body {
-      min-height: 100vh;
-    }
+    body { min-height: 100vh; }
 
     .container {
       max-width: 980px;
@@ -496,63 +492,78 @@
       line-height: 1.7;
     }
 
-    /* ===== BEEF MAP FINAL ===== */
+    /* ===== Beef map v2 ===== */
 
-    .cuts-map-shell {
+    .cow-map-shell {
       border-radius: 22px;
-      padding: 14px;
       overflow: hidden;
       background:
         radial-gradient(circle at top right, rgba(255,107,44,0.08), transparent 28%),
         linear-gradient(180deg, rgba(15,22,33,0.96), rgba(10,16,24,0.98));
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      padding: 12px;
     }
 
-    .cuts-map-stage {
-      position: relative;
+    .cow-map-svg {
       width: 100%;
-      aspect-ratio: 16 / 10;
-      border-radius: 18px;
-      overflow: hidden;
-      background-color: #05070b;
-      background-image: url("/images/beef-map-premium.png");
-      background-repeat: no-repeat;
-      background-position: center center;
-      background-size: contain;
+      height: auto;
+      display: block;
     }
 
-    .cut-hotspot {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      min-width: 54px;
-      padding: 8px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(16, 22, 32, 0.72);
-      color: #e8eef7;
+    .cow-outline {
+      fill: rgba(17, 26, 39, 0.94);
+      stroke: #35465d;
+      stroke-width: 4;
+    }
+
+    .cow-line {
+      stroke: #35465d;
+      stroke-width: 5;
+      stroke-linecap: round;
+      fill: none;
+      opacity: 0.98;
+    }
+
+    .cow-cut {
+      fill: rgba(28, 40, 58, 0.88);
+      stroke: #41556f;
+      stroke-width: 2;
+      cursor: pointer;
+      transition: transform 0.18s ease, fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .cow-cut:hover {
+      fill: rgba(255,107,44,0.18);
+      stroke: #ff9a68;
+      filter: drop-shadow(0 0 8px rgba(255,107,44,0.16));
+      transform: scale(1.02);
+    }
+
+    .cow-cut.active {
+      fill: rgba(255,107,44,0.28);
+      stroke: #ff9a68;
+      filter: drop-shadow(0 0 10px rgba(255,107,44,0.18));
+    }
+
+    .cow-cut-label {
+      fill: #eef3f8;
       font-size: 10px;
       font-weight: 800;
-      letter-spacing: 0.02em;
-      line-height: 1;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      transition: all 0.18s ease;
-      white-space: nowrap;
-      z-index: 2;
+      text-anchor: middle;
+      pointer-events: none;
+      letter-spacing: 0.04em;
     }
 
-    .cut-hotspot:hover {
-      background: rgba(255,107,44,0.18);
-      border-color: rgba(255,154,104,0.65);
-      transform: translate(-50%, -50%) scale(1.04);
-    }
-
-    .cut-hotspot.active {
-      background: linear-gradient(135deg, #ff6b2c, #ff955f);
-      color: white;
-      border-color: transparent;
-      box-shadow: 0 0 20px rgba(255,107,44,0.28);
+    .cow-cut-sub {
+      fill: #c9d6e7;
+      font-size: 7px;
+      font-weight: 700;
+      text-anchor: middle;
+      pointer-events: none;
+      opacity: 0.92;
     }
 
     .cut-badges {
@@ -774,13 +785,11 @@
       cursor: pointer;
     }
 
-    canvas {
-      max-height: 320px;
-    }
+    canvas { max-height: 320px; }
 
     @media (min-width: 860px) {
       .cuts-grid {
-        grid-template-columns: 1.15fr 0.85fr;
+        grid-template-columns: 1.1fr 0.9fr;
         align-items: start;
       }
     }
@@ -818,19 +827,12 @@
         font-size: 62px;
       }
 
-      .cuts-map-shell {
-        padding: 10px;
-      }
-
-      .cuts-map-stage {
-        aspect-ratio: 16 / 11;
-      }
-
-      .cut-hotspot {
-        min-width: 42px;
-        padding: 6px 8px;
+      .cow-cut-label {
         font-size: 8px;
-        border-radius: 12px;
+      }
+
+      .cow-cut-sub {
+        font-size: 6px;
       }
     }
   </style>
@@ -958,23 +960,64 @@
     <div class="panel">
       <div class="panel-heading">
         <h2>Beef Cuts Map</h2>
-        <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="Tap a region to explore the cut and recommended cooking styles.">i</button>
+        <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="Tap a cut to see what it is and how to cook it.">i</button>
       </div>
-
       <div class="subtle">Tap a cut to see what it is and how to cook it</div>
 
       <div class="cuts-grid">
-        <div class="cuts-map-shell">
-          <div class="cuts-map-stage">
-            <button class="cut-hotspot" id="cut-chuck" style="left:22%; top:40%;">Chuck</button>
-            <button class="cut-hotspot active" id="cut-ribeye" style="left:42%; top:38%;">Ribeye</button>
-            <button class="cut-hotspot" id="cut-sirloin" style="left:60%; top:38%;">Sirloin</button>
-            <button class="cut-hotspot" id="cut-brisket" style="left:20%; top:65%;">Brisket</button>
-            <button class="cut-hotspot" id="cut-short_ribs" style="left:42%; top:65%;">Short Ribs</button>
-            <button class="cut-hotspot" id="cut-flank" style="left:59%; top:62%;">Flank</button>
-            <button class="cut-hotspot" id="cut-tenderloin" style="left:74%; top:48%;">Filet</button>
-            <button class="cut-hotspot" id="cut-picanha" style="left:74%; top:24%;">Picanha</button>
-          </div>
+        <div class="cow-map-shell">
+          <svg class="cow-map-svg" viewBox="0 0 620 380" aria-label="Interactive beef cuts map">
+            <!-- silhouette -->
+            <path class="cow-outline" d="M112 178
+              C110 138, 130 116, 166 103
+              C223 82, 351 79, 461 95
+              C522 103, 559 122, 575 157
+              C585 179, 585 212, 567 236
+              C549 261, 513 276, 463 282
+              C372 292, 236 291, 172 277
+              C132 268, 108 246, 99 213
+              C95 201, 95 189, 112 178 Z"/>
+
+            <circle class="cow-outline" cx="103" cy="132" r="33"/>
+            <ellipse class="cow-outline" cx="64" cy="163" rx="16" ry="11"/>
+            <path class="cow-line" d="M49 174 C37 188, 37 221, 50 235"/>
+            <path class="cow-line" d="M567 168 C586 183, 588 217, 573 242"/>
+            <path class="cow-line" d="M170 272 L159 333"/>
+            <path class="cow-line" d="M262 276 L255 335"/>
+            <path class="cow-line" d="M411 274 L424 336"/>
+            <path class="cow-line" d="M501 267 L516 336"/>
+
+            <!-- cuts -->
+            <rect class="cow-cut" id="cut-chuck" x="154" y="129" width="112" height="72" rx="18"/>
+            <text class="cow-cut-label" x="210" y="167">CHUCK</text>
+            <text class="cow-cut-sub" x="210" y="181">shoulder</text>
+
+            <rect class="cow-cut active" id="cut-ribeye" x="278" y="126" width="92" height="74" rx="18"/>
+            <text class="cow-cut-label" x="324" y="165">RIBEYE</text>
+            <text class="cow-cut-sub" x="324" y="179">rib</text>
+
+            <rect class="cow-cut" id="cut-sirloin" x="382" y="126" width="110" height="74" rx="18"/>
+            <text class="cow-cut-label" x="437" y="165">SIRLOIN</text>
+            <text class="cow-cut-sub" x="437" y="179">rear loin</text>
+
+            <rect class="cow-cut" id="cut-brisket" x="116" y="214" width="108" height="60" rx="18"/>
+            <text class="cow-cut-label" x="170" y="248">BRISKET</text>
+            <text class="cow-cut-sub" x="170" y="261">chest</text>
+
+            <rect class="cow-cut" id="cut-short_ribs" x="244" y="214" width="118" height="60" rx="18"/>
+            <text class="cow-cut-label" x="303" y="248">SHORT RIBS</text>
+            <text class="cow-cut-sub" x="303" y="261">plate</text>
+
+            <rect class="cow-cut" id="cut-flank" x="377" y="214" width="110" height="60" rx="18"/>
+            <text class="cow-cut-label" x="432" y="248">FLANK</text>
+            <text class="cow-cut-sub" x="432" y="261">belly</text>
+
+            <rect class="cow-cut" id="cut-tenderloin" x="500" y="154" width="62" height="42" rx="14"/>
+            <text class="cow-cut-label" x="531" y="179">FILET</text>
+
+            <rect class="cow-cut" id="cut-picanha" x="500" y="108" width="72" height="32" rx="12"/>
+            <text class="cow-cut-sub" x="536" y="128" style="font-size:8px;">PICANHA</text>
+          </svg>
         </div>
 
         <div class="cut-info" id="cutInfo">
@@ -1759,7 +1802,7 @@
       const cut = cutData[cutKey];
       if (!cut) return;
 
-      document.querySelectorAll(".cut-hotspot").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".cow-cut").forEach(el => el.classList.remove("active"));
       const zone = document.getElementById(`cut-${cutKey}`);
       if (zone) zone.classList.add("active");
 
@@ -1790,7 +1833,7 @@
     }
 
     function attachCutMap() {
-      document.querySelectorAll(".cut-hotspot").forEach(zone => {
+      document.querySelectorAll(".cow-cut").forEach(zone => {
         zone.addEventListener("click", () => {
           const cutKey = zone.id.replace("cut-", "");
           renderCutInfo(cutKey);
