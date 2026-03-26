@@ -62,10 +62,14 @@ function getCacheAgeMinutes(cache) {
 }
 
 function isCacheFresh(cache) {
-  return getCacheAgeMinutes(cache) < CACHE_TTL_MINUTES && Array.isArray(cache.videos) && cache.videos.length > 0;
+  return (
+    getCacheAgeMinutes(cache) < CACHE_TTL_MINUTES &&
+    Array.isArray(cache.videos) &&
+    cache.videos.length > 0
+  );
 }
 
-// -------------------- fallback data --------------------
+// -------------------- seed fallback --------------------
 
 function getSeedData() {
   const now = new Date().toISOString();
@@ -77,7 +81,8 @@ function getSeedData() {
       channelTitle: "BBQ Masters",
       channelId: "UCseedbrisket001",
       publishedAt: now,
-      thumbnail: "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80",
+      thumbnail:
+        "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80",
       viewCount: 124000,
       likeCount: 5200,
       subscriberCount: 185000,
@@ -91,7 +96,8 @@ function getSeedData() {
       channelTitle: "Meat Lab",
       channelId: "UCseedribeye002",
       publishedAt: now,
-      thumbnail: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
+      thumbnail:
+        "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
       viewCount: 89000,
       likeCount: 3400,
       subscriberCount: 96000,
@@ -105,7 +111,8 @@ function getSeedData() {
       channelTitle: "Smoke House",
       channelId: "UCseedribs003",
       publishedAt: now,
-      thumbnail: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80",
+      thumbnail:
+        "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80",
       viewCount: 54000,
       likeCount: 2100,
       subscriberCount: 42000,
@@ -142,10 +149,10 @@ function calculateSmokeScore(video) {
   const subscriberPenalty = subscribers > 0 ? Math.max(1, subscribers / 50000) : 1;
 
   return Math.round(
-    (viewsPerHour * 1.2) +
-    (likes * 3) +
-    (likeRate * 150000) +
-    (8000 / subscriberPenalty)
+    viewsPerHour * 1.2 +
+    likes * 3 +
+    likeRate * 150000 +
+    8000 / subscriberPenalty
   );
 }
 
@@ -153,7 +160,7 @@ function extractKeywords(title) {
   const blacklist = new Set([
     "the", "and", "with", "from", "this", "that", "your", "you", "for",
     "bbq", "how", "make", "made", "best", "recipe", "food", "video", "guide",
-    "home", "style", "cast", "iron", "reverse", "sear"
+    "home", "style", "cast", "iron", "reverse", "sear", "part", "tour"
   ]);
 
   return String(title || "")
@@ -168,14 +175,14 @@ function isMeatRelevant(title = "", description = "") {
 
   const includeWords = [
     "beef", "steak", "brisket", "ribeye", "tomahawk", "wagyu", "short ribs",
-    "beef ribs", "smoked beef", "bbq beef", "tri tip", "picanha", "sirloin",
-    "strip steak", "porterhouse", "prime rib", "chuck roast", "tenderloin",
-    "flank", "brisket burnt ends", "ribs", "meat", "brisket"
+    "beef ribs", "smoked beef", "bbq beef", "tri tip", "tritip", "picanha",
+    "sirloin", "strip steak", "porterhouse", "prime rib", "chuck roast",
+    "tenderloin", "flank", "burnt ends", "meat"
   ];
 
   const excludeWords = [
     "pizza", "pasta", "cake", "cookie", "vegan", "vegetarian", "tofu",
-    "salad", "dessert", "bread", "ice cream", "chicken", "fish", "shrimp"
+    "salad", "dessert", "bread", "ice cream", "fish", "shrimp", "sushi"
   ];
 
   const hasInclude = includeWords.some(word => text.includes(word));
@@ -216,7 +223,9 @@ function buildPayload(videosInput, meta = {}) {
     normalized.smokeScore = Number(video.smokeScore || 0);
 
     if (!normalized.viewsPerHour) {
-      normalized.viewsPerHour = Math.round(normalized.viewCount / getHoursSince(normalized.publishedAt));
+      normalized.viewsPerHour = Math.round(
+        normalized.viewCount / getHoursSince(normalized.publishedAt)
+      );
     }
 
     if (!normalized.smokeScore) {
@@ -307,7 +316,7 @@ async function fetchLiveData() {
     throw new Error("Missing API key");
   }
 
-  // deliberately small set to reduce quota burn
+  // מצומצם כדי לשמור quota
   const queries = [
     "smoked brisket steak bbq beef",
     "wagyu ribeye tomahawk beef ribs"
@@ -323,15 +332,17 @@ async function fetchLiveData() {
     searchItems = searchItems.concat(searchData.items || []);
   }
 
-  const uniqueVideoIds = [...new Set(
-    searchItems
-      .filter(item =>
-        item?.id?.videoId &&
-        item?.snippet?.title &&
-        isMeatRelevant(item.snippet.title, item.snippet.description || "")
-      )
-      .map(item => item.id.videoId)
-  )];
+  const uniqueVideoIds = [
+    ...new Set(
+      searchItems
+        .filter(item =>
+          item?.id?.videoId &&
+          item?.snippet?.title &&
+          isMeatRelevant(item.snippet.title, item.snippet.description || "")
+        )
+        .map(item => item.id.videoId)
+    )
+  ];
 
   if (!uniqueVideoIds.length) {
     return buildPayload([], {
@@ -367,7 +378,7 @@ async function fetchLiveData() {
     rawVideos.map(v => v.snippet.channelId).filter(Boolean)
   )];
 
-  let channelStatsMap = {};
+  const channelStatsMap = {};
 
   if (uniqueChannelIds.length) {
     const channelsUrl =
@@ -424,7 +435,6 @@ app.get("/api/smoke-radar", async (req, res) => {
     });
   }
 
-  // cache-first
   if (!force && isCacheFresh(cache)) {
     return res.json(
       buildPayload(cache.videos, {
