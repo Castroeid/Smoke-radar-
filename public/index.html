@@ -327,10 +327,18 @@
     }
 
     .panel h2 {
-      margin: 0 0 8px;
+      margin: 0;
       font-size: 21px;
       font-weight: 700;
       letter-spacing: -0.3px;
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .subtle {
@@ -390,7 +398,8 @@
       margin-bottom: 16px;
     }
 
-    .recipe-grid {
+    .recipe-grid,
+    .cuts-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
@@ -429,19 +438,22 @@
       flex-wrap: wrap;
     }
 
-    .recipe-output {
+    .recipe-output,
+    .cut-info {
       background: #111927;
       border: 1px solid #1f2a3a;
       border-radius: 18px;
       padding: 16px;
     }
 
-    .recipe-output h3 {
+    .recipe-output h3,
+    .cut-info h3 {
       margin: 0 0 10px;
       font-size: 20px;
     }
 
-    .recipe-output h4 {
+    .recipe-output h4,
+    .cut-info h4 {
       margin: 16px 0 8px;
       font-size: 14px;
       color: #d8e2ef;
@@ -450,14 +462,17 @@
     }
 
     .recipe-output p,
-    .recipe-output li {
+    .recipe-output li,
+    .cut-info p,
+    .cut-info li {
       color: #d7dfeb;
       line-height: 1.7;
       font-size: 14px;
     }
 
     .recipe-output ul,
-    .recipe-output ol {
+    .recipe-output ol,
+    .cut-info ul {
       margin: 0;
       padding-left: 20px;
     }
@@ -466,6 +481,58 @@
       color: var(--muted);
       font-size: 14px;
       line-height: 1.7;
+    }
+
+    .cuts-svg-wrap {
+      background: #111927;
+      border: 1px solid #1f2a3a;
+      border-radius: 18px;
+      padding: 12px;
+    }
+
+    .cuts-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .cut-zone {
+      fill: #182334;
+      stroke: #314154;
+      stroke-width: 2;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .cut-zone:hover,
+    .cut-zone.active {
+      fill: rgba(255,107,44,0.35);
+      stroke: #ff955f;
+    }
+
+    .cut-label {
+      fill: #dbe5f2;
+      font-size: 10px;
+      font-weight: 700;
+      pointer-events: none;
+      text-anchor: middle;
+    }
+
+    .cut-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 0;
+    }
+
+    .cut-badge {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     table {
@@ -614,6 +681,59 @@
       padding: 8px 0 0;
     }
 
+    .info-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .info-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #1a2433;
+      border: 1px solid #2a3648;
+      color: #9fb2cc;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .info-icon:hover {
+      background: #243247;
+      color: #fff;
+    }
+
+    .tooltip {
+      position: absolute;
+      top: 28px;
+      left: 0;
+      width: 260px;
+      background: #0f1621;
+      border: 1px solid #263244;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 13px;
+      color: #d7dfeb;
+      line-height: 1.5;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(6px);
+      transition: 0.2s;
+      z-index: 20;
+    }
+
+    .info-wrap:hover .tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     canvas {
       max-height: 320px;
     }
@@ -633,7 +753,8 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
-      .recipe-grid {
+      .recipe-grid,
+      .cuts-grid {
         grid-template-columns: 1fr;
       }
 
@@ -643,6 +764,12 @@
 
       .hero-score {
         font-size: 62px;
+      }
+
+      .tooltip {
+        width: 220px;
+        left: auto;
+        right: 0;
       }
     }
   </style>
@@ -671,7 +798,13 @@
     <div class="hero-card">
       <div class="hero-top">
         <div>
-          <div class="hero-title">Current Smoke Index</div>
+          <div class="hero-title info-wrap">
+            Current Smoke Index
+            <span class="info-icon">i</span>
+            <div class="tooltip">
+              A normalized signal that summarizes how strong and active the current meat-content feed is. It is influenced mainly by Smoke Score levels across the loaded videos.
+            </div>
+          </div>
           <div class="hero-subtitle" id="heroSubtitle">Momentum estimate based on current radar feed</div>
         </div>
         <div class="hero-badge" id="heroBadge">Scanning</div>
@@ -687,21 +820,8 @@
             </linearGradient>
           </defs>
 
-          <path
-            d="M 40 150 A 110 110 0 0 1 260 150"
-            fill="none"
-            stroke="#172130"
-            stroke-width="18"
-            stroke-linecap="round">
-          </path>
-
-          <path
-            d="M 40 150 A 110 110 0 0 1 260 150"
-            fill="none"
-            stroke="url(#smokeGradient)"
-            stroke-width="18"
-            stroke-linecap="round">
-          </path>
+          <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#172130" stroke-width="18" stroke-linecap="round"></path>
+          <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="url(#smokeGradient)" stroke-width="18" stroke-linecap="round"></path>
         </svg>
 
         <div class="hero-score" id="heroScore">0%</div>
@@ -740,14 +860,30 @@
     <div class="kpis" id="kpis"></div>
 
     <div class="panel">
-      <h2 id="chartTitle">Momentum Trend</h2>
+      <div class="panel-heading">
+        <h2 id="chartTitle">Momentum Trend</h2>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">
+            A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.
+          </div>
+        </div>
+      </div>
       <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
       <canvas id="scoreChart"></canvas>
     </div>
 
     <div class="two-col">
       <div class="panel">
-        <h2>Top Channels</h2>
+        <div class="panel-heading">
+          <h2>Top Channels</h2>
+          <div class="info-wrap">
+            <span class="info-icon">i</span>
+            <div class="tooltip">
+              Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.
+            </div>
+          </div>
+        </div>
         <div class="subtle">Best-performing creators in the current dataset</div>
         <table>
           <thead>
@@ -763,14 +899,110 @@
       </div>
 
       <div class="panel">
-        <h2>Hot Keywords</h2>
+        <div class="panel-heading">
+          <h2>Hot Keywords</h2>
+          <div class="info-wrap">
+            <span class="info-icon">i</span>
+            <div class="tooltip">
+              Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.
+            </div>
+          </div>
+        </div>
         <div class="subtle">Recurring terms extracted from current titles</div>
         <div class="keywords" id="keywords"></div>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Recipe Generator</h2>
+      <div class="panel-heading">
+        <h2>Beef Cuts Map</h2>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">
+            An interactive reference map of common beef cuts. Tap a section to learn what it is, how tender or fatty it is, and which cooking methods usually fit it best.
+          </div>
+        </div>
+      </div>
+      <div class="subtle">Tap a cut to see what it is and how to cook it</div>
+
+      <div class="cuts-grid">
+        <div class="cuts-svg-wrap">
+          <svg class="cuts-svg" viewBox="0 0 420 240" aria-label="Beef cuts diagram">
+            <rect class="cut-zone active" id="cut-brisket" x="40" y="135" width="78" height="45" rx="12"></rect>
+            <text class="cut-label" x="79" y="162">BRISKET</text>
+
+            <rect class="cut-zone" id="cut-chuck" x="72" y="78" width="78" height="50" rx="12"></rect>
+            <text class="cut-label" x="111" y="107">CHUCK</text>
+
+            <rect class="cut-zone" id="cut-ribeye" x="156" y="72" width="72" height="56" rx="12"></rect>
+            <text class="cut-label" x="192" y="103">RIBEYE</text>
+
+            <rect class="cut-zone" id="cut-short_ribs" x="156" y="132" width="72" height="48" rx="12"></rect>
+            <text class="cut-label" x="192" y="160">SHORT RIBS</text>
+
+            <rect class="cut-zone" id="cut-sirloin" x="235" y="78" width="72" height="54" rx="12"></rect>
+            <text class="cut-label" x="271" y="105">SIRLOIN</text>
+
+            <rect class="cut-zone" id="cut-flank" x="234" y="138" width="74" height="40" rx="12"></rect>
+            <text class="cut-label" x="271" y="162">FLANK</text>
+
+            <rect class="cut-zone" id="cut-tenderloin" x="312" y="90" width="52" height="32" rx="12"></rect>
+            <text class="cut-label" x="338" y="109">FILET</text>
+
+            <rect class="cut-zone" id="cut-picanha" x="316" y="52" width="56" height="30" rx="12"></rect>
+            <text class="cut-label" x="344" y="71">PICANHA</text>
+
+            <circle cx="82" cy="68" r="24" fill="#111927" stroke="#314154" stroke-width="3"></circle>
+            <rect x="30" y="74" width="28" height="16" rx="8" fill="#111927" stroke="#314154" stroke-width="2"></rect>
+
+            <path d="M40 110 C20 118, 16 152, 34 174" fill="none" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
+            <path d="M370 110 C392 120, 398 154, 382 178" fill="none" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
+
+            <path d="M130 182 L118 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
+            <path d="M176 182 L170 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
+            <path d="M275 182 L282 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
+            <path d="M328 178 L338 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
+
+            <path d="M40 95 C110 48, 286 42, 372 78 L372 150 C350 182, 268 196, 146 192 C86 190, 50 183, 40 170 Z"
+                  fill="none" stroke="#314154" stroke-width="4"></path>
+          </svg>
+        </div>
+
+        <div class="cut-info" id="cutInfo">
+          <h3>Brisket</h3>
+          <p>
+            Brisket comes from the lower chest and carries a lot of connective tissue. It becomes rich and tender when cooked slowly.
+          </p>
+
+          <h4>Profile</h4>
+          <div class="cut-badges">
+            <span class="cut-badge">Fat: Medium</span>
+            <span class="cut-badge">Tenderness: Low raw / High when slow-cooked</span>
+          </div>
+
+          <h4>Best Uses</h4>
+          <ul>
+            <li>Smoking</li>
+            <li>Long braise</li>
+            <li>Low and slow oven cook</li>
+          </ul>
+
+          <h4>Tip</h4>
+          <p>Brisket rewards patience. Resting is almost as important as the cook itself.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-heading">
+        <h2>Recipe Generator</h2>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">
+            A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile. This version is template-driven and designed as an embedded product feature.
+          </div>
+        </div>
+      </div>
       <div class="subtle">Build a meat recipe by cut, method, and flavor profile</div>
 
       <div class="recipe-grid">
@@ -829,7 +1061,15 @@
     </div>
 
     <div class="panel">
-      <h2 id="feedTitle">Radar Feed</h2>
+      <div class="panel-heading">
+        <h2 id="feedTitle">Radar Feed</h2>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">
+            The main video feed powering Smoke Radar. Results come from live YouTube queries when available, or from cached/offline fallback data when live access is unavailable.
+          </div>
+        </div>
+      </div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
     </div>
@@ -839,6 +1079,73 @@
     let scoreChartInstance = null;
     let allData = null;
     let currentTab = "hot";
+
+    const cutData = {
+      brisket: {
+        title: "Brisket",
+        description: "Brisket comes from the lower chest and carries a lot of connective tissue. It becomes rich and tender when cooked slowly.",
+        fat: "Medium",
+        tenderness: "Low raw / High when slow-cooked",
+        methods: ["Smoking", "Long braise", "Low and slow oven cook"],
+        tip: "Brisket rewards patience. Resting is almost as important as the cook itself."
+      },
+      chuck: {
+        title: "Chuck",
+        description: "Chuck comes from the shoulder. It is beefy, flavorful, and ideal for long cooking or grinding.",
+        fat: "Medium to High",
+        tenderness: "Medium",
+        methods: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
+        tip: "Chuck shines when given time to break down and soften."
+      },
+      ribeye: {
+        title: "Ribeye",
+        description: "Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.",
+        fat: "High",
+        tenderness: "High",
+        methods: ["Cast iron", "Grill", "Reverse sear"],
+        tip: "A strong crust and a short rest usually give ribeye its best result."
+      },
+      short_ribs: {
+        title: "Short Ribs",
+        description: "Short ribs are deeply beefy and loaded with connective tissue, making them ideal for slow cooking.",
+        fat: "Medium to High",
+        tenderness: "Low raw / High when slow-cooked",
+        methods: ["Smoking", "Braising", "Long oven cook"],
+        tip: "Short ribs need time, but they pay it back in flavor."
+      },
+      sirloin: {
+        title: "Sirloin",
+        description: "Sirloin is leaner than rib cuts but still flavorful and versatile for steaks or roasting.",
+        fat: "Medium",
+        tenderness: "Medium to High",
+        methods: ["Grilling", "Cast iron", "Roasting"],
+        tip: "Do not overcook it. Sirloin is best when sliced properly and rested."
+      },
+      flank: {
+        title: "Flank",
+        description: "Flank is a lean, fibrous cut with bold flavor. It works best with fast cooking and correct slicing.",
+        fat: "Low",
+        tenderness: "Medium",
+        methods: ["High-heat grill", "Cast iron", "Marinated sear"],
+        tip: "Always slice flank against the grain."
+      },
+      tenderloin: {
+        title: "Filet / Tenderloin",
+        description: "Tenderloin is extremely tender and lean, known more for texture than aggressive beef flavor.",
+        fat: "Low",
+        tenderness: "Very High",
+        methods: ["Cast iron", "Quick roast", "Gentle grill"],
+        tip: "Because it is lean, avoid overcooking and consider butter-based finishing."
+      },
+      picanha: {
+        title: "Picanha",
+        description: "Picanha is prized for its fat cap and big flavor. It is especially popular in Brazilian-style cooking.",
+        fat: "Medium to High",
+        tenderness: "High",
+        methods: ["BBQ", "Grill", "Reverse sear", "Roast"],
+        tip: "Score the fat cap lightly and render it carefully."
+      }
+    };
 
     function formatNum(n) {
       return Number(n || 0).toLocaleString("en-US");
@@ -925,14 +1232,6 @@
         pills.push(`<div class="meta-pill">Offline Snapshot</div>`);
         miniLiveBadge.textContent = "Offline";
         miniLiveBadge.className = "meta-pill";
-      } else if (data.cached) {
-        pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
-        miniLiveBadge.textContent = "Cached";
-        miniLiveBadge.className = "meta-pill cached";
-      } else if (data.lastUpdated || data.total !== undefined) {
-        pills.push(`<div class="meta-pill live">Live Data</div>`);
-        miniLiveBadge.textContent = "Live";
-        miniLiveBadge.className = "meta-pill live";
       } else {
         miniLiveBadge.textContent = "Offline";
         miniLiveBadge.className = "meta-pill";
@@ -942,8 +1241,8 @@
         pills.push(`<div class="meta-pill">Updated ${escapeHtml(formatDateTime(data.lastUpdated))}</div>`);
       }
 
-      if (data.cacheSource) {
-        pills.push(`<div class="meta-pill">Source: ${escapeHtml(data.cacheSource)}</div>`);
+      if (data.source) {
+        pills.push(`<div class="meta-pill">Source Mode: ${escapeHtml(data.source)}</div>`);
       }
 
       if (data.fallbackReason) {
@@ -1240,7 +1539,6 @@
     }
 
     function generateRecipe() {
-      const meatType = document.getElementById("meatType").value;
       const cutType = document.getElementById("cutType").value;
       const cookingMethod = document.getElementById("cookingMethod").value;
       const flavorProfile = document.getElementById("flavorProfile").value;
@@ -1393,27 +1691,22 @@
 
       output.innerHTML = `
         <h3>${title}</h3>
-
         <h4>Overview</h4>
         <p>
           This recipe is designed for <strong>${cutLabels[cutType]}</strong> using
           <strong>${methodLabels[cookingMethod]}</strong> with a
           <strong>${flavorLabels[flavorProfile]}</strong> profile.
         </p>
-
         <h4>Ingredients</h4>
         <ul>
           ${ingredients.map(item => `<li>${item}</li>`).join("")}
         </ul>
-
         <h4>Preparation</h4>
         <p>${method.prep}</p>
-
         <h4>Cooking Steps</h4>
         <ol>
           ${method.steps.map(step => `<li>${step}</li>`).join("")}
         </ol>
-
         <h4>Pitmaster Tips</h4>
         <ul>
           <li>${flavor.tip}</li>
@@ -1421,6 +1714,43 @@
           <li>Let the meat rest before slicing so juices redistribute properly.</li>
         </ul>
       `;
+    }
+
+    function renderCutInfo(cutKey) {
+      const cut = cutData[cutKey];
+      if (!cut) return;
+
+      document.querySelectorAll(".cut-zone").forEach(el => el.classList.remove("active"));
+      const zone = document.getElementById(`cut-${cutKey}`);
+      if (zone) zone.classList.add("active");
+
+      document.getElementById("cutInfo").innerHTML = `
+        <h3>${cut.title}</h3>
+        <p>${cut.description}</p>
+
+        <h4>Profile</h4>
+        <div class="cut-badges">
+          <span class="cut-badge">Fat: ${cut.fat}</span>
+          <span class="cut-badge">Tenderness: ${cut.tenderness}</span>
+        </div>
+
+        <h4>Best Uses</h4>
+        <ul>
+          ${cut.methods.map(method => `<li>${method}</li>`).join("")}
+        </ul>
+
+        <h4>Tip</h4>
+        <p>${cut.tip}</p>
+      `;
+    }
+
+    function attachCutMap() {
+      document.querySelectorAll(".cut-zone").forEach(zone => {
+        zone.addEventListener("click", () => {
+          const cutKey = zone.id.replace("cut-", "");
+          renderCutInfo(cutKey);
+        });
+      });
     }
 
     async function loadData() {
@@ -1481,6 +1811,7 @@
     }
 
     attachTabs();
+    attachCutMap();
     loadData();
   </script>
 </body>
