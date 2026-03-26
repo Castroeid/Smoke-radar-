@@ -25,7 +25,9 @@
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     html, body {
       margin: 0;
@@ -35,7 +37,9 @@
       font-family: "Inter", Arial, sans-serif;
     }
 
-    body { min-height: 100vh; }
+    body {
+      min-height: 100vh;
+    }
 
     .container {
       max-width: 980px;
@@ -189,7 +193,9 @@
     .card,
     .kpi,
     .recipe-output,
-    .cut-info {
+    .cut-info,
+    .cuts-image-wrap,
+    .cut-grid-card {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
@@ -492,78 +498,54 @@
       line-height: 1.7;
     }
 
-    /* ===== Beef map v2 ===== */
+    /* ===== Cut explorer ===== */
 
-    .cow-map-shell {
-      border-radius: 22px;
+    .cuts-image-wrap {
+      border-radius: 18px;
       overflow: hidden;
-      background:
-        radial-gradient(circle at top right, rgba(255,107,44,0.08), transparent 28%),
-        linear-gradient(180deg, rgba(15,22,33,0.96), rgba(10,16,24,0.98));
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      padding: 12px;
+      margin-bottom: 14px;
     }
 
-    .cow-map-svg {
+    .cuts-image-static {
       width: 100%;
-      height: auto;
       display: block;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: #0b1017;
     }
 
-    .cow-outline {
-      fill: rgba(17, 26, 39, 0.94);
-      stroke: #35465d;
-      stroke-width: 4;
+    .cuts-grid-new {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
 
-    .cow-line {
-      stroke: #35465d;
-      stroke-width: 5;
-      stroke-linecap: round;
-      fill: none;
-      opacity: 0.98;
-    }
-
-    .cow-cut {
-      fill: rgba(28, 40, 58, 0.88);
-      stroke: #41556f;
-      stroke-width: 2;
+    .cut-grid-card {
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
       cursor: pointer;
-      transition: transform 0.18s ease, fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease;
-      transform-box: fill-box;
-      transform-origin: center;
-    }
-
-    .cow-cut:hover {
-      fill: rgba(255,107,44,0.18);
-      stroke: #ff9a68;
-      filter: drop-shadow(0 0 8px rgba(255,107,44,0.16));
-      transform: scale(1.02);
-    }
-
-    .cow-cut.active {
-      fill: rgba(255,107,44,0.28);
-      stroke: #ff9a68;
-      filter: drop-shadow(0 0 10px rgba(255,107,44,0.18));
-    }
-
-    .cow-cut-label {
-      fill: #eef3f8;
-      font-size: 10px;
+      transition: 0.18s ease;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: 800;
-      text-anchor: middle;
-      pointer-events: none;
-      letter-spacing: 0.04em;
+      font-size: 16px;
+      letter-spacing: -0.2px;
     }
 
-    .cow-cut-sub {
-      fill: #c9d6e7;
-      font-size: 7px;
-      font-weight: 700;
-      text-anchor: middle;
-      pointer-events: none;
-      opacity: 0.92;
+    .cut-grid-card:hover {
+      border-color: rgba(255,154,104,0.6);
+      background: linear-gradient(180deg, rgba(255,107,44,0.14), rgba(255,107,44,0.06));
+      transform: translateY(-1px);
+    }
+
+    .cut-grid-card.active {
+      background: linear-gradient(135deg, #ff6b2c, #ff955f);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 0 18px rgba(255,107,44,0.24);
     }
 
     .cut-badges {
@@ -785,11 +767,13 @@
       cursor: pointer;
     }
 
-    canvas { max-height: 320px; }
+    canvas {
+      max-height: 320px;
+    }
 
     @media (min-width: 860px) {
       .cuts-grid {
-        grid-template-columns: 1.1fr 0.9fr;
+        grid-template-columns: 1.05fr 0.95fr;
         align-items: start;
       }
     }
@@ -819,20 +803,21 @@
         grid-template-columns: 1fr;
       }
 
+      .cuts-grid-new {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .cut-grid-card {
+        min-height: 64px;
+        font-size: 14px;
+      }
+
       .brand h1 {
         font-size: 26px;
       }
 
       .hero-score {
         font-size: 62px;
-      }
-
-      .cow-cut-label {
-        font-size: 8px;
-      }
-
-      .cow-cut-sub {
-        font-size: 6px;
       }
     }
   </style>
@@ -959,90 +944,20 @@
 
     <div class="panel">
       <div class="panel-heading">
-        <h2>Beef Cuts Map</h2>
-        <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="Tap a cut to see what it is and how to cook it.">i</button>
+        <h2>Beef Cuts Explorer</h2>
+        <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="A visual reference image plus a clear tap-friendly cut selector. Tap a cut below to see its location on the cow and best cooking styles.">i</button>
       </div>
-      <div class="subtle">Tap a cut to see what it is and how to cook it</div>
+      <div class="subtle">Explore a cut, where it sits on the cow, and how to cook it best</div>
 
       <div class="cuts-grid">
-        <div class="cow-map-shell">
-          <svg class="cow-map-svg" viewBox="0 0 620 380" aria-label="Interactive beef cuts map">
-            <!-- silhouette -->
-            <path class="cow-outline" d="M112 178
-              C110 138, 130 116, 166 103
-              C223 82, 351 79, 461 95
-              C522 103, 559 122, 575 157
-              C585 179, 585 212, 567 236
-              C549 261, 513 276, 463 282
-              C372 292, 236 291, 172 277
-              C132 268, 108 246, 99 213
-              C95 201, 95 189, 112 178 Z"/>
-
-            <circle class="cow-outline" cx="103" cy="132" r="33"/>
-            <ellipse class="cow-outline" cx="64" cy="163" rx="16" ry="11"/>
-            <path class="cow-line" d="M49 174 C37 188, 37 221, 50 235"/>
-            <path class="cow-line" d="M567 168 C586 183, 588 217, 573 242"/>
-            <path class="cow-line" d="M170 272 L159 333"/>
-            <path class="cow-line" d="M262 276 L255 335"/>
-            <path class="cow-line" d="M411 274 L424 336"/>
-            <path class="cow-line" d="M501 267 L516 336"/>
-
-            <!-- cuts -->
-            <rect class="cow-cut" id="cut-chuck" x="154" y="129" width="112" height="72" rx="18"/>
-            <text class="cow-cut-label" x="210" y="167">CHUCK</text>
-            <text class="cow-cut-sub" x="210" y="181">shoulder</text>
-
-            <rect class="cow-cut active" id="cut-ribeye" x="278" y="126" width="92" height="74" rx="18"/>
-            <text class="cow-cut-label" x="324" y="165">RIBEYE</text>
-            <text class="cow-cut-sub" x="324" y="179">rib</text>
-
-            <rect class="cow-cut" id="cut-sirloin" x="382" y="126" width="110" height="74" rx="18"/>
-            <text class="cow-cut-label" x="437" y="165">SIRLOIN</text>
-            <text class="cow-cut-sub" x="437" y="179">rear loin</text>
-
-            <rect class="cow-cut" id="cut-brisket" x="116" y="214" width="108" height="60" rx="18"/>
-            <text class="cow-cut-label" x="170" y="248">BRISKET</text>
-            <text class="cow-cut-sub" x="170" y="261">chest</text>
-
-            <rect class="cow-cut" id="cut-short_ribs" x="244" y="214" width="118" height="60" rx="18"/>
-            <text class="cow-cut-label" x="303" y="248">SHORT RIBS</text>
-            <text class="cow-cut-sub" x="303" y="261">plate</text>
-
-            <rect class="cow-cut" id="cut-flank" x="377" y="214" width="110" height="60" rx="18"/>
-            <text class="cow-cut-label" x="432" y="248">FLANK</text>
-            <text class="cow-cut-sub" x="432" y="261">belly</text>
-
-            <rect class="cow-cut" id="cut-tenderloin" x="500" y="154" width="62" height="42" rx="14"/>
-            <text class="cow-cut-label" x="531" y="179">FILET</text>
-
-            <rect class="cow-cut" id="cut-picanha" x="500" y="108" width="72" height="32" rx="12"/>
-            <text class="cow-cut-sub" x="536" y="128" style="font-size:8px;">PICANHA</text>
-          </svg>
-        </div>
-
-        <div class="cut-info" id="cutInfo">
-          <h3>Ribeye</h3>
-          <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
-
-          <h4>Profile</h4>
-          <div class="cut-badges">
-            <span class="cut-badge">Fat: High</span>
-            <span class="cut-badge">Tenderness: High</span>
+        <div>
+          <div class="cuts-image-wrap">
+            <img src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
           </div>
 
-          <h4>Best Uses</h4>
-          <ul>
-            <li>Cast iron</li>
-            <li>Grill</li>
-            <li>Reverse sear</li>
-          </ul>
-
-          <h4>Tip</h4>
-          <p>A strong crust and a short rest usually give ribeye its best result.</p>
+          <div class="cuts-grid-new" id="cutsGrid"></div>
         </div>
-      </div>
-    </div>
-    <div class="panel">
+        <div class="panel">
       <div class="panel-heading">
         <h2>Recipe Generator</h2>
         <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
@@ -1130,6 +1045,7 @@
     const cutData = {
       brisket: {
         title: "Brisket",
+        location: "Lower chest, toward the front underside of the cow.",
         description: "Brisket comes from the lower chest and carries a lot of connective tissue. It becomes rich and tender when cooked slowly.",
         fat: "Medium",
         tenderness: "Low raw / High when slow-cooked",
@@ -1138,6 +1054,7 @@
       },
       chuck: {
         title: "Chuck",
+        location: "Shoulder and upper front section of the cow.",
         description: "Chuck comes from the shoulder. It is beefy, flavorful, and ideal for long cooking or grinding.",
         fat: "Medium to High",
         tenderness: "Medium",
@@ -1146,6 +1063,7 @@
       },
       ribeye: {
         title: "Ribeye",
+        location: "Upper rib section, along the center-back of the animal.",
         description: "Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.",
         fat: "High",
         tenderness: "High",
@@ -1154,6 +1072,7 @@
       },
       short_ribs: {
         title: "Short Ribs",
+        location: "Lower rib cage and plate section.",
         description: "Short ribs are deeply beefy and loaded with connective tissue, making them ideal for slow cooking.",
         fat: "Medium to High",
         tenderness: "Low raw / High when slow-cooked",
@@ -1162,6 +1081,7 @@
       },
       sirloin: {
         title: "Sirloin",
+        location: "Rear upper back, behind the rib section.",
         description: "Sirloin is leaner than rib cuts but still flavorful and versatile for steaks or roasting.",
         fat: "Medium",
         tenderness: "Medium to High",
@@ -1170,14 +1090,16 @@
       },
       flank: {
         title: "Flank",
+        location: "Lower abdominal muscles, behind the plate section.",
         description: "Flank is a lean, fibrous cut with bold flavor. It works best with fast cooking and correct slicing.",
         fat: "Low",
         tenderness: "Medium",
         methods: ["High-heat grill", "Cast iron", "Marinated sear"],
         tip: "Always slice flank against the grain."
       },
-      tenderloin: {
+      filet: {
         title: "Filet / Tenderloin",
+        location: "Inside the rear back, tucked under the spine.",
         description: "Tenderloin is extremely tender and lean, known more for texture than aggressive beef flavor.",
         fat: "Low",
         tenderness: "Very High",
@@ -1186,6 +1108,7 @@
       },
       picanha: {
         title: "Picanha",
+        location: "Top rear rump cap, near the tail end.",
         description: "Picanha is prized for its fat cap and big flavor. It is especially popular in Brazilian-style cooking.",
         fat: "Medium to High",
         tenderness: "High",
@@ -1193,6 +1116,17 @@
         tip: "Score the fat cap lightly and render it carefully."
       }
     };
+
+    const cutCards = [
+      { id: "chuck", label: "Chuck" },
+      { id: "ribeye", label: "Ribeye" },
+      { id: "sirloin", label: "Sirloin" },
+      { id: "brisket", label: "Brisket" },
+      { id: "short_ribs", label: "Short Ribs" },
+      { id: "flank", label: "Flank" },
+      { id: "filet", label: "Filet" },
+      { id: "picanha", label: "Picanha" }
+    ];
 
     function formatNum(n) {
       return Number(n || 0).toLocaleString("en-US");
@@ -1629,6 +1563,23 @@
       });
     }
 
+    function renderCutsGrid(activeId = "ribeye") {
+      const grid = document.getElementById("cutsGrid");
+      if (!grid) return;
+
+      grid.innerHTML = cutCards.map(c => `
+        <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
+          ${c.label}
+        </button>
+      `).join("");
+
+      grid.querySelectorAll(".cut-grid-card").forEach(btn => {
+        btn.addEventListener("click", () => {
+          renderCutInfo(btn.dataset.cutId);
+        });
+      });
+    }
+
     function generateRecipe() {
       const cutType = document.getElementById("cutType").value;
       const cookingMethod = document.getElementById("cookingMethod").value;
@@ -1802,20 +1753,24 @@
       const cut = cutData[cutKey];
       if (!cut) return;
 
-      document.querySelectorAll(".cow-cut").forEach(el => el.classList.remove("active"));
-      const zone = document.getElementById(`cut-${cutKey}`);
-      if (zone) zone.classList.add("active");
+      renderCutsGrid(cutKey);
 
       document.getElementById("cutInfo").innerHTML = `
         <h3>${cut.title}</h3>
         <p>${cut.description}</p>
+
+        <h4>Location on the cow</h4>
+        <p>${cut.location}</p>
+
         <h4>Profile</h4>
         <div class="cut-badges">
           <span class="cut-badge">Fat: ${cut.fat}</span>
           <span class="cut-badge">Tenderness: ${cut.tenderness}</span>
         </div>
+
         <h4>Best Uses</h4>
         <ul>${cut.methods.map(method => `<li>${method}</li>`).join("")}</ul>
+
         <h4>Tip</h4>
         <p>${cut.tip}</p>
       `;
@@ -1830,15 +1785,6 @@
         };
         if (map[cutKey]) cutSelect.value = map[cutKey];
       }
-    }
-
-    function attachCutMap() {
-      document.querySelectorAll(".cow-cut").forEach(zone => {
-        zone.addEventListener("click", () => {
-          const cutKey = zone.id.replace("cut-", "");
-          renderCutInfo(cutKey);
-        });
-      });
     }
 
     async function loadData() {
@@ -1900,10 +1846,37 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       attachTabs();
-      attachCutMap();
       attachPopovers();
+      renderCutsGrid("ribeye");
+      renderCutInfo("ribeye");
       loadData();
     });
   </script>
 </body>
-</html>
+    </html>
+
+        <div class="cut-info" id="cutInfo">
+          <h3>Ribeye</h3>
+          <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
+
+          <h4>Location on the cow</h4>
+          <p>Upper rib section, along the center-back of the animal.</p>
+
+          <h4>Profile</h4>
+          <div class="cut-badges">
+            <span class="cut-badge">Fat: High</span>
+            <span class="cut-badge">Tenderness: High</span>
+          </div>
+
+          <h4>Best Uses</h4>
+          <ul>
+            <li>Cast iron</li>
+            <li>Grill</li>
+            <li>Reverse sear</li>
+          </ul>
+
+          <h4>Tip</h4>
+          <p>A strong crust and a short rest usually give ribeye its best result.</p>
+        </div>
+      </div>
+    </div>
