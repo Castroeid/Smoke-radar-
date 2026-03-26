@@ -492,54 +492,71 @@
     }
 
     .cuts-map-shell {
-      border-radius: 18px;
-      padding: 14px;
+      border-radius: 22px;
+      padding: 18px;
       position: relative;
-      min-height: 270px;
+      min-height: 320px;
       overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(255,107,44,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(15,22,33,0.96), rgba(10,16,24,0.98));
     }
 
     .cuts-map-svg {
       width: 100%;
       height: auto;
       display: block;
-      max-height: 280px;
+      max-height: 340px;
     }
 
-    .cow-body {
-      fill: rgba(20, 29, 42, 0.95);
-      stroke: #314154;
+    .cow-silhouette {
+      fill: rgba(17, 26, 39, 0.96);
+      stroke: #35465d;
       stroke-width: 3.5;
     }
 
-    .cow-leg,
-    .cow-line {
-      stroke: #314154;
-      stroke-width: 6;
+    .cow-detail {
+      stroke: #35465d;
+      stroke-width: 5.5;
       stroke-linecap: round;
       fill: none;
+      opacity: 0.95;
     }
 
     .cut-zone {
-      fill: #182334;
-      stroke: #314154;
+      fill: rgba(28, 40, 58, 0.88);
+      stroke: #41556f;
       stroke-width: 2;
       cursor: pointer;
-      transition: 0.18s ease;
+      transition: transform 0.18s ease, fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease;
+      transform-box: fill-box;
+      transform-origin: center;
     }
 
     .cut-zone:hover,
     .cut-zone.active {
-      fill: rgba(255,107,44,0.34);
-      stroke: #ff955f;
+      fill: rgba(255,107,44,0.30);
+      stroke: #ff9a68;
+      filter: drop-shadow(0 0 12px rgba(255,107,44,0.18));
+      transform: scale(1.03);
     }
 
     .cut-label {
-      fill: #dbe5f2;
+      fill: #eef3f8;
       font-size: 10px;
+      font-weight: 800;
+      text-anchor: middle;
+      pointer-events: none;
+      letter-spacing: 0.04em;
+    }
+
+    .cut-mini-label {
+      fill: #c9d6e7;
+      font-size: 8px;
       font-weight: 700;
       text-anchor: middle;
       pointer-events: none;
+      opacity: 0.9;
     }
 
     .cut-badges {
@@ -798,6 +815,15 @@
       .hero-score {
         font-size: 62px;
       }
+
+      .cuts-map-shell {
+        min-height: 280px;
+        padding: 12px;
+      }
+
+      .cuts-map-svg {
+        max-height: 280px;
+      }
     }
   </style>
 </head>
@@ -930,62 +956,70 @@
 
       <div class="cuts-grid">
         <div class="cuts-map-shell">
-          <svg class="cuts-map-svg" viewBox="0 0 460 270" aria-label="Beef cuts diagram">
-            <path class="cow-body" d="M77 94 C118 66, 210 55, 306 60 C360 63, 402 80, 417 106 L417 170 C397 202, 329 216, 219 216 C126 216, 72 202, 53 179 L53 129 C54 113, 63 102, 77 94 Z"></path>
-            <circle cx="95" cy="84" r="28" fill="rgba(20,29,42,0.95)" stroke="#314154" stroke-width="4"></circle>
-            <rect x="44" y="97" rx="9" ry="9" width="28" height="18" fill="rgba(20,29,42,0.95)" stroke="#314154" stroke-width="3"></rect>
-            <path class="cow-line" d="M421 111 C441 115, 448 146, 431 179"></path>
-            <path class="cow-line" d="M64 115 C45 128, 43 161, 55 178"></path>
-            <path class="cow-leg" d="M157 196 L147 243"></path>
-            <path class="cow-leg" d="M220 198 L213 244"></path>
-            <path class="cow-leg" d="M325 194 L336 244"></path>
-            <path class="cow-leg" d="M388 190 L401 243"></path>
+          <svg class="cuts-map-svg" viewBox="0 0 520 300" aria-label="Beef cuts diagram">
+            <ellipse class="cow-silhouette" cx="265" cy="150" rx="175" ry="90"></ellipse>
+            <circle class="cow-silhouette" cx="105" cy="110" r="34"></circle>
+            <rect class="cow-silhouette" x="56" y="122" width="34" height="20" rx="10"></rect>
 
-            <rect class="cut-zone active" id="cut-brisket" x="75" y="150" width="86" height="48" rx="14"></rect>
-            <text class="cut-label" x="118" y="178">BRISKET</text>
+            <path class="cow-detail" d="M438 118 C462 128, 467 165, 450 194"></path>
+            <path class="cow-detail" d="M85 132 C63 145, 61 177, 75 195"></path>
 
-            <rect class="cut-zone" id="cut-chuck" x="108" y="86" width="94" height="58" rx="14"></rect>
-            <text class="cut-label" x="155" y="119">CHUCK</text>
+            <path class="cow-detail" d="M165 214 L155 266"></path>
+            <path class="cow-detail" d="M235 214 L228 267"></path>
+            <path class="cow-detail" d="M338 214 L348 267"></path>
+            <path class="cow-detail" d="M407 208 L420 267"></path>
 
-            <rect class="cut-zone" id="cut-ribeye" x="210" y="78" width="88" height="64" rx="14"></rect>
-            <text class="cut-label" x="254" y="114">RIBEYE</text>
+            <rect class="cut-zone" id="cut-chuck" x="120" y="110" width="96" height="62" rx="18"></rect>
+            <text class="cut-label" x="168" y="143">CHUCK</text>
+            <text class="cut-mini-label" x="168" y="157">shoulder</text>
 
-            <rect class="cut-zone" id="cut-short_ribs" x="211" y="148" width="88" height="50" rx="14"></rect>
-            <text class="cut-label" x="255" y="177">SHORT RIBS</text>
+            <rect class="cut-zone active" id="cut-ribeye" x="224" y="101" width="90" height="70" rx="18"></rect>
+            <text class="cut-label" x="269" y="137">RIBEYE</text>
+            <text class="cut-mini-label" x="269" y="151">rib section</text>
 
-            <rect class="cut-zone" id="cut-sirloin" x="306" y="86" width="98" height="60" rx="14"></rect>
-            <text class="cut-label" x="355" y="119">SIRLOIN</text>
+            <rect class="cut-zone" id="cut-sirloin" x="322" y="103" width="96" height="68" rx="18"></rect>
+            <text class="cut-label" x="370" y="138">SIRLOIN</text>
+            <text class="cut-mini-label" x="370" y="152">rear loin</text>
 
-            <rect class="cut-zone" id="cut-flank" x="306" y="150" width="98" height="48" rx="14"></rect>
-            <text class="cut-label" x="355" y="177">FLANK</text>
+            <rect class="cut-zone" id="cut-brisket" x="96" y="176" width="96" height="54" rx="18"></rect>
+            <text class="cut-label" x="144" y="207">BRISKET</text>
+            <text class="cut-mini-label" x="144" y="221">chest</text>
 
-            <rect class="cut-zone" id="cut-tenderloin" x="411" y="104" width="56" height="38" rx="14"></rect>
-            <text class="cut-label" x="439" y="127">FILET</text>
+            <rect class="cut-zone" id="cut-short_ribs" x="226" y="178" width="92" height="54" rx="18"></rect>
+            <text class="cut-label" x="272" y="209">SHORT RIBS</text>
+            <text class="cut-mini-label" x="272" y="223">plate</text>
 
-            <rect class="cut-zone" id="cut-picanha" x="415" y="66" width="52" height="28" rx="12"></rect>
-            <text class="cut-label" x="441" y="84">PICANHA</text>
+            <rect class="cut-zone" id="cut-flank" x="326" y="176" width="96" height="54" rx="18"></rect>
+            <text class="cut-label" x="374" y="207">FLANK</text>
+            <text class="cut-mini-label" x="374" y="221">belly</text>
+
+            <rect class="cut-zone" id="cut-tenderloin" x="427" y="126" width="58" height="42" rx="16"></rect>
+            <text class="cut-label" x="456" y="152">FILET</text>
+
+            <rect class="cut-zone" id="cut-picanha" x="432" y="84" width="52" height="28" rx="12"></rect>
+            <text class="cut-mini-label" x="458" y="102">PICANHA</text>
           </svg>
         </div>
 
         <div class="cut-info" id="cutInfo">
-          <h3>Brisket</h3>
-          <p>Brisket comes from the lower chest and carries a lot of connective tissue. It becomes rich and tender when cooked slowly.</p>
+          <h3>Ribeye</h3>
+          <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
 
           <h4>Profile</h4>
           <div class="cut-badges">
-            <span class="cut-badge">Fat: Medium</span>
-            <span class="cut-badge">Tenderness: Low raw / High when slow-cooked</span>
+            <span class="cut-badge">Fat: High</span>
+            <span class="cut-badge">Tenderness: High</span>
           </div>
 
           <h4>Best Uses</h4>
           <ul>
-            <li>Smoking</li>
-            <li>Long braise</li>
-            <li>Low and slow oven cook</li>
+            <li>Cast iron</li>
+            <li>Grill</li>
+            <li>Reverse sear</li>
           </ul>
 
           <h4>Tip</h4>
-          <p>Brisket rewards patience. Resting is almost as important as the cook itself.</p>
+          <p>A strong crust and a short rest usually give ribeye its best result.</p>
         </div>
       </div>
     </div>
@@ -1011,7 +1045,7 @@
           <label for="cutType">Cut</label>
           <select id="cutType">
             <option value="brisket">Brisket</option>
-            <option value="ribeye">Ribeye</option>
+            <option value="ribeye" selected>Ribeye</option>
             <option value="short_ribs">Short Ribs</option>
             <option value="tomahawk">Tomahawk</option>
             <option value="picanha">Picanha</option>
@@ -1023,7 +1057,7 @@
           <select id="cookingMethod">
             <option value="smoking">Smoking</option>
             <option value="long_cook">Long Cook</option>
-            <option value="cast_iron">Cast Iron</option>
+            <option value="cast_iron" selected>Cast Iron</option>
             <option value="bbq">BBQ</option>
             <option value="oven_roast">Oven Roast</option>
           </select>
@@ -1032,7 +1066,7 @@
         <div class="recipe-field">
           <label for="flavorProfile">Flavor Profile</label>
           <select id="flavorProfile">
-            <option value="classic">Classic</option>
+            <option value="classic" selected>Classic</option>
             <option value="peppery">Peppery</option>
             <option value="garlic_herb">Garlic & Herb</option>
             <option value="sweet_smoky">Sweet & Smoky</option>
