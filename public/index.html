@@ -1499,34 +1499,43 @@
       document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
     }
 
-    function attachPopovers() {
-      document.querySelectorAll(".info-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const title = btn.dataset.popoverTitle || "Info";
-          const text = btn.dataset.popoverText || "";
-          const alreadyOpen =
-            btn.classList.contains("active") &&
-            document.getElementById("infoPopover").classList.contains("show");
+function attachPopovers() {
+  document.querySelectorAll(".info-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
 
-          if (alreadyOpen) {
-            closePopover();
-            return;
-          }
+      const title = btn.dataset.popoverTitle || "Info";
+      const text = btn.dataset.popoverText || "";
+      const alreadyOpen =
+        btn.classList.contains("active") &&
+        document.getElementById("infoPopover").classList.contains("show");
 
-          openPopover(title, `<p>${escapeHtml(text)}</p>`, btn);
-        });
-      });
+      if (alreadyOpen) {
+        closePopover();
+        return;
+      }
 
-      document.getElementById("popoverClose").addEventListener("click", closePopover);
+      openPopover(title, `<p>${escapeHtml(text)}</p>`, btn);
+    });
+  });
 
-      document.addEventListener("click", (e) => {
-        const pop = document.getElementById("infoPopover");
-        if (!pop.contains(e.target) && !e.target.classList.contains("info-btn")) {
-          closePopover();
-        }
-      });
+  document.getElementById("popoverClose").addEventListener("click", (e) => {
+    e.stopPropagation();
+    closePopover();
+  });
+
+  document.addEventListener("click", (e) => {
+    const pop = document.getElementById("infoPopover");
+
+    const clickedInfoButton = e.target.closest(".info-btn");
+    const clickedCutCard = e.target.closest(".cut-grid-card");
+    const clickedInsidePopover = e.target.closest("#infoPopover");
+
+    if (!clickedInfoButton && !clickedCutCard && !clickedInsidePopover) {
+      closePopover();
     }
+  });
+}
 
     function renderMeta(data) {
       const metaStrip = document.getElementById("metaStrip");
@@ -1888,22 +1897,23 @@
     }
 
     function renderCutsGrid(activeId = "ribeye") {
-      const grid = document.getElementById("cutsGrid");
-      if (!grid) return;
+  const grid = document.getElementById("cutsGrid");
+  if (!grid) return;
 
-      grid.innerHTML = cutCards.map(c => `
-        <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
-          ${c.label}
-        </button>
-      `).join("");
+  grid.innerHTML = cutCards.map(c => `
+    <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
+      ${c.label}
+    </button>
+  `).join("");
 
-      grid.querySelectorAll(".cut-grid-card").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          const key = btn.dataset.cutId;
-          renderCutsGrid(key);
-          openCutPopover(key, e.currentTarget);
-        });
-      });
+  grid.querySelectorAll(".cut-grid-card").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const key = btn.dataset.cutId;
+      renderCutsGrid(key);
+      openCutPopover(key, btn);
+    });
+  });
     }
 
     function openCutPopover(cutKey, buttonEl = null) {
