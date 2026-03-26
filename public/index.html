@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smoke Radar</title>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -498,8 +500,6 @@
       line-height: 1.7;
     }
 
-    /* ===== Cut explorer ===== */
-
     .cuts-image-wrap {
       border-radius: 18px;
       overflow: hidden;
@@ -957,7 +957,34 @@
 
           <div class="cuts-grid-new" id="cutsGrid"></div>
         </div>
-        <div class="panel">
+
+        <div class="cut-info" id="cutInfo">
+          <h3>Ribeye</h3>
+          <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
+
+          <h4>Location on the cow</h4>
+          <p>Upper rib section, along the center-back of the animal.</p>
+
+          <h4>Profile</h4>
+          <div class="cut-badges">
+            <span class="cut-badge">Fat: High</span>
+            <span class="cut-badge">Tenderness: High</span>
+          </div>
+
+          <h4>Best Uses</h4>
+          <ul>
+            <li>Cast iron</li>
+            <li>Grill</li>
+            <li>Reverse sear</li>
+          </ul>
+
+          <h4>Tip</h4>
+          <p>A strong crust and a short rest usually give ribeye its best result.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
       <div class="panel-heading">
         <h2>Recipe Generator</h2>
         <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
@@ -1853,30 +1880,4 @@
     });
   </script>
 </body>
-    </html>
-
-        <div class="cut-info" id="cutInfo">
-          <h3>Ribeye</h3>
-          <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
-
-          <h4>Location on the cow</h4>
-          <p>Upper rib section, along the center-back of the animal.</p>
-
-          <h4>Profile</h4>
-          <div class="cut-badges">
-            <span class="cut-badge">Fat: High</span>
-            <span class="cut-badge">Tenderness: High</span>
-          </div>
-
-          <h4>Best Uses</h4>
-          <ul>
-            <li>Cast iron</li>
-            <li>Grill</li>
-            <li>Reverse sear</li>
-          </ul>
-
-          <h4>Tip</h4>
-          <p>A strong crust and a short rest usually give ribeye its best result.</p>
-        </div>
-      </div>
-    </div>
+</html>
