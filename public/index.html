@@ -880,6 +880,144 @@
   border: none;
   box-shadow: 0 0 12px rgba(255,107,44,0.5);
 }
+ /* ===== BEEF MAP FINAL FIX ===== */
+
+.cuts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.cuts-map-shell {
+  border-radius: 22px;
+  padding: 14px;
+  min-height: auto;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(255,107,44,0.08), transparent 28%),
+    linear-gradient(180deg, rgba(15,22,33,0.96), rgba(10,16,24,0.98));
+  border: 1px solid var(--border);
+}
+
+.cuts-map-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: #05070b;
+  background-image: url("/images/beef-map-premium.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+}
+
+.cut-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 54px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(16, 22, 32, 0.72);
+  color: #e8eef7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.cut-hotspot:hover {
+  background: rgba(255,107,44,0.18);
+  border-color: rgba(255,154,104,0.65);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.cut-hotspot.active {
+  background: linear-gradient(135deg, #ff6b2c, #ff955f);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 0 20px rgba(255,107,44,0.28);
+}
+
+.cut-info {
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.cut-info h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.cut-info h4 {
+  margin: 16px 0 8px;
+  font-size: 14px;
+  color: #d8e2ef;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cut-info p,
+.cut-info li {
+  color: #d7dfeb;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.cut-info ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.cut-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.cut-badge {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #131b27;
+  border: 1px solid #243043;
+  color: #dbe5f2;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (min-width: 860px) {
+  .cuts-grid {
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .cuts-map-shell {
+    padding: 10px;
+  }
+
+  .cuts-map-stage {
+    aspect-ratio: 16 / 11;
+  }
+
+  .cut-hotspot {
+    min-width: 42px;
+    padding: 6px 8px;
+    font-size: 8px;
+    border-radius: 12px;
+  }
+}
   </style>
 </head>
 <body>
@@ -1002,45 +1140,53 @@
       </div>
     </div>
 
-  <div class="panel">
+ <div class="panel">
   <div class="panel-heading">
     <h2>Beef Cuts Map</h2>
-    <button class="info-btn"
-      data-popover-title="Beef Cuts Map"
-      data-popover-text="Interactive beef cuts map with cooking insights">
+    <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="Tap a region to explore the cut and recommended cooking styles.">
       i
     </button>
   </div>
 
-  <div class="cuts-grid">
+  <div class="subtle">Tap a cut to see what it is and how to cook it</div>
 
+  <div class="cuts-grid">
     <div class="cuts-map-shell">
       <div class="cuts-map-stage">
-
-        <img
-          class="cuts-map-image"
-          src="/images/beef-map-premium.png"
-        />
-<!-- HOTSPOTS -->
-<button class="cut-hotspot" style="left:18%; top:30%;">Chuck</button>
-<button class="cut-hotspot active" style="left:36%; top:28%;">Ribeye</button>
-<button class="cut-hotspot" style="left:54%; top:28%;">Sirloin</button>
-<button class="cut-hotspot" style="left:13%; top:60%;">Brisket</button>
-<button class="cut-hotspot" style="left:35%; top:60%;">Short Ribs</button>
-<button class="cut-hotspot" style="left:56%; top:60%;">Flank</button>
-<button class="cut-hotspot" style="left:72%; top:38%;">Filet</button>
-<button class="cut-hotspot" style="left:78%; top:20%;">Picanha</button>
-        <button class="cut-hotspot" id="cut-chuck" style="left:17%; top:29%; width:16%; height:21%;"></button>
-        <button class="cut-hotspot active" id="cut-ribeye" style="left:35%; top:27%; width:15%; height:23%;"></button>
-        <button class="cut-hotspot" id="cut-sirloin" style="left:53%; top:28%; width:17%; height:22%;"></button>
-        <button class="cut-hotspot" id="cut-brisket" style="left:12%; top:56%; width:17%; height:17%;"></button>
-        <button class="cut-hotspot" id="cut-short_ribs" style="left:35%; top:57%; width:16%; height:17%;"></button>
-        <button class="cut-hotspot" id="cut-flank" style="left:54%; top:58%; width:17%; height:17%;"></button>
-        <button class="cut-hotspot" id="cut-tenderloin" style="left:73%; top:37%; width:10%; height:14%;"></button>
-        <button class="cut-hotspot" id="cut-picanha" style="left:75%; top:18%; width:9%; height:9%;"></button>
-
+        <button class="cut-hotspot" id="cut-chuck" style="left:22%; top:40%;">Chuck</button>
+        <button class="cut-hotspot active" id="cut-ribeye" style="left:42%; top:38%;">Ribeye</button>
+        <button class="cut-hotspot" id="cut-sirloin" style="left:60%; top:38%;">Sirloin</button>
+        <button class="cut-hotspot" id="cut-brisket" style="left:20%; top:65%;">Brisket</button>
+        <button class="cut-hotspot" id="cut-short_ribs" style="left:42%; top:65%;">Short Ribs</button>
+        <button class="cut-hotspot" id="cut-flank" style="left:59%; top:62%;">Flank</button>
+        <button class="cut-hotspot" id="cut-tenderloin" style="left:74%; top:48%;">Filet</button>
+        <button class="cut-hotspot" id="cut-picanha" style="left:74%; top:24%;">Picanha</button>
       </div>
     </div>
+
+    <div class="cut-info" id="cutInfo">
+      <h3>Ribeye</h3>
+      <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
+
+      <h4>Profile</h4>
+      <div class="cut-badges">
+        <span class="cut-badge">Fat: High</span>
+        <span class="cut-badge">Tenderness: High</span>
+      </div>
+
+      <h4>Best Uses</h4>
+      <ul>
+        <li>Cast iron</li>
+        <li>Grill</li>
+        <li>Reverse sear</li>
+      </ul>
+
+      <h4>Tip</h4>
+      <p>A strong crust and a short rest usually give ribeye its best result.</p>
+    </div>
+  </div>
+</div>  
+  </div>
 
     <div class="cut-info" id="cutInfo"></div>
 
