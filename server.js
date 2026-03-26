@@ -11,45 +11,71 @@ app.use(express.static(path.join(__dirname, "public")));
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const CACHE_FILE = path.join(__dirname, "cache.json");
+const CACHE_TTL_MINUTES = Number(process.env.CACHE_TTL_MINUTES || 45);
 
-// ===== File cache helpers =====
-function loadCache() {
+// -------------------- cache helpers --------------------
+
+function readCache() {
   try {
     if (!fs.existsSync(CACHE_FILE)) {
-      return { lastUpdated: null, videos: [] };
+      return { fetchedAt: null, lastUpdated: null, videos: [] };
     }
 
     const raw = fs.readFileSync(CACHE_FILE, "utf-8");
     const parsed = JSON.parse(raw);
 
     return {
+      fetchedAt: parsed.fetchedAt || null,
       lastUpdated: parsed.lastUpdated || null,
       videos: Array.isArray(parsed.videos) ? parsed.videos : []
     };
   } catch (error) {
-    console.error("Failed to read cache:", error.message);
-    return { lastUpdated: null, videos: [] };
+    console.error("Cache read failed:", error.message);
+    return { fetchedAt: null, lastUpdated: null, videos: [] };
   }
 }
 
-function saveCache(data) {
+function writeCache(payload) {
   try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2), "utf-8");
+    fs.writeFileSync(
+      CACHE_FILE,
+      JSON.stringify(
+        {
+          fetchedAt: new Date().toISOString(),
+          lastUpdated: payload.lastUpdated || new Date().toISOString(),
+          videos: payload.videos || []
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    );
   } catch (error) {
-    console.error("Failed to save cache:", error.message);
+    console.error("Cache write failed:", error.message);
   }
 }
 
-// ===== Better seed fallback data =====
+function getCacheAgeMinutes(cache) {
+  if (!cache?.fetchedAt) return Infinity;
+  const ageMs = Date.now() - new Date(cache.fetchedAt).getTime();
+  return Math.floor(ageMs / 60000);
+}
+
+function isCacheFresh(cache) {
+  return getCacheAgeMinutes(cache) < CACHE_TTL_MINUTES && Array.isArray(cache.videos) && cache.videos.length > 0;
+}
+
+// -------------------- fallback data --------------------
+
 function getSeedData() {
   const now = new Date().toISOString();
 
   const videos = [
     {
-      id: "LazioSeed001",
+      id: "seed-brisket",
       title: "Texas Style Smoked Brisket",
       channelTitle: "BBQ Masters",
-      channelId: "UCBBQMasters001",
+      channelId: "UCseedbrisket001",
       publishedAt: now,
       thumbnail: "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80",
       viewCount: 124000,
@@ -60,10 +86,10 @@ function getSeedData() {
       url: "https://www.youtube.com/results?search_query=Texas+Style+Smoked+Brisket"
     },
     {
-      id: "LazioSeed002",
+      id: "seed-ribeye",
       title: "Reverse Sear Ribeye on Cast Iron",
       channelTitle: "Meat Lab",
-      channelId: "UCMeatLab002",
+      channelId: "UCseedribeye002",
       publishedAt: now,
       thumbnail: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
       viewCount: 89000,
@@ -74,10 +100,10 @@ function getSeedData() {
       url: "https://www.youtube.com/results?search_query=Reverse+Sear+Ribeye+Cast+Iron"
     },
     {
-      id: "LazioSeed003",
+      id: "seed-ribs",
       title: "Beef Short Ribs Low and Slow",
       channelTitle: "Smoke House",
-      channelId: "UCSmokeHouse003",
+      channelId: "UCseedribs003",
       publishedAt: now,
       thumbnail: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80",
       viewCount: 54000,
@@ -89,10 +115,16 @@ function getSeedData() {
     }
   ];
 
-  return buildPayload(videos, "seed", now, null);
+  return buildPayload(videos, {
+    source: "seed",
+    fallbackReason: "Offline fallback snapshot",
+    fetchedAt: now,
+    lastUpdated: now
+  });
 }
 
-// ===== Utility functions =====
+// -------------------- utilities --------------------
+
 function getHoursSince(dateString) {
   const now = Date.now();
   const then = new Date(dateString).getTime();
@@ -120,7 +152,8 @@ function calculateSmokeScore(video) {
 function extractKeywords(title) {
   const blacklist = new Set([
     "the", "and", "with", "from", "this", "that", "your", "you", "for",
-    "bbq", "how", "make", "made", "best", "recipe", "food", "video", "guide", "home"
+    "bbq", "how", "make", "made", "best", "recipe", "food", "video", "guide",
+    "home", "style", "cast", "iron", "reverse", "sear"
   ]);
 
   return String(title || "")
@@ -136,13 +169,13 @@ function isMeatRelevant(title = "", description = "") {
   const includeWords = [
     "beef", "steak", "brisket", "ribeye", "tomahawk", "wagyu", "short ribs",
     "beef ribs", "smoked beef", "bbq beef", "tri tip", "picanha", "sirloin",
-    "strip steak", "t bone", "porterhouse", "prime rib", "chuck roast",
-    "brisket burnt ends", "brisket", "ribs", "meat"
+    "strip steak", "porterhouse", "prime rib", "chuck roast", "tenderloin",
+    "flank", "brisket burnt ends", "ribs", "meat", "brisket"
   ];
 
   const excludeWords = [
     "pizza", "pasta", "cake", "cookie", "vegan", "vegetarian", "tofu",
-    "salad", "dessert", "bread", "soup", "ice cream", "sandwich cookies"
+    "salad", "dessert", "bread", "ice cream", "chicken", "fish", "shrimp"
   ];
 
   const hasInclude = includeWords.some(word => text.includes(word));
@@ -162,8 +195,9 @@ async function fetchJson(url) {
   return data;
 }
 
-// ===== Payload builder =====
-function buildPayload(videosInput, source, lastUpdated, fallbackReason = null) {
+// -------------------- payload builder --------------------
+
+function buildPayload(videosInput, meta = {}) {
   const videos = (videosInput || []).map(video => {
     const normalized = {
       id: video.id || "",
@@ -251,31 +285,29 @@ function buildPayload(videosInput, source, lastUpdated, fallbackReason = null) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
 
-  const chartData = sortedVideos.slice(0, 10).map(v => ({
-    title: v.title.length > 24 ? v.title.slice(0, 24) + "..." : v.title,
-    smokeScore: v.smokeScore,
-    viewsPerHour: v.viewsPerHour
-  }));
-
   return {
-    source,
-    lastUpdated,
-    fallbackReason,
+    source: meta.source || "cache",
+    fetchedAt: meta.fetchedAt || null,
+    lastUpdated: meta.lastUpdated || null,
+    fallbackReason: meta.fallbackReason || null,
+    cacheAgeMinutes: typeof meta.cacheAgeMinutes === "number" ? meta.cacheAgeMinutes : null,
+    ttlMinutes: CACHE_TTL_MINUTES,
     total: sortedVideos.length,
     videos: sortedVideos,
     summary,
     topChannels,
-    topKeywords,
-    chartData
+    topKeywords
   };
 }
 
-// ===== Live YouTube fetch =====
+// -------------------- live fetch --------------------
+
 async function fetchLiveData() {
   if (!API_KEY) {
     throw new Error("Missing API key");
   }
 
+  // deliberately small set to reduce quota burn
   const queries = [
     "smoked brisket steak bbq beef",
     "wagyu ribeye tomahawk beef ribs"
@@ -285,7 +317,7 @@ async function fetchLiveData() {
 
   for (const query of queries) {
     const searchUrl =
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&order=date&q=${encodeURIComponent(query)}&key=${API_KEY}`;
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&order=date&q=${encodeURIComponent(query)}&key=${API_KEY}`;
 
     const searchData = await fetchJson(searchUrl);
     searchItems = searchItems.concat(searchData.items || []);
@@ -302,7 +334,12 @@ async function fetchLiveData() {
   )];
 
   if (!uniqueVideoIds.length) {
-    return buildPayload([], "live", new Date().toISOString(), "No relevant meat video IDs returned from YouTube search");
+    return buildPayload([], {
+      source: "live",
+      fetchedAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      fallbackReason: "No relevant meat video IDs returned"
+    });
   }
 
   const videosUrl =
@@ -318,7 +355,12 @@ async function fetchLiveData() {
   );
 
   if (!rawVideos.length) {
-    return buildPayload([], "live", new Date().toISOString(), "Video details request returned no relevant items");
+    return buildPayload([], {
+      source: "live",
+      fetchedAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      fallbackReason: "No relevant video details returned"
+    });
   }
 
   const uniqueChannelIds = [...new Set(
@@ -360,26 +402,46 @@ async function fetchLiveData() {
     };
   });
 
-  return buildPayload(videos, "live", new Date().toISOString(), null);
+  return buildPayload(videos, {
+    source: "live",
+    fetchedAt: new Date().toISOString(),
+    lastUpdated: new Date().toISOString()
+  });
 }
 
-// ===== Main route =====
+// -------------------- routes --------------------
+
 app.get("/api/smoke-radar", async (req, res) => {
-  const cache = loadCache();
+  const cache = readCache();
+  const force = req.query.force === "1";
 
   if (!API_KEY) {
+    const seed = getSeedData();
     return res.json({
-      ...getSeedData(),
+      ...seed,
       source: "no-key",
       fallbackReason: "No API key configured, serving offline snapshot"
     });
+  }
+
+  // cache-first
+  if (!force && isCacheFresh(cache)) {
+    return res.json(
+      buildPayload(cache.videos, {
+        source: "cache",
+        fetchedAt: cache.fetchedAt,
+        lastUpdated: cache.lastUpdated,
+        cacheAgeMinutes: getCacheAgeMinutes(cache),
+        fallbackReason: `Fresh cached snapshot served (TTL ${CACHE_TTL_MINUTES} min)`
+      })
+    );
   }
 
   try {
     const liveData = await fetchLiveData();
 
     if (liveData.videos.length > 0) {
-      saveCache({
+      writeCache({
         lastUpdated: liveData.lastUpdated,
         videos: liveData.videos
       });
@@ -387,28 +449,42 @@ app.get("/api/smoke-radar", async (req, res) => {
 
     return res.json(liveData);
   } catch (error) {
-    console.error("Live fetch failed, falling back:", error.message);
+    console.error("Live fetch failed:", error.message);
 
     if (cache.videos && cache.videos.length > 0) {
-      const cachePayload = buildPayload(
-        cache.videos,
-        "cache",
-        cache.lastUpdated || new Date().toISOString(),
-        "Live fetch failed, serving cached snapshot"
+      return res.json(
+        buildPayload(cache.videos, {
+          source: "cache",
+          fetchedAt: cache.fetchedAt,
+          lastUpdated: cache.lastUpdated,
+          cacheAgeMinutes: getCacheAgeMinutes(cache),
+          fallbackReason: "Live fetch failed, serving saved cache"
+        })
       );
-
-      return res.json(cachePayload);
     }
 
+    const seed = getSeedData();
     return res.json({
-      ...getSeedData(),
+      ...seed,
       source: "seed",
-      fallbackReason: "Live fetch failed and no cache was available, serving offline seed snapshot"
+      fallbackReason: "Live fetch failed and no cache was available"
     });
   }
 });
 
-// ===== Root =====
+app.get("/api/debug/quota-mode", (req, res) => {
+  const cache = readCache();
+
+  res.json({
+    ok: true,
+    hasApiKey: Boolean(API_KEY),
+    cacheFresh: isCacheFresh(cache),
+    cacheAgeMinutes: getCacheAgeMinutes(cache),
+    ttlMinutes: CACHE_TTL_MINUTES,
+    cachedVideos: Array.isArray(cache.videos) ? cache.videos.length : 0
+  });
+});
+
 app.get("/health", (req, res) => {
   res.json({ ok: true, service: "Smoke Radar" });
 });
