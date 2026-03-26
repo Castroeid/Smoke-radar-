@@ -23,12 +23,9 @@
       --yellow: #f5b041;
       --red: #ff5f57;
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
-      --radius: 22px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -38,9 +35,7 @@
       font-family: "Inter", Arial, sans-serif;
     }
 
-    body {
-      min-height: 100vh;
-    }
+    body { min-height: 100vh; }
 
     .container {
       max-width: 860px;
@@ -64,14 +59,14 @@
     }
 
     .brand-icon {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       border-radius: 16px;
       display: grid;
       place-items: center;
       background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.1));
       border: 1px solid rgba(255,255,255,0.08);
-      font-size: 24px;
+      font-size: 25px;
       box-shadow: var(--shadow);
       flex-shrink: 0;
     }
@@ -177,12 +172,22 @@
       line-height: 1.6;
     }
 
-    .hero-card {
+    .hero-card,
+    .panel,
+    .signal-card,
+    .card,
+    .kpi,
+    .recipe-output,
+    .cut-info,
+    .cuts-map-shell {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
       border-radius: 30px;
       padding: 24px 18px 20px;
-      box-shadow: var(--shadow);
       margin-bottom: 16px;
       overflow: hidden;
       position: relative;
@@ -268,11 +273,8 @@
     }
 
     .signal-card {
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      border: 1px solid var(--border);
       border-radius: 18px;
       padding: 14px;
-      box-shadow: var(--shadow);
       min-width: 0;
     }
 
@@ -318,11 +320,8 @@
     }
 
     .panel {
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      border: 1px solid var(--border);
       border-radius: 24px;
       padding: 18px;
-      box-shadow: var(--shadow);
       margin-bottom: 16px;
     }
 
@@ -355,8 +354,6 @@
     }
 
     .kpi {
-      background: #111927;
-      border: 1px solid #1f2a3a;
       border-radius: 18px;
       padding: 14px;
     }
@@ -440,8 +437,6 @@
 
     .recipe-output,
     .cut-info {
-      background: #111927;
-      border: 1px solid #1f2a3a;
       border-radius: 18px;
       padding: 16px;
     }
@@ -483,17 +478,33 @@
       line-height: 1.7;
     }
 
-    .cuts-svg-wrap {
-      background: #111927;
-      border: 1px solid #1f2a3a;
+    .cuts-map-shell {
       border-radius: 18px;
-      padding: 12px;
+      padding: 14px;
+      position: relative;
+      min-height: 270px;
+      overflow: hidden;
     }
 
-    .cuts-svg {
+    .cuts-map-svg {
       width: 100%;
       height: auto;
       display: block;
+      max-height: 280px;
+    }
+
+    .cow-body {
+      fill: rgba(20, 29, 42, 0.95);
+      stroke: #314154;
+      stroke-width: 3.5;
+    }
+
+    .cow-leg,
+    .cow-line {
+      stroke: #314154;
+      stroke-width: 6;
+      stroke-linecap: round;
+      fill: none;
     }
 
     .cut-zone {
@@ -501,12 +512,12 @@
       stroke: #314154;
       stroke-width: 2;
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: 0.18s ease;
     }
 
     .cut-zone:hover,
     .cut-zone.active {
-      fill: rgba(255,107,44,0.35);
+      fill: rgba(255,107,44,0.34);
       stroke: #ff955f;
     }
 
@@ -514,8 +525,8 @@
       fill: #dbe5f2;
       font-size: 10px;
       font-weight: 700;
-      pointer-events: none;
       text-anchor: middle;
+      pointer-events: none;
     }
 
     .cut-badges {
@@ -563,11 +574,8 @@
     }
 
     .card {
-      background: linear-gradient(180deg, #0b1017, #101722);
-      border: 1px solid var(--border);
       border-radius: 22px;
       overflow: hidden;
-      box-shadow: var(--shadow);
     }
 
     .thumb {
@@ -681,57 +689,63 @@
       padding: 8px 0 0;
     }
 
-    .info-wrap {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .info-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #1a2433;
+    .info-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
       border: 1px solid #2a3648;
+      background: #1a2433;
       color: #9fb2cc;
       font-size: 12px;
-      font-weight: 700;
-      display: flex;
+      font-weight: 800;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
     }
 
-    .info-icon:hover {
+    .info-btn.active {
+      color: white;
       background: #243247;
-      color: #fff;
     }
 
-    .tooltip {
-      position: absolute;
-      top: 28px;
-      left: 0;
-      width: 260px;
+    .popover {
+      position: fixed;
+      inset: auto 16px 16px 16px;
       background: #0f1621;
       border: 1px solid #263244;
-      border-radius: 14px;
-      padding: 12px;
-      font-size: 13px;
+      border-radius: 16px;
+      padding: 14px;
       color: #d7dfeb;
-      line-height: 1.5;
+      line-height: 1.6;
       box-shadow: var(--shadow);
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(6px);
-      transition: 0.2s;
-      z-index: 20;
+      z-index: 1000;
+      display: none;
     }
 
-    .info-wrap:hover .tooltip {
-      opacity: 1;
-      transform: translateY(0);
+    .popover.show {
+      display: block;
+    }
+
+    .popover-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .popover-close {
+      border: 1px solid #2a3648;
+      background: #1a2433;
+      color: #d7dfeb;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
     }
 
     canvas {
@@ -745,6 +759,12 @@
 
       .two-col {
         grid-template-columns: 1.3fr 1fr;
+      }
+
+      .popover {
+        inset: auto auto 24px 50%;
+        width: min(420px, calc(100vw - 32px));
+        transform: translateX(-50%);
       }
     }
 
@@ -764,12 +784,6 @@
 
       .hero-score {
         font-size: 62px;
-      }
-
-      .tooltip {
-        width: 220px;
-        left: auto;
-        right: 0;
       }
     }
   </style>
@@ -798,12 +812,9 @@
     <div class="hero-card">
       <div class="hero-top">
         <div>
-          <div class="hero-title info-wrap">
+          <div class="hero-title">
             Current Smoke Index
-            <span class="info-icon">i</span>
-            <div class="tooltip">
-              A normalized signal that summarizes how strong and active the current meat-content feed is. It is influenced mainly by Smoke Score levels across the loaded videos.
-            </div>
+            <button class="info-btn" data-popover-title="Current Smoke Index" data-popover-text="A normalized signal that summarizes how strong and active the current meat-content feed is. It is influenced mainly by Smoke Score levels across the loaded videos.">i</button>
           </div>
           <div class="hero-subtitle" id="heroSubtitle">Momentum estimate based on current radar feed</div>
         </div>
@@ -819,7 +830,6 @@
               <stop offset="100%" stop-color="#ff5f57"></stop>
             </linearGradient>
           </defs>
-
           <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#172130" stroke-width="18" stroke-linecap="round"></path>
           <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="url(#smokeGradient)" stroke-width="18" stroke-linecap="round"></path>
         </svg>
@@ -862,12 +872,7 @@
     <div class="panel">
       <div class="panel-heading">
         <h2 id="chartTitle">Momentum Trend</h2>
-        <div class="info-wrap">
-          <span class="info-icon">i</span>
-          <div class="tooltip">
-            A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.
-          </div>
-        </div>
+        <button class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
       </div>
       <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
       <canvas id="scoreChart"></canvas>
@@ -877,12 +882,7 @@
       <div class="panel">
         <div class="panel-heading">
           <h2>Top Channels</h2>
-          <div class="info-wrap">
-            <span class="info-icon">i</span>
-            <div class="tooltip">
-              Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.
-            </div>
-          </div>
+          <button class="info-btn" data-popover-title="Top Channels" data-popover-text="Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.">i</button>
         </div>
         <div class="subtle">Best-performing creators in the current dataset</div>
         <table>
@@ -901,12 +901,7 @@
       <div class="panel">
         <div class="panel-heading">
           <h2>Hot Keywords</h2>
-          <div class="info-wrap">
-            <span class="info-icon">i</span>
-            <div class="tooltip">
-              Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.
-            </div>
-          </div>
+          <button class="info-btn" data-popover-title="Hot Keywords" data-popover-text="Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.">i</button>
         </div>
         <div class="subtle">Recurring terms extracted from current titles</div>
         <div class="keywords" id="keywords"></div>
@@ -916,63 +911,52 @@
     <div class="panel">
       <div class="panel-heading">
         <h2>Beef Cuts Map</h2>
-        <div class="info-wrap">
-          <span class="info-icon">i</span>
-          <div class="tooltip">
-            An interactive reference map of common beef cuts. Tap a section to learn what it is, how tender or fatty it is, and which cooking methods usually fit it best.
-          </div>
-        </div>
+        <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="An interactive reference map of common beef cuts. Tap a section to learn what it is, how tender or fatty it is, and which cooking methods usually fit it best.">i</button>
       </div>
       <div class="subtle">Tap a cut to see what it is and how to cook it</div>
 
       <div class="cuts-grid">
-        <div class="cuts-svg-wrap">
-          <svg class="cuts-svg" viewBox="0 0 420 240" aria-label="Beef cuts diagram">
-            <rect class="cut-zone active" id="cut-brisket" x="40" y="135" width="78" height="45" rx="12"></rect>
-            <text class="cut-label" x="79" y="162">BRISKET</text>
+        <div class="cuts-map-shell">
+          <svg class="cuts-map-svg" viewBox="0 0 460 270" aria-label="Beef cuts diagram">
+            <path class="cow-body" d="M77 94 C118 66, 210 55, 306 60 C360 63, 402 80, 417 106 L417 170 C397 202, 329 216, 219 216 C126 216, 72 202, 53 179 L53 129 C54 113, 63 102, 77 94 Z"></path>
+            <circle cx="95" cy="84" r="28" fill="rgba(20,29,42,0.95)" stroke="#314154" stroke-width="4"></circle>
+            <rect x="44" y="97" rx="9" ry="9" width="28" height="18" fill="rgba(20,29,42,0.95)" stroke="#314154" stroke-width="3"></rect>
+            <path class="cow-line" d="M421 111 C441 115, 448 146, 431 179"></path>
+            <path class="cow-line" d="M64 115 C45 128, 43 161, 55 178"></path>
+            <path class="cow-leg" d="M157 196 L147 243"></path>
+            <path class="cow-leg" d="M220 198 L213 244"></path>
+            <path class="cow-leg" d="M325 194 L336 244"></path>
+            <path class="cow-leg" d="M388 190 L401 243"></path>
 
-            <rect class="cut-zone" id="cut-chuck" x="72" y="78" width="78" height="50" rx="12"></rect>
-            <text class="cut-label" x="111" y="107">CHUCK</text>
+            <rect class="cut-zone active" id="cut-brisket" x="75" y="150" width="86" height="48" rx="14"></rect>
+            <text class="cut-label" x="118" y="178">BRISKET</text>
 
-            <rect class="cut-zone" id="cut-ribeye" x="156" y="72" width="72" height="56" rx="12"></rect>
-            <text class="cut-label" x="192" y="103">RIBEYE</text>
+            <rect class="cut-zone" id="cut-chuck" x="108" y="86" width="94" height="58" rx="14"></rect>
+            <text class="cut-label" x="155" y="119">CHUCK</text>
 
-            <rect class="cut-zone" id="cut-short_ribs" x="156" y="132" width="72" height="48" rx="12"></rect>
-            <text class="cut-label" x="192" y="160">SHORT RIBS</text>
+            <rect class="cut-zone" id="cut-ribeye" x="210" y="78" width="88" height="64" rx="14"></rect>
+            <text class="cut-label" x="254" y="114">RIBEYE</text>
 
-            <rect class="cut-zone" id="cut-sirloin" x="235" y="78" width="72" height="54" rx="12"></rect>
-            <text class="cut-label" x="271" y="105">SIRLOIN</text>
+            <rect class="cut-zone" id="cut-short_ribs" x="211" y="148" width="88" height="50" rx="14"></rect>
+            <text class="cut-label" x="255" y="177">SHORT RIBS</text>
 
-            <rect class="cut-zone" id="cut-flank" x="234" y="138" width="74" height="40" rx="12"></rect>
-            <text class="cut-label" x="271" y="162">FLANK</text>
+            <rect class="cut-zone" id="cut-sirloin" x="306" y="86" width="98" height="60" rx="14"></rect>
+            <text class="cut-label" x="355" y="119">SIRLOIN</text>
 
-            <rect class="cut-zone" id="cut-tenderloin" x="312" y="90" width="52" height="32" rx="12"></rect>
-            <text class="cut-label" x="338" y="109">FILET</text>
+            <rect class="cut-zone" id="cut-flank" x="306" y="150" width="98" height="48" rx="14"></rect>
+            <text class="cut-label" x="355" y="177">FLANK</text>
 
-            <rect class="cut-zone" id="cut-picanha" x="316" y="52" width="56" height="30" rx="12"></rect>
-            <text class="cut-label" x="344" y="71">PICANHA</text>
+            <rect class="cut-zone" id="cut-tenderloin" x="411" y="104" width="56" height="38" rx="14"></rect>
+            <text class="cut-label" x="439" y="127">FILET</text>
 
-            <circle cx="82" cy="68" r="24" fill="#111927" stroke="#314154" stroke-width="3"></circle>
-            <rect x="30" y="74" width="28" height="16" rx="8" fill="#111927" stroke="#314154" stroke-width="2"></rect>
-
-            <path d="M40 110 C20 118, 16 152, 34 174" fill="none" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
-            <path d="M370 110 C392 120, 398 154, 382 178" fill="none" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
-
-            <path d="M130 182 L118 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
-            <path d="M176 182 L170 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
-            <path d="M275 182 L282 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
-            <path d="M328 178 L338 220" stroke="#314154" stroke-width="8" stroke-linecap="round"></path>
-
-            <path d="M40 95 C110 48, 286 42, 372 78 L372 150 C350 182, 268 196, 146 192 C86 190, 50 183, 40 170 Z"
-                  fill="none" stroke="#314154" stroke-width="4"></path>
+            <rect class="cut-zone" id="cut-picanha" x="415" y="66" width="52" height="28" rx="12"></rect>
+            <text class="cut-label" x="441" y="84">PICANHA</text>
           </svg>
         </div>
 
         <div class="cut-info" id="cutInfo">
           <h3>Brisket</h3>
-          <p>
-            Brisket comes from the lower chest and carries a lot of connective tissue. It becomes rich and tender when cooked slowly.
-          </p>
+          <p>Brisket comes from the lower chest and carries a lot of connective tissue. It becomes rich and tender when cooked slowly.</p>
 
           <h4>Profile</h4>
           <div class="cut-badges">
@@ -996,12 +980,7 @@
     <div class="panel">
       <div class="panel-heading">
         <h2>Recipe Generator</h2>
-        <div class="info-wrap">
-          <span class="info-icon">i</span>
-          <div class="tooltip">
-            A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile. This version is template-driven and designed as an embedded product feature.
-          </div>
-        </div>
+        <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile. This version is template-driven and designed as an embedded product feature.">i</button>
       </div>
       <div class="subtle">Build a meat recipe by cut, method, and flavor profile</div>
 
@@ -1063,16 +1042,19 @@
     <div class="panel">
       <div class="panel-heading">
         <h2 id="feedTitle">Radar Feed</h2>
-        <div class="info-wrap">
-          <span class="info-icon">i</span>
-          <div class="tooltip">
-            The main video feed powering Smoke Radar. Results come from live YouTube queries when available, or from cached/offline fallback data when live access is unavailable.
-          </div>
-        </div>
+        <button class="info-btn" data-popover-title="Radar Feed" data-popover-text="The main video feed powering Smoke Radar. Results come from live YouTube queries when available, or from cached/offline fallback data when live access is unavailable.">i</button>
       </div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
     </div>
+  </div>
+
+  <div class="popover" id="infoPopover">
+    <div class="popover-title">
+      <span id="popoverTitle">Info</span>
+      <button class="popover-close" id="popoverClose">Close</button>
+    </div>
+    <div id="popoverText"></div>
   </div>
 
   <script>
@@ -1099,720 +1081,4 @@
       },
       ribeye: {
         title: "Ribeye",
-        description: "Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.",
-        fat: "High",
-        tenderness: "High",
-        methods: ["Cast iron", "Grill", "Reverse sear"],
-        tip: "A strong crust and a short rest usually give ribeye its best result."
-      },
-      short_ribs: {
-        title: "Short Ribs",
-        description: "Short ribs are deeply beefy and loaded with connective tissue, making them ideal for slow cooking.",
-        fat: "Medium to High",
-        tenderness: "Low raw / High when slow-cooked",
-        methods: ["Smoking", "Braising", "Long oven cook"],
-        tip: "Short ribs need time, but they pay it back in flavor."
-      },
-      sirloin: {
-        title: "Sirloin",
-        description: "Sirloin is leaner than rib cuts but still flavorful and versatile for steaks or roasting.",
-        fat: "Medium",
-        tenderness: "Medium to High",
-        methods: ["Grilling", "Cast iron", "Roasting"],
-        tip: "Do not overcook it. Sirloin is best when sliced properly and rested."
-      },
-      flank: {
-        title: "Flank",
-        description: "Flank is a lean, fibrous cut with bold flavor. It works best with fast cooking and correct slicing.",
-        fat: "Low",
-        tenderness: "Medium",
-        methods: ["High-heat grill", "Cast iron", "Marinated sear"],
-        tip: "Always slice flank against the grain."
-      },
-      tenderloin: {
-        title: "Filet / Tenderloin",
-        description: "Tenderloin is extremely tender and lean, known more for texture than aggressive beef flavor.",
-        fat: "Low",
-        tenderness: "Very High",
-        methods: ["Cast iron", "Quick roast", "Gentle grill"],
-        tip: "Because it is lean, avoid overcooking and consider butter-based finishing."
-      },
-      picanha: {
-        title: "Picanha",
-        description: "Picanha is prized for its fat cap and big flavor. It is especially popular in Brazilian-style cooking.",
-        fat: "Medium to High",
-        tenderness: "High",
-        methods: ["BBQ", "Grill", "Reverse sear", "Roast"],
-        tip: "Score the fat cap lightly and render it carefully."
-      }
-    };
-
-    function formatNum(n) {
-      return Number(n || 0).toLocaleString("en-US");
-    }
-
-    function formatDateTime(isoString) {
-      if (!isoString) return "Unknown";
-      const d = new Date(isoString);
-      return d.toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    }
-
-    function escapeHtml(str) {
-      return String(str || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function clearErrorBanner() {
-      document.getElementById("errorMount").innerHTML = "";
-    }
-
-    function renderErrorBanner(title, message) {
-      document.getElementById("errorMount").innerHTML = `
-        <div class="error-banner">
-          <h3>${escapeHtml(title)}</h3>
-          <p>${escapeHtml(message)}</p>
-        </div>
-      `;
-    }
-
-    function getFriendlyErrorMessage(error) {
-      const text = String(error?.message || error || "");
-
-      if (text.includes("quotaExceeded")) {
-        return {
-          title: "Quota limit reached",
-          message: "The YouTube API daily quota has been exhausted. Fresh data is temporarily unavailable. Cached results will appear automatically when available."
-        };
-      }
-
-      if (text.includes("PERMISSION_DENIED") || text.includes("forbidden")) {
-        return {
-          title: "API access blocked",
-          message: "The backend could not access the YouTube API. This usually indicates an API key restriction or permission issue."
-        };
-      }
-
-      if (text.includes("Missing API key")) {
-        return {
-          title: "Missing API key",
-          message: "The backend is running without a valid YouTube API key in the environment settings."
-        };
-      }
-
-      return {
-        title: "Unable to load radar data",
-        message: "The dashboard could not fetch data right now. Please try again later."
-      };
-    }
-
-    function renderMeta(data) {
-      const metaStrip = document.getElementById("metaStrip");
-      const miniLiveBadge = document.getElementById("miniLiveBadge");
-      const pills = [];
-
-      if (data.source === "live") {
-        pills.push(`<div class="meta-pill live">Live Data</div>`);
-        miniLiveBadge.textContent = "Live";
-        miniLiveBadge.className = "meta-pill live";
-      } else if (data.source === "cache") {
-        pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
-        miniLiveBadge.textContent = "Cached";
-        miniLiveBadge.className = "meta-pill cached";
-      } else if (data.source === "seed" || data.source === "no-key") {
-        pills.push(`<div class="meta-pill">Offline Snapshot</div>`);
-        miniLiveBadge.textContent = "Offline";
-        miniLiveBadge.className = "meta-pill";
-      } else {
-        miniLiveBadge.textContent = "Offline";
-        miniLiveBadge.className = "meta-pill";
-      }
-
-      if (data.lastUpdated) {
-        pills.push(`<div class="meta-pill">Updated ${escapeHtml(formatDateTime(data.lastUpdated))}</div>`);
-      }
-
-      if (data.source) {
-        pills.push(`<div class="meta-pill">Source Mode: ${escapeHtml(data.source)}</div>`);
-      }
-
-      if (data.fallbackReason) {
-        pills.push(`<div class="meta-pill cached">${escapeHtml(data.fallbackReason)}</div>`);
-      }
-
-      if (data.debug) {
-        pills.push(`<div class="meta-pill">${escapeHtml(data.debug)}</div>`);
-      }
-
-      metaStrip.innerHTML = pills.join("");
-    }
-
-    function renderHero(data = {}) {
-      let baseScore = 0;
-
-      if (data.summary && typeof data.summary.avgSmokeScore !== "undefined") {
-        baseScore = Number(data.summary.avgSmokeScore || 0);
-      } else if (data.videos && data.videos.length) {
-        baseScore = Math.round(
-          data.videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0) / data.videos.length
-        );
-      }
-
-      const normalized = Math.max(0, Math.min(100, Math.round(baseScore)));
-
-      document.getElementById("heroScore").textContent = `${normalized}%`;
-
-      let level = "Scanning";
-      let caption = "Projected content heat · current snapshot";
-
-      if (normalized >= 75) {
-        level = "Breakout";
-      } else if (normalized >= 50) {
-        level = "Hot";
-      } else if (normalized >= 25) {
-        level = "Rising";
-      } else if (normalized > 0) {
-        level = "Early";
-      }
-
-      if (data.source === "cache") {
-        caption = "Showing cached radar snapshot";
-      } else if (data.source === "seed" || data.source === "no-key") {
-        caption = "Showing offline fallback snapshot";
-      }
-
-      document.getElementById("heroBadge").textContent = level;
-      document.getElementById("heroCaption").textContent = caption;
-      document.getElementById("heroSubtitle").textContent =
-        data.source === "cache"
-          ? "Fallback mode using the latest available saved dataset"
-          : data.source === "seed" || data.source === "no-key"
-          ? "Offline seed snapshot while live radar is unavailable"
-          : "Momentum estimate based on current radar feed";
-    }
-
-    function renderSignalStrip(data = {}) {
-      const videos = data.videos || [];
-      const topChannel =
-        (data.topChannels && data.topChannels[0])
-          ? data.topChannels[0].channelTitle
-          : (videos[0]?.channelTitle || videos[0]?.channel || "—");
-
-      const avgSmoke = data?.summary?.avgSmokeScore
-        ? Number(data.summary.avgSmokeScore)
-        : videos.length
-        ? Math.round(videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0) / videos.length)
-        : 0;
-
-      const totalViews = data?.summary?.totalViews
-        ? Number(data.summary.totalViews)
-        : videos.reduce((sum, v) => sum + Number(v.views || v.viewCount || 0), 0);
-
-      document.getElementById("signalStrip").innerHTML = `
-        <div class="signal-card">
-          <div class="signal-label">Tracked Videos</div>
-          <div class="signal-value">${formatNum(videos.length)}</div>
-          <div class="signal-sub">Current feed size</div>
-        </div>
-        <div class="signal-card">
-          <div class="signal-label">Top Channel</div>
-          <div class="signal-value">${escapeHtml(String(topChannel).length > 14 ? String(topChannel).slice(0, 14) + "..." : String(topChannel))}</div>
-          <div class="signal-sub">Highest current average</div>
-        </div>
-        <div class="signal-card">
-          <div class="signal-label">Avg Smoke</div>
-          <div class="signal-value">${formatNum(avgSmoke)}</div>
-          <div class="signal-sub">Across current scan</div>
-        </div>
-        <div class="signal-card">
-          <div class="signal-label">Total Views</div>
-          <div class="signal-value">${formatNum(totalViews)}</div>
-          <div class="signal-sub">Visible radar sample</div>
-        </div>
-      `;
-    }
-
-    function renderKpis(summary = {}) {
-      document.getElementById("kpis").innerHTML = `
-        <div class="kpi">
-          <div class="kpi-label">Total Views</div>
-          <div class="kpi-value">${formatNum(summary.totalViews)}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Average Views</div>
-          <div class="kpi-value">${formatNum(summary.avgViews)}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Average Likes</div>
-          <div class="kpi-value">${formatNum(summary.avgLikes)}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Average Smoke Score</div>
-          <div class="kpi-value">${formatNum(summary.avgSmokeScore)}</div>
-        </div>
-      `;
-    }
-
-    function renderKeywords(keywords) {
-      const el = document.getElementById("keywords");
-      if (!keywords.length) {
-        el.innerHTML = `<div class="empty">No keyword clusters yet.</div>`;
-        return;
-      }
-
-      el.innerHTML = keywords.map(k =>
-        `<span class="keyword">${escapeHtml(k.keyword)} · ${k.count}</span>`
-      ).join("");
-    }
-
-    function renderChannelTable(channels) {
-      const el = document.getElementById("channelTable");
-      if (!channels.length) {
-        el.innerHTML = `<tr><td colspan="4" class="empty">No channel comparison data yet.</td></tr>`;
-        return;
-      }
-
-      el.innerHTML = channels.map(ch => `
-        <tr>
-          <td>${escapeHtml(ch.channelTitle)}</td>
-          <td>${formatNum(ch.videos)}</td>
-          <td>${formatNum(ch.totalViews)}</td>
-          <td>${formatNum(ch.avgSmokeScore)}</td>
-        </tr>
-      `).join("");
-    }
-
-    function getTabVideos() {
-      const videos = allData?.videos || [];
-
-      if (currentTab === "rising") {
-        return [...videos].sort((a, b) => Number(b.viewsPerHour || 0) - Number(a.viewsPerHour || 0));
-      }
-
-      return [...videos].sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
-    }
-
-    function renderVideos(videos) {
-      const el = document.getElementById("results");
-
-      if (!videos.length) {
-        el.innerHTML = `<div class="empty">No videos available right now.</div>`;
-        return;
-      }
-
-      el.innerHTML = videos.map(v => {
-        const viewCount = v.viewCount ?? v.views ?? 0;
-        const likeCount = v.likeCount ?? v.likes ?? 0;
-        const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
-        const channelLink = v.channelId
-          ? `https://youtube.com/channel/${v.channelId}`
-          : (v.url || "https://youtube.com");
-        const watchLink = v.url ? v.url : (v.id ? `https://youtube.com/watch?v=${v.id}` : "https://youtube.com");
-
-        return `
-          <div class="card">
-            <div class="thumb">
-              <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
-              <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour || 0)}` : `Smoke ${formatNum(v.smokeScore || 0)}`}</div>
-            </div>
-
-            <div class="card-body">
-              <div class="title">${escapeHtml(v.title)}</div>
-              <div class="channel">${escapeHtml(channelTitle)}</div>
-
-              <div class="stats">
-                <div class="stat">
-                  <small>Views</small>
-                  <strong>${formatNum(viewCount)}</strong>
-                </div>
-                <div class="stat">
-                  <small>Likes</small>
-                  <strong>${formatNum(likeCount)}</strong>
-                </div>
-                <div class="stat">
-                  <small>Views / Hour</small>
-                  <strong>${formatNum(v.viewsPerHour || 0)}</strong>
-                </div>
-                <div class="stat">
-                  <small>Subscribers</small>
-                  <strong>${formatNum(v.subscriberCount || 0)}</strong>
-                </div>
-              </div>
-
-              <div class="links">
-                <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">Watch</a>
-                ${v.channelId
-                  ? `<a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>`
-                  : `<span class="secondary-link disabled">Channel</span>`
-                }
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function renderScoreChart(videos) {
-      const ctx = document.getElementById("scoreChart").getContext("2d");
-
-      if (scoreChartInstance) scoreChartInstance.destroy();
-
-      const top = videos.slice(0, 10);
-      const isRising = currentTab === "rising";
-
-      scoreChartInstance = new Chart(ctx, {
-        type: isRising ? "bar" : "line",
-        data: {
-          labels: top.map(x => {
-            const t = x.title || "";
-            return t.length > 24 ? t.slice(0, 24) + "..." : t;
-          }),
-          datasets: [{
-            label: isRising ? "Views / Hour" : "Smoke Score",
-            data: top.map(x => isRising ? (x.viewsPerHour || 0) : (x.smokeScore || 0)),
-            borderColor: "#ff8f5c",
-            backgroundColor: isRising ? "#ff6b2c" : "rgba(255,107,44,0.18)",
-            tension: 0.35,
-            fill: !isRising,
-            pointRadius: isRising ? 0 : 4,
-            pointBackgroundColor: "#ff6b2c",
-            borderRadius: isRising ? 8 : 0
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              labels: { color: "#edf2f7" }
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#a7b4c9" },
-              grid: { color: "#182231" }
-            },
-            y: {
-              ticks: { color: "#a7b4c9" },
-              grid: { color: "#182231" }
-            }
-          }
-        }
-      });
-
-      document.getElementById("chartTitle").textContent = isRising ? "Rising Momentum" : "Momentum Trend";
-      document.getElementById("chartSubtitle").textContent = isRising
-        ? "Fastest current movers by views per hour"
-        : "Highest-ranking videos across the current feed";
-
-      document.getElementById("feedTitle").textContent = isRising ? "Rising Feed" : "Radar Feed";
-      document.getElementById("feedSubtitle").textContent = isRising
-        ? "Videos currently accelerating fastest"
-        : "Live-discovered videos ranked by momentum";
-    }
-
-    function renderTabState() {
-      const videos = getTabVideos();
-      renderVideos(videos);
-      renderScoreChart(videos);
-
-      document.querySelectorAll(".tab-btn").forEach(btn => {
-        btn.classList.toggle("active", btn.dataset.tab === currentTab);
-      });
-    }
-
-    function attachTabs() {
-      document.querySelectorAll(".tab-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          currentTab = btn.dataset.tab;
-          renderTabState();
-        });
-      });
-    }
-
-    function generateRecipe() {
-      const cutType = document.getElementById("cutType").value;
-      const cookingMethod = document.getElementById("cookingMethod").value;
-      const flavorProfile = document.getElementById("flavorProfile").value;
-      const output = document.getElementById("recipeOutput");
-
-      const cutLabels = {
-        brisket: "Brisket",
-        ribeye: "Ribeye",
-        short_ribs: "Short Ribs",
-        tomahawk: "Tomahawk",
-        picanha: "Picanha"
-      };
-
-      const methodLabels = {
-        smoking: "Smoking",
-        long_cook: "Long Cook",
-        cast_iron: "Cast Iron",
-        bbq: "BBQ",
-        oven_roast: "Oven Roast"
-      };
-
-      const flavorLabels = {
-        classic: "Classic",
-        peppery: "Peppery",
-        garlic_herb: "Garlic & Herb",
-        sweet_smoky: "Sweet & Smoky",
-        spicy: "Spicy"
-      };
-
-      const flavorMap = {
-        classic: {
-          rub: ["kosher salt", "black pepper", "paprika"],
-          addOns: ["olive oil", "butter"],
-          tip: "Keep the seasoning minimal and let the meat lead."
-        },
-        peppery: {
-          rub: ["coarse black pepper", "kosher salt", "crushed coriander"],
-          addOns: ["olive oil", "a touch of butter"],
-          tip: "Pepper should build a crust, not overpower the meat."
-        },
-        garlic_herb: {
-          rub: ["kosher salt", "black pepper", "garlic powder", "rosemary", "thyme"],
-          addOns: ["butter", "fresh garlic"],
-          tip: "Add fresh herbs late so they stay fragrant."
-        },
-        sweet_smoky: {
-          rub: ["brown sugar", "paprika", "kosher salt", "black pepper", "smoked chili"],
-          addOns: ["butter", "apple cider vinegar"],
-          tip: "Balance sweetness with enough salt and smoke."
-        },
-        spicy: {
-          rub: ["kosher salt", "black pepper", "chili flakes", "cayenne", "smoked paprika"],
-          addOns: ["butter", "lime juice"],
-          tip: "Use heat in layers so the meat still stays center stage."
-        }
-      };
-
-      const methodMap = {
-        smoking: {
-          prep: "Trim the surface lightly, pat dry, and coat evenly with oil and rub. Let it sit 30–45 minutes before smoking.",
-          steps: [
-            "Preheat the smoker to 120–135°C.",
-            "Place the meat away from direct flame and smoke until bark and color develop.",
-            "Spritz lightly if needed during the cook.",
-            "Cook until tender or until the internal temperature suits the cut.",
-            "Rest well before slicing."
-          ]
-        },
-        long_cook: {
-          prep: "Season generously and let the meat sit at room temperature for 20–30 minutes before cooking.",
-          steps: [
-            "Sear the meat first for deep color.",
-            "Move to a low oven or covered pot at low heat.",
-            "Add a little stock or cooking liquid if needed.",
-            "Cook slowly until the texture softens and the meat yields easily.",
-            "Rest briefly, then slice or shred."
-          ]
-        },
-        cast_iron: {
-          prep: "Pat the meat very dry, season well, and let it sit while the pan gets very hot.",
-          steps: [
-            "Heat a cast iron pan until very hot.",
-            "Add a little neutral oil and sear both sides deeply.",
-            "Lower heat and baste with butter if desired.",
-            "Cook to your preferred internal temperature.",
-            "Rest before slicing."
-          ]
-        },
-        bbq: {
-          prep: "Coat lightly with oil, apply rub evenly, and let it sit while the grill heats up.",
-          steps: [
-            "Prepare two-zone heat on the grill.",
-            "Sear over direct heat first.",
-            "Move to indirect heat to finish gently.",
-            "Brush lightly if using glaze or butter.",
-            "Rest before serving."
-          ]
-        },
-        oven_roast: {
-          prep: "Season thoroughly and place on a rack so heat circulates around the meat.",
-          steps: [
-            "Preheat the oven to a moderate temperature.",
-            "Roast until the outer crust forms and the center reaches the target doneness.",
-            "Use a thermometer for accuracy.",
-            "Let the meat rest before carving.",
-            "Slice against the grain where relevant."
-          ]
-        }
-      };
-
-      const cutSpecific = {
-        brisket: {
-          title: "Smoked Brisket Build",
-          ingredients: ["1 brisket", "yellow mustard or oil binder"],
-          extraTip: "Slice against the grain and do not rush the rest."
-        },
-        ribeye: {
-          title: "Ribeye Precision Cook",
-          ingredients: ["2 ribeye steaks"],
-          extraTip: "Ribeye loves a hard crust and a shorter rest."
-        },
-        short_ribs: {
-          title: "Short Ribs Low & Slow",
-          ingredients: ["beef short ribs"],
-          extraTip: "Short ribs reward patience more than almost any cut."
-        },
-        tomahawk: {
-          title: "Tomahawk Showcase Cook",
-          ingredients: ["1 tomahawk steak"],
-          extraTip: "Use indirect heat after searing so the inside catches up cleanly."
-        },
-        picanha: {
-          title: "Picanha Fire Finish",
-          ingredients: ["1 picanha roast or picanha steaks"],
-          extraTip: "Score the fat cap lightly to render it better."
-        }
-      };
-
-      const flavor = flavorMap[flavorProfile];
-      const method = methodMap[cookingMethod];
-      const cut = cutSpecific[cutType];
-
-      const title = `${cut.title} · ${methodLabels[cookingMethod]} · ${flavorLabels[flavorProfile]}`;
-
-      const ingredients = [
-        ...cut.ingredients,
-        ...flavor.rub,
-        ...flavor.addOns
-      ];
-
-      output.innerHTML = `
-        <h3>${title}</h3>
-        <h4>Overview</h4>
-        <p>
-          This recipe is designed for <strong>${cutLabels[cutType]}</strong> using
-          <strong>${methodLabels[cookingMethod]}</strong> with a
-          <strong>${flavorLabels[flavorProfile]}</strong> profile.
-        </p>
-        <h4>Ingredients</h4>
-        <ul>
-          ${ingredients.map(item => `<li>${item}</li>`).join("")}
-        </ul>
-        <h4>Preparation</h4>
-        <p>${method.prep}</p>
-        <h4>Cooking Steps</h4>
-        <ol>
-          ${method.steps.map(step => `<li>${step}</li>`).join("")}
-        </ol>
-        <h4>Pitmaster Tips</h4>
-        <ul>
-          <li>${flavor.tip}</li>
-          <li>${cut.extraTip}</li>
-          <li>Let the meat rest before slicing so juices redistribute properly.</li>
-        </ul>
-      `;
-    }
-
-    function renderCutInfo(cutKey) {
-      const cut = cutData[cutKey];
-      if (!cut) return;
-
-      document.querySelectorAll(".cut-zone").forEach(el => el.classList.remove("active"));
-      const zone = document.getElementById(`cut-${cutKey}`);
-      if (zone) zone.classList.add("active");
-
-      document.getElementById("cutInfo").innerHTML = `
-        <h3>${cut.title}</h3>
-        <p>${cut.description}</p>
-
-        <h4>Profile</h4>
-        <div class="cut-badges">
-          <span class="cut-badge">Fat: ${cut.fat}</span>
-          <span class="cut-badge">Tenderness: ${cut.tenderness}</span>
-        </div>
-
-        <h4>Best Uses</h4>
-        <ul>
-          ${cut.methods.map(method => `<li>${method}</li>`).join("")}
-        </ul>
-
-        <h4>Tip</h4>
-        <p>${cut.tip}</p>
-      `;
-    }
-
-    function attachCutMap() {
-      document.querySelectorAll(".cut-zone").forEach(zone => {
-        zone.addEventListener("click", () => {
-          const cutKey = zone.id.replace("cut-", "");
-          renderCutInfo(cutKey);
-        });
-      });
-    }
-
-    async function loadData() {
-      const button = document.getElementById("loadBtn");
-      const status = document.getElementById("status");
-      const results = document.getElementById("results");
-
-      button.disabled = true;
-      status.textContent = "Loading live radar data...";
-      results.innerHTML = "";
-      clearErrorBanner();
-
-      try {
-        const res = await fetch("/api/smoke-radar");
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.details || data.error || "Unknown error");
-        }
-
-        allData = data;
-
-        renderMeta(data);
-        renderHero(data);
-        renderSignalStrip(data);
-        renderKpis(data.summary || {});
-        renderKeywords(data.topKeywords || []);
-        renderChannelTable(data.topChannels || []);
-        renderTabState();
-
-        if (!data.videos || data.videos.length === 0) {
-          status.textContent = "No videos returned in the current scan.";
-        } else if (data.source === "cache") {
-          status.textContent = `Showing cached results · ${data.videos.length} videos loaded`;
-        } else if (data.source === "seed" || data.source === "no-key") {
-          status.textContent = `Showing offline snapshot · ${data.videos.length} videos loaded`;
-        } else {
-          status.textContent = `${data.videos.length} videos loaded into the radar`;
-        }
-      } catch (error) {
-        console.error(error);
-
-        renderMeta({});
-        renderHero({});
-        renderSignalStrip({});
-        renderKpis({});
-        renderKeywords([]);
-        renderChannelTable([]);
-        renderVideos([]);
-        renderScoreChart([]);
-
-        const friendly = getFriendlyErrorMessage(error);
-        renderErrorBanner(friendly.title, friendly.message);
-        status.textContent = "Radar data currently unavailable";
-      } finally {
-        button.disabled = false;
-      }
-    }
-
-    attachTabs();
-    attachCutMap();
-    loadData();
-  </script>
-</body>
-</html>
+        description: "Ribeye is one of the most flavorful steak cuts,
