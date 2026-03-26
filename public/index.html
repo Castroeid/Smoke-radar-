@@ -825,7 +825,6 @@
         max-height: 280px;
       }
     }
-<style>
   /* כל הCSS הקיים שלך */
 
   ...
@@ -845,7 +844,42 @@
     max-height: 320px;
     border-radius: 16px;
   }
-</style>
+ /* ===== HOTSPOTS ===== */
+
+.cuts-map-stage {
+  position: relative;
+}
+
+.cut-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 10px;
+  background: rgba(15, 20, 30, 0.75);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #dbe5f2;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.cut-hotspot:hover {
+  background: rgba(255,107,44,0.2);
+  border-color: rgba(255,107,44,0.4);
+  color: #fff;
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* active (כמו ribeye אצלך) */
+.cut-hotspot.active {
+  background: linear-gradient(135deg, #ff6b2c, #ff955f);
+  color: white;
+  border: none;
+  box-shadow: 0 0 12px rgba(255,107,44,0.5);
+}
   </style>
 </head>
 <body>
@@ -987,7 +1021,15 @@
           class="cuts-map-image"
           src="/images/beef-map-premium.png"
         />
-
+<!-- HOTSPOTS -->
+<button class="cut-hotspot" style="left:18%; top:30%;">Chuck</button>
+<button class="cut-hotspot active" style="left:36%; top:28%;">Ribeye</button>
+<button class="cut-hotspot" style="left:54%; top:28%;">Sirloin</button>
+<button class="cut-hotspot" style="left:13%; top:60%;">Brisket</button>
+<button class="cut-hotspot" style="left:35%; top:60%;">Short Ribs</button>
+<button class="cut-hotspot" style="left:56%; top:60%;">Flank</button>
+<button class="cut-hotspot" style="left:72%; top:38%;">Filet</button>
+<button class="cut-hotspot" style="left:78%; top:20%;">Picanha</button>
         <button class="cut-hotspot" id="cut-chuck" style="left:17%; top:29%; width:16%; height:21%;"></button>
         <button class="cut-hotspot active" id="cut-ribeye" style="left:35%; top:27%; width:15%; height:23%;"></button>
         <button class="cut-hotspot" id="cut-sirloin" style="left:53%; top:28%; width:17%; height:22%;"></button>
