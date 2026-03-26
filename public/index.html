@@ -947,61 +947,42 @@
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-heading">
-        <h2>Beef Cuts Map</h2>
-        <button class="info-btn" data-popover-title="Beef Cuts Map" data-popover-text="An interactive reference map of common beef cuts. Tap a section to learn what it is, how tender or fatty it is, and which cooking methods usually fit it best.">i</button>
+  <div class="panel">
+  <div class="panel-heading">
+    <h2>Beef Cuts Map</h2>
+    <button class="info-btn"
+      data-popover-title="Beef Cuts Map"
+      data-popover-text="Interactive beef cuts map with cooking insights">
+      i
+    </button>
+  </div>
+
+  <div class="cuts-grid">
+
+    <div class="cuts-map-shell">
+      <div class="cuts-map-stage">
+
+        <img
+          class="cuts-map-image"
+          src="/images/beef-map-premium.png"
+        />
+
+        <button class="cut-hotspot" id="cut-chuck" style="left:17%; top:29%; width:16%; height:21%;"></button>
+        <button class="cut-hotspot active" id="cut-ribeye" style="left:35%; top:27%; width:15%; height:23%;"></button>
+        <button class="cut-hotspot" id="cut-sirloin" style="left:53%; top:28%; width:17%; height:22%;"></button>
+        <button class="cut-hotspot" id="cut-brisket" style="left:12%; top:56%; width:17%; height:17%;"></button>
+        <button class="cut-hotspot" id="cut-short_ribs" style="left:35%; top:57%; width:16%; height:17%;"></button>
+        <button class="cut-hotspot" id="cut-flank" style="left:54%; top:58%; width:17%; height:17%;"></button>
+        <button class="cut-hotspot" id="cut-tenderloin" style="left:73%; top:37%; width:10%; height:14%;"></button>
+        <button class="cut-hotspot" id="cut-picanha" style="left:75%; top:18%; width:9%; height:9%;"></button>
+
       </div>
-      <div class="subtle">Tap a cut to see what it is and how to cook it</div>
+    </div>
 
-      <div class="cuts-grid">
-        <div class="cuts-map-shell">
-          <svg class="cuts-map-svg" viewBox="0 0 520 300" aria-label="Beef cuts diagram">
-            <ellipse class="cow-silhouette" cx="265" cy="150" rx="175" ry="90"></ellipse>
-            <circle class="cow-silhouette" cx="105" cy="110" r="34"></circle>
-            <rect class="cow-silhouette" x="56" y="122" width="34" height="20" rx="10"></rect>
+    <div class="cut-info" id="cutInfo"></div>
 
-            <path class="cow-detail" d="M438 118 C462 128, 467 165, 450 194"></path>
-            <path class="cow-detail" d="M85 132 C63 145, 61 177, 75 195"></path>
-
-            <path class="cow-detail" d="M165 214 L155 266"></path>
-            <path class="cow-detail" d="M235 214 L228 267"></path>
-            <path class="cow-detail" d="M338 214 L348 267"></path>
-            <path class="cow-detail" d="M407 208 L420 267"></path>
-
-            <rect class="cut-zone" id="cut-chuck" x="120" y="110" width="96" height="62" rx="18"></rect>
-            <text class="cut-label" x="168" y="143">CHUCK</text>
-            <text class="cut-mini-label" x="168" y="157">shoulder</text>
-
-            <rect class="cut-zone active" id="cut-ribeye" x="224" y="101" width="90" height="70" rx="18"></rect>
-            <text class="cut-label" x="269" y="137">RIBEYE</text>
-            <text class="cut-mini-label" x="269" y="151">rib section</text>
-
-            <rect class="cut-zone" id="cut-sirloin" x="322" y="103" width="96" height="68" rx="18"></rect>
-            <text class="cut-label" x="370" y="138">SIRLOIN</text>
-            <text class="cut-mini-label" x="370" y="152">rear loin</text>
-
-            <rect class="cut-zone" id="cut-brisket" x="96" y="176" width="96" height="54" rx="18"></rect>
-            <text class="cut-label" x="144" y="207">BRISKET</text>
-            <text class="cut-mini-label" x="144" y="221">chest</text>
-
-            <rect class="cut-zone" id="cut-short_ribs" x="226" y="178" width="92" height="54" rx="18"></rect>
-            <text class="cut-label" x="272" y="209">SHORT RIBS</text>
-            <text class="cut-mini-label" x="272" y="223">plate</text>
-
-            <rect class="cut-zone" id="cut-flank" x="326" y="176" width="96" height="54" rx="18"></rect>
-            <text class="cut-label" x="374" y="207">FLANK</text>
-            <text class="cut-mini-label" x="374" y="221">belly</text>
-
-            <rect class="cut-zone" id="cut-tenderloin" x="427" y="126" width="58" height="42" rx="16"></rect>
-            <text class="cut-label" x="456" y="152">FILET</text>
-
-            <rect class="cut-zone" id="cut-picanha" x="432" y="84" width="52" height="28" rx="12"></rect>
-            <text class="cut-mini-label" x="458" y="102">PICANHA</text>
-          </svg>
-        </div>
-
-        <div class="cut-info" id="cutInfo">
+  </div>
+</div>
           <h3>Ribeye</h3>
           <p>Ribeye is one of the most flavorful steak cuts, with generous marbling and a rich texture.</p>
 
