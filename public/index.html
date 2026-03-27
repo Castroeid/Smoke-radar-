@@ -1156,6 +1156,97 @@
         min-height: 112px;
       }
     }
+    .ai-recipe-wrap {
+  display: grid;
+  gap: 14px;
+}
+
+.ai-recipe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ai-recipe-badge {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.10));
+  border: 1px solid rgba(255,107,44,0.24);
+  color: #ffd8c8;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ai-recipe-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+.ai-recipe-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.ai-recipe-card {
+  border-radius: 16px;
+  padding: 14px;
+  background: #101722;
+  border: 1px solid #1b2534;
+}
+
+.ai-recipe-card h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #d8e2ef;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ai-recipe-card p,
+.ai-recipe-card li {
+  color: #d7dfeb;
+  line-height: 1.75;
+  font-size: 14px;
+}
+
+.ai-recipe-card ul,
+.ai-recipe-card ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ai-recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-recipe-chip {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #131b27;
+  border: 1px solid #243043;
+  color: #dbe5f2;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (min-width: 760px) {
+  .ai-recipe-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ai-recipe-card.full {
+    grid-column: 1 / -1;
+  }
+}
   </style>
 </head>
 <body>
@@ -2182,6 +2273,8 @@ async function generateRecipe() {
   const flavor = document.getElementById("flavorProfile").value;
   const output = document.getElementById("recipeOutput");
 
+  const randomSeed = Math.floor(Math.random() * 1000000);
+
   output.innerHTML = `
     <div class="recipe-placeholder">
       🔥 Generating AI recipe...
@@ -2190,7 +2283,7 @@ async function generateRecipe() {
 
   try {
     const res = await fetch(
-      `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}`
+      `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}`
     );
 
     const data = await res.json();
@@ -2199,13 +2292,15 @@ async function generateRecipe() {
       throw new Error(data.details || data.error || "AI request failed");
     }
 
-    output.innerHTML = `
-      <div style="white-space: pre-line; line-height: 1.8;">
-        ${data.recipe}
-      </div>
-    `;
+    output.innerHTML = renderAiRecipe(data.recipe, {
+      cut,
+      method,
+      flavor,
+      source: data.source || "ai"
+    });
   } catch (err) {
     console.error("Recipe UI error:", err);
+
     output.innerHTML = `
       <div class="recipe-placeholder">
         ❌ Failed to generate AI recipe.<br>
@@ -2214,7 +2309,103 @@ async function generateRecipe() {
     `;
   }
 }
+function renderAiRecipe(recipeText, meta = {}) {
+  const parsed = parseAiRecipe(recipeText);
 
+  const ingredientsList = parsed.ingredients.length
+    ? `<ul>${parsed.ingredients.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+    : `<p>${escapeHtml(parsed.ingredientsRaw || "Not provided.")}</p>`;
+
+  const stepsList = parsed.steps.length
+    ? `<ol>${parsed.steps.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+    : `<p>${escapeHtml(parsed.stepsRaw || "Not provided.")}</p>`;
+
+  const tipsList = parsed.tips.length
+    ? `<ul>${parsed.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+    : `<p>${escapeHtml(parsed.tipsRaw || "Not provided.")}</p>`;
+
+  return `
+    <div class="ai-recipe-wrap">
+      <div class="ai-recipe-header">
+        <h3 class="ai-recipe-title">${escapeHtml(parsed.title || "AI Recipe")}</h3>
+        <span class="ai-recipe-badge">${escapeHtml(meta.source || "ai")} powered</span>
+      </div>
+
+      <div class="ai-recipe-meta">
+        <span class="ai-recipe-chip">🥩 ${escapeHtml(meta.cut || "cut")}</span>
+        <span class="ai-recipe-chip">🔥 ${escapeHtml(meta.method || "method")}</span>
+        <span class="ai-recipe-chip">🧂 ${escapeHtml(meta.flavor || "flavor")}</span>
+      </div>
+
+      <div class="ai-recipe-grid">
+        <div class="ai-recipe-card">
+          <h4>Ingredients</h4>
+          ${ingredientsList}
+        </div>
+
+        <div class="ai-recipe-card">
+          <h4>Target Doneness</h4>
+          <p>${escapeHtml(parsed.targetDoneness || "Use a thermometer and cook to preference.")}</p>
+        </div>
+
+        <div class="ai-recipe-card full">
+          <h4>Steps</h4>
+          ${stepsList}
+        </div>
+
+        <div class="ai-recipe-card full">
+          <h4>Tips</h4>
+          ${tipsList}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function parseAiRecipe(recipeText = "") {
+  const text = String(recipeText || "").replace(/\r/g, "");
+
+  const getSection = (label, nextLabels = []) => {
+    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedNext = nextLabels.map(x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+
+    const pattern = escapedNext
+      ? new RegExp(`${escapedLabel}:?\\s*([\\s\\S]*?)(?=\\n\\s*(?:${escapedNext}):?\\s*|$)`, "i")
+      : new RegExp(`${escapedLabel}:?\\s*([\\s\\S]*)`, "i");
+
+    const match = text.match(pattern);
+    return match ? match[1].trim() : "";
+  };
+
+  const title =
+    getSection("Title", ["Ingredients", "Steps", "Tips", "Target doneness"]) ||
+    text.split("\n")[0].replace(/^\*\*|\*\*$/g, "").replace(/^Title:\s*/i, "").trim();
+
+  const ingredientsRaw = getSection("Ingredients", ["Steps", "Tips", "Target doneness"]);
+  const stepsRaw = getSection("Steps", ["Tips", "Target doneness"]);
+  const tipsRaw = getSection("Tips", ["Target doneness"]);
+  const targetDoneness = getSection("Target doneness");
+
+  const normalizeList = (raw) =>
+    String(raw || "")
+      .split("\n")
+      .map(line => line.trim())
+      .map(line => line.replace(/^\*\*|\*\*$/g, ""))
+      .map(line => line.replace(/^[-•]\s*/, ""))
+      .map(line => line.replace(/^\d+\.\s*/, ""))
+      .filter(Boolean);
+
+  return {
+    title,
+    ingredientsRaw,
+    stepsRaw,
+    tipsRaw,
+    targetDoneness,
+    ingredients: normalizeList(ingredientsRaw),
+    steps: normalizeList(stepsRaw),
+    tips: normalizeList(tipsRaw)
+  };
+                                                            }
     function setRefreshLoading(isLoading) {
       const btn = document.getElementById("loadBtn");
       const label = document.getElementById("refreshLabel");
