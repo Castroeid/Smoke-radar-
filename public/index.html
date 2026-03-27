@@ -1446,6 +1446,43 @@
     grid-column: 1 / -1;
   }
 }
+    .smoke-hero {
+  padding: 16px;
+}
+
+.smoke-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.smoke-value {
+  font-size: 42px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.smoke-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#smokeFill {
+  height: 100%;
+  width: 20%;
+  background: linear-gradient(90deg, #4caf50, #ff9800, #ff5722);
+}
+
+.smoke-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 6px;
+}
   </style>
 </head>
 <body>
@@ -1486,17 +1523,25 @@
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
 
-    <div class="hero-card app-enter app-enter-delay-1">
-      <div class="hero-top">
-        <div>
-          <div class="hero-title">
-            Current Smoke Index
-            <button class="info-btn" data-popover-title="Current Smoke Index" data-popover-text="A normalized signal that summarizes how strong and active the current meat-content feed is. It is influenced mainly by Smoke Score levels across the loaded videos.">i</button>
-          </div>
-          <div class="hero-subtitle" id="heroSubtitle">Momentum estimate based on current radar feed</div>
-        </div>
-        <div class="hero-badge" id="heroBadge">Scanning</div>
-      </div>
+    <div class="card smoke-hero">
+  <div class="smoke-header">
+    <span>🔥 Smoke Index</span>
+    <span id="smokeStatus" class="badge">EARLY</span>
+  </div>
+
+  <div class="smoke-value" id="smokeValue">2</div>
+
+  <div class="smoke-bar">
+    <div id="smokeFill"></div>
+  </div>
+
+  <div class="smoke-scale">
+    <span>Early</span>
+    <span>Rising</span>
+    <span>Hot</span>
+    <span>Breakout</span>
+  </div>
+    </div>
 
       <div class="gauge-wrap">
         <svg class="gauge-svg" viewBox="0 0 300 190" aria-hidden="true">
@@ -2603,6 +2648,21 @@ function parseAiRecipe(recipeText = "") {
     steps: normalizeList(stepsRaw),
     tips: normalizeList(tipsRaw)
   };
+  function updateSmokeUI(value) {
+  const fill = document.getElementById("smokeFill");
+  const label = document.getElementById("smokeStatus");
+  const num = document.getElementById("smokeValue");
+
+  num.textContent = value;
+
+  const percent = Math.min(100, value * 10);
+  fill.style.width = percent + "%";
+
+  if (value < 3) label.textContent = "EARLY";
+  else if (value < 6) label.textContent = "RISING";
+  else if (value < 8) label.textContent = "HOT";
+  else label.textContent = "BREAKOUT";
+  }
                                                             }
     function setRefreshLoading(isLoading) {
       const btn = document.getElementById("loadBtn");
