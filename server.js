@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-
 const OpenAI = require("openai");
 
 const app = express();
@@ -22,10 +21,10 @@ const CACHE_FILE = path.join(__dirname, "cache.json");
 const STATE_FILE = path.join(__dirname, "runtime-state.json");
 
 const CACHE_TTL_MINUTES = Number(process.env.CACHE_TTL_MINUTES || 120);
-const LIVE_REFRESH_WINDOW_MINUTES = Number(process.env.LIVE_REFRESH_WINDOW_MINUTES || 90);
+const LIVE_REFRESH_WINDOW_MINUTES = Number(process.env.LIVE_REFRESH_WINDOW_MINUTES || 120);
 const QUOTA_COOLDOWN_MINUTES = Number(process.env.QUOTA_COOLDOWN_MINUTES || 360);
 
-// -------------------- file helpers --------------------
+// ---------------- file helpers ----------------
 
 function readJsonFileSafe(filePath, fallback) {
   try {
@@ -46,117 +45,96 @@ function writeJsonFileSafe(filePath, data) {
   }
 }
 
-// -------------------- cache helpers --------------------
-
-function readCache() {
-  const parsed = readJsonFileSafe(CACHE_FILE, {
-    fetchedAt: null,
-    lastUpdated: null,
-    videos: []
-  });
-
-  return {
-    fetchedAt: parsed.fetchedAt || null,
-    lastUpdated: parsed.lastUpdated || null,
-    videos: Array.isArray(parsed.videos) ? parsed.videos : []
-  };
+function nowIso() {
+  return new Date().toISOString();
 }
 
-function writeCache(payload) {
+// ---------------- cache/state ----------------
+
+function readCache() {
+  return readJsonFileSafe(CACHE_FILE, {
+    fetchedAt: null,
+    source: "seed",
+    videos: []
+  });
+}
+
+function writeCache(videos, source = "live") {
   writeJsonFileSafe(CACHE_FILE, {
-    fetchedAt: new Date().toISOString(),
-    lastUpdated: payload.lastUpdated || new Date().toISOString(),
-    videos: payload.videos || []
+    fetchedAt: nowIso(),
+    source,
+    videos
+  });
+}
+
+function readRuntimeState() {
+  return readJsonFileSafe(STATE_FILE, {
+    quotaBlockedUntil: null,
+    lastLiveSuccessAt: null
+  });
+}
+
+function writeRuntimeState(patch) {
+  const current = readRuntimeState();
+  writeJsonFileSafe(STATE_FILE, {
+    ...current,
+    ...patch
   });
 }
 
 function getCacheAgeMinutes(cache) {
-  if (!cache?.fetchedAt) return Infinity;
-  const ageMs = Date.now() - new Date(cache.fetchedAt).getTime();
-  return Math.floor(ageMs / 60000);
+  if (!cache?.fetchedAt) return null;
+  const diffMs = Date.now() - new Date(cache.fetchedAt).getTime();
+  return Math.max(0, Math.floor(diffMs / 60000));
 }
 
 function isCacheFresh(cache) {
-  return (
-    Array.isArray(cache?.videos) &&
-    cache.videos.length > 0 &&
-    getCacheAgeMinutes(cache) < CACHE_TTL_MINUTES
-  );
+  const age = getCacheAgeMinutes(cache);
+  if (age === null) return false;
+  return age <= CACHE_TTL_MINUTES;
 }
 
-// -------------------- runtime state helpers --------------------
-
-function readRuntimeState() {
-  const parsed = readJsonFileSafe(STATE_FILE, {
-    quotaBlockedUntil: null,
-    lastQuotaErrorAt: null,
-    lastLiveAttemptAt: null,
-    lastLiveSuccessAt: null,
-    lastFailureReason: null
-  });
-
-  return {
-    quotaBlockedUntil: parsed.quotaBlockedUntil || null,
-    lastQuotaErrorAt: parsed.lastQuotaErrorAt || null,
-    lastLiveAttemptAt: parsed.lastLiveAttemptAt || null,
-    lastLiveSuccessAt: parsed.lastLiveSuccessAt || null,
-    lastFailureReason: parsed.lastFailureReason || null
-  };
-}
-
-function writeRuntimeState(partial) {
-  const current = readRuntimeState();
-  writeJsonFileSafe(STATE_FILE, {
-    ...current,
-    ...partial
-  });
+function isWithinLiveRefreshWindow(cache) {
+  const age = getCacheAgeMinutes(cache);
+  if (age === null) return false;
+  return age <= LIVE_REFRESH_WINDOW_MINUTES;
 }
 
 function isQuotaBlocked(state) {
-  if (!state?.quotaBlockedUntil) return false;
-  return Date.now() < new Date(state.quotaBlockedUntil).getTime();
+  return Boolean(
+    state?.quotaBlockedUntil &&
+      new Date(state.quotaBlockedUntil).getTime() > Date.now()
+  );
 }
 
-function setQuotaBlocked() {
-  const now = new Date();
-  const blockedUntil = new Date(now.getTime() + QUOTA_COOLDOWN_MINUTES * 60000).toISOString();
-
-  writeRuntimeState({
-    lastQuotaErrorAt: now.toISOString(),
-    quotaBlockedUntil: blockedUntil,
-    lastFailureReason: "quotaExceeded"
-  });
-
-  return blockedUntil;
+function quotaLooksExceeded(errorText = "") {
+  const t = String(errorText).toLowerCase();
+  return (
+    t.includes("quota") ||
+    t.includes("quotaexceeded") ||
+    t.includes("dailylimitexceeded") ||
+    t.includes("ratelimit")
+  );
 }
 
-function clearQuotaBlocked() {
-  writeRuntimeState({
-    quotaBlockedUntil: null,
-    lastFailureReason: null
-  });
+// ---------------- formatting helpers ----------------
+
+function formatDuration(isoDuration = "") {
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return "0:00";
+
+  const hours = Number(match[1] || 0);
+  const minutes = Number(match[2] || 0);
+  const seconds = Number(match[3] || 0);
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-function shouldAttemptLive(cache, state, force = false) {
-  if (force) return true;
-  if (isQuotaBlocked(state)) return false;
-  if (!cache?.videos?.length) return true;
-  if (!cache.fetchedAt) return true;
-  const cacheAge = getCacheAgeMinutes(cache);
-  if (cacheAge < LIVE_REFRESH_WINDOW_MINUTES) return false;
-  return true;
-}
-
-// -------------------- utilities --------------------
-
-function getHoursSince(dateString) {
-  const now = Date.now();
-  const then = new Date(dateString).getTime();
-  return Math.max((now - then) / (1000 * 60 * 60), 1);
-}
-
-function parseISODurationToSeconds(isoDuration) {
-  if (!isoDuration || typeof isoDuration !== "string") return 0;
+function parseDurationSeconds(isoDuration = "") {
   const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return 0;
   const hours = Number(match[1] || 0);
@@ -165,580 +143,459 @@ function parseISODurationToSeconds(isoDuration) {
   return hours * 3600 + minutes * 60 + seconds;
 }
 
-function formatDuration(seconds) {
-  const s = Number(seconds || 0);
-  const hours = Math.floor(s / 3600);
-  const minutes = Math.floor((s % 3600) / 60);
-  const secs = s % 60;
-
-  if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  }
-  return `${minutes}:${String(secs).padStart(2, "0")}`;
+function getFormatLabel(durationSeconds = 0) {
+  if (durationSeconds <= 300) return "Short";
+  return "Long-form";
 }
 
-function calculateSmokeScore(video) {
-  const views = Number(video.viewCount || 0);
-  const likes = Number(video.likeCount || 0);
-  const subscribers = Number(video.subscriberCount || 0);
-  const hours = getHoursSince(video.publishedAt);
+function estimateRegion(video) {
+  const text = `${video.title || ""} ${video.channelTitle || ""}`.toLowerCase();
 
-  const viewsPerHour = views / hours;
-  const likeRate = views > 0 ? likes / views : 0;
-  const subscriberPenalty = subscribers > 0 ? Math.max(1, subscribers / 50000) : 1;
-
-  return Math.round(
-    viewsPerHour * 1.2 +
-    likes * 3 +
-    likeRate * 150000 +
-    8000 / subscriberPenalty
-  );
+  if (text.includes("texas") || text.includes("usa") || text.includes("bbq")) return "US";
+  if (text.includes("argentina")) return "Argentina";
+  if (text.includes("brazil") || text.includes("picanha")) return "Brazil";
+  if (text.includes("korea")) return "Korea";
+  if (text.includes("japan") || text.includes("wagyu")) return "Japan";
+  return "Global";
 }
 
-function extractKeywords(title) {
-  const blacklist = new Set([
-    "the", "and", "with", "from", "this", "that", "your", "you", "for",
-    "bbq", "how", "make", "made", "best", "recipe", "food", "video", "guide",
-    "home", "style", "cast", "iron", "reverse", "sear", "part", "tour"
+function buildTopKeywords(videos) {
+  const stopWords = new Set([
+    "the", "and", "for", "with", "from", "that", "this", "your", "you", "how",
+    "bbq", "best", "make", "made", "recipe", "guide", "video", "short", "long",
+    "ultimate", "easy", "perfect", "on", "a", "an", "of", "to", "in", "is"
   ]);
 
-  return String(title || "")
-    .toLowerCase()
-    .replace(/[^\w\s]/g, " ")
-    .split(/\s+/)
-    .filter(word => word.length > 3 && !blacklist.has(word));
-}
+  const freq = {};
 
-function isMeatRelevant(title = "", description = "") {
-  const text = `${title} ${description}`.toLowerCase();
+  for (const video of videos) {
+    const words = String(video.title || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean)
+      .filter(word => word.length > 2 && !stopWords.has(word));
 
-  const includeWords = [
-    "beef", "steak", "brisket", "ribeye", "tomahawk", "wagyu", "short ribs",
-    "beef ribs", "smoked beef", "bbq beef", "tri tip", "tritip", "picanha",
-    "sirloin", "strip steak", "porterhouse", "prime rib", "chuck roast",
-    "tenderloin", "flank", "burnt ends", "meat"
-  ];
-
-  const excludeWords = [
-    "pizza", "pasta", "cake", "cookie", "vegan", "vegetarian", "tofu",
-    "salad", "dessert", "bread", "ice cream", "fish", "shrimp", "sushi"
-  ];
-
-  const hasInclude = includeWords.some(word => text.includes(word));
-  const hasExclude = excludeWords.some(word => text.includes(word));
-
-  return hasInclude && !hasExclude;
-}
-
-function inferRegion(title = "", channelTitle = "") {
-  const text = `${title} ${channelTitle}`.trim();
-
-  if (/[\u0590-\u05FF]/.test(text)) return "Israel / Hebrew";
-  if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(text)) return "East Asia";
-  if (/[\uac00-\ud7af]/.test(text)) return "Korea";
-  if (/[\u0400-\u04FF]/.test(text)) return "Eastern Europe / Cyrillic";
-
-  const lower = text.toLowerCase();
-
-  if (/\b(brasil|brasileiro|churrasco|picanha)\b/.test(lower)) return "Brazil";
-  if (/\b(asado|parrilla|argentina|mexico|mexican|español|espanol)\b/.test(lower)) return "Latin America / Spanish";
-  if (/\b(texas|usa|america|american|bbq pit boys|kansas|memphis)\b/.test(lower)) return "United States";
-  if (/\b(uk|britain|british|england|london)\b/.test(lower)) return "United Kingdom";
-  if (/\b(australia|australian)\b/.test(lower)) return "Australia";
-  if (/\b(france|french)\b/.test(lower)) return "France";
-  if (/\b(germany|german)\b/.test(lower)) return "Germany";
-  if (/\b(italy|italian)\b/.test(lower)) return "Italy";
-
-  return "Global / English";
-}
-
-function fetchJsonErrorText(error) {
-  return String(error?.message || error || "");
-}
-
-async function fetchJson(url) {
-  const res = await fetch(url);
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(JSON.stringify(data));
+    for (const word of words) {
+      freq[word] = (freq[word] || 0) + 1;
+    }
   }
 
-  return data;
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([keyword, count]) => ({ keyword, count }));
 }
 
-function errorLooksLikeQuota(error) {
-  const text = fetchJsonErrorText(error);
-  return text.includes("quotaExceeded");
-}
+function buildTopChannels(videos) {
+  const map = new Map();
 
-// -------------------- payload builder --------------------
-
-function buildPayload(videosInput, meta = {}) {
-  const videos = (videosInput || []).map(video => {
-    const normalized = {
-      id: video.id || "",
-      title: video.title || "",
-      channelTitle: video.channelTitle || video.channel || "Unknown Channel",
-      channelId: video.channelId || "",
-      publishedAt: video.publishedAt || new Date().toISOString(),
-      thumbnail: video.thumbnail || "",
-      viewCount: Number(video.viewCount ?? video.views ?? 0),
-      likeCount: Number(video.likeCount ?? video.likes ?? 0),
-      subscriberCount: Number(video.subscriberCount ?? 0),
-      durationSeconds: Number(video.durationSeconds || 0),
-      durationLabel: video.durationLabel || "0:00",
-      regionLabel: video.regionLabel || inferRegion(video.title, video.channelTitle),
-      url: video.url || (video.id ? `https://youtube.com/watch?v=${video.id}` : "#")
-    };
-
-    normalized.viewsPerHour = Number(video.viewsPerHour || 0);
-    normalized.smokeScore = Number(video.smokeScore || 0);
-    normalized.isShortForm = normalized.durationSeconds > 0 && normalized.durationSeconds <= 300;
-    normalized.formatLabel = normalized.isShortForm ? "Short" : "Long-form";
-    normalized.hoursSincePublished = getHoursSince(normalized.publishedAt);
-
-    if (!normalized.viewsPerHour) {
-      normalized.viewsPerHour = Math.round(
-        normalized.viewCount / normalized.hoursSincePublished
-      );
-    }
-
-    if (!normalized.smokeScore) {
-      normalized.smokeScore = calculateSmokeScore(normalized);
-    }
-
-    return normalized;
-  });
-
-  const cleanedVideos = videos.filter(v =>
-    v.title &&
-    v.thumbnail &&
-    (v.id || v.url) &&
-    isMeatRelevant(v.title)
-  );
-
-  const sortedVideos = [...cleanedVideos].sort((a, b) => b.smokeScore - a.smokeScore);
-
-  const totalViews = sortedVideos.reduce((sum, v) => sum + v.viewCount, 0);
-  const totalLikes = sortedVideos.reduce((sum, v) => sum + v.likeCount, 0);
-  const totalSmoke = sortedVideos.reduce((sum, v) => sum + v.smokeScore, 0);
-
-  const summary = {
-    totalViews,
-    avgViews: sortedVideos.length ? Math.round(totalViews / sortedVideos.length) : 0,
-    avgLikes: sortedVideos.length ? Math.round(totalLikes / sortedVideos.length) : 0,
-    avgSmokeScore: sortedVideos.length ? Math.round(totalSmoke / sortedVideos.length) : 0
-  };
-
-  const channelMap = {};
-  for (const v of sortedVideos) {
-    if (!channelMap[v.channelTitle]) {
-      channelMap[v.channelTitle] = {
-        channelTitle: v.channelTitle,
+  for (const v of videos) {
+    const key = v.channelTitle || "Unknown";
+    if (!map.has(key)) {
+      map.set(key, {
+        channelTitle: key,
         videos: 0,
         totalViews: 0,
-        totalLikes: 0,
-        smokeSum: 0
-      };
+        totalSmokeScore: 0
+      });
     }
-    channelMap[v.channelTitle].videos += 1;
-    channelMap[v.channelTitle].totalViews += v.viewCount;
-    channelMap[v.channelTitle].totalLikes += v.likeCount;
-    channelMap[v.channelTitle].smokeSum += v.smokeScore;
+
+    const row = map.get(key);
+    row.videos += 1;
+    row.totalViews += Number(v.viewCount || 0);
+    row.totalSmokeScore += Number(v.smokeScore || 0);
   }
 
-  const topChannels = Object.values(channelMap)
-    .map(ch => ({
-      ...ch,
-      avgSmokeScore: ch.videos ? Math.round(ch.smokeSum / ch.videos) : 0
+  return [...map.values()]
+    .map(row => ({
+      ...row,
+      avgSmokeScore: Math.round(row.totalSmokeScore / Math.max(row.videos, 1))
     }))
     .sort((a, b) => b.avgSmokeScore - a.avgSmokeScore)
     .slice(0, 8);
+}
 
-  const keywordCount = {};
-  for (const v of sortedVideos) {
-    for (const word of extractKeywords(v.title)) {
-      keywordCount[word] = (keywordCount[word] || 0) + 1;
-    }
+function buildTopRegions(videos) {
+  const map = new Map();
+
+  for (const v of videos) {
+    const region = v.regionLabel || "Global";
+    map.set(region, (map.get(region) || 0) + 1);
   }
 
-  const topKeywords = Object.entries(keywordCount)
-    .map(([keyword, count]) => ({ keyword, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 12);
-
-  const regionCount = {};
-  for (const v of sortedVideos) {
-    regionCount[v.regionLabel] = (regionCount[v.regionLabel] || 0) + 1;
-  }
-
-  const topRegions = Object.entries(regionCount)
+  return [...map.entries()]
     .map(([region, count]) => ({ region, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
+    .slice(0, 6);
+}
 
-  const fastestBreakout = sortedVideos.length
-    ? [...sortedVideos].sort((a, b) => b.viewsPerHour - a.viewsPerHour)[0]
-    : null;
-
-  const oldestActiveVideo = sortedVideos.length
-    ? [...sortedVideos].sort((a, b) => b.hoursSincePublished - a.hoursSincePublished)[0]
-    : null;
-
-  const shortCount = sortedVideos.filter(v => v.isShortForm).length;
-  const longCount = sortedVideos.length - shortCount;
+function summarizeVideos(videos) {
+  const totalViews = videos.reduce((sum, v) => sum + Number(v.viewCount || 0), 0);
+  const totalLikes = videos.reduce((sum, v) => sum + Number(v.likeCount || 0), 0);
+  const totalSmoke = videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0);
 
   return {
-    source: meta.source || "cache",
-    fetchedAt: meta.fetchedAt || null,
-    lastUpdated: meta.lastUpdated || null,
-    fallbackReason: meta.fallbackReason || null,
-    cacheAgeMinutes: typeof meta.cacheAgeMinutes === "number" ? meta.cacheAgeMinutes : null,
+    totalViews,
+    avgViews: videos.length ? Math.round(totalViews / videos.length) : 0,
+    avgLikes: videos.length ? Math.round(totalLikes / videos.length) : 0,
+    avgSmokeScore: videos.length ? Math.round(totalSmoke / videos.length) : 0
+  };
+}
+
+function buildFormatStats(videos) {
+  let shortCount = 0;
+  let longCount = 0;
+
+  for (const v of videos) {
+    if ((v.durationSeconds || 0) <= 300) shortCount += 1;
+    else longCount += 1;
+  }
+
+  return { shortCount, longCount };
+}
+
+function enrichVideos(videos) {
+  return videos.map(video => {
+    const durationSeconds = Number(video.durationSeconds || 0);
+    const hoursSincePublished =
+      video.publishedAt
+        ? Math.max(1, (Date.now() - new Date(video.publishedAt).getTime()) / 3600000)
+        : 1;
+
+    const views = Number(video.viewCount || 0);
+    const likes = Number(video.likeCount || 0);
+    const subscribers = Number(video.subscriberCount || 0);
+
+    const viewsPerHour = Math.round(views / hoursSincePublished);
+
+    const smokeScore = Math.round(
+      Math.min(
+        100,
+        viewsPerHour / 80 +
+          likes / 120 +
+          Math.min(subscribers / 50000, 15)
+      )
+    );
+
+    return {
+      ...video,
+      durationSeconds,
+      durationLabel: video.durationLabel || formatDuration(video.duration || ""),
+      formatLabel: getFormatLabel(durationSeconds),
+      regionLabel: video.regionLabel || estimateRegion(video),
+      hoursSincePublished,
+      viewsPerHour,
+      smokeScore
+    };
+  });
+}
+
+// ---------------- seed fallback ----------------
+
+function getSeedVideos() {
+  return enrichVideos([
+    {
+      id: "seed1",
+      title: "Reverse Sear Ribeye on Cast Iron",
+      thumbnail: "https://i.ytimg.com/vi/2s5w5sY9Xqs/hqdefault.jpg",
+      channelTitle: "Smoke House",
+      channelId: "",
+      url: "https://www.youtube.com/watch?v=2s5w5sY9Xqs",
+      publishedAt: new Date(Date.now() - 6 * 3600000).toISOString(),
+      durationSeconds: 420,
+      durationLabel: "7:00",
+      viewCount: 54000,
+      likeCount: 3600,
+      subscriberCount: 120000,
+      regionLabel: "US"
+    },
+    {
+      id: "seed2",
+      title: "Texas Style Smoked Brisket Guide",
+      thumbnail: "https://i.ytimg.com/vi/VWQ1J4mrM3Y/hqdefault.jpg",
+      channelTitle: "BBQ Masters",
+      channelId: "",
+      url: "https://www.youtube.com/watch?v=VWQ1J4mrM3Y",
+      publishedAt: new Date(Date.now() - 18 * 3600000).toISOString(),
+      durationSeconds: 840,
+      durationLabel: "14:00",
+      viewCount: 124000,
+      likeCount: 5200,
+      subscriberCount: 185000,
+      regionLabel: "US"
+    },
+    {
+      id: "seed3",
+      title: "Picanha Over Fire",
+      thumbnail: "https://i.ytimg.com/vi/7gqX7C7nH3A/hqdefault.jpg",
+      channelTitle: "Fire & Fat",
+      channelId: "",
+      url: "https://www.youtube.com/watch?v=7gqX7C7nH3A",
+      publishedAt: new Date(Date.now() - 30 * 3600000).toISOString(),
+      durationSeconds: 290,
+      durationLabel: "4:50",
+      viewCount: 62000,
+      likeCount: 4100,
+      subscriberCount: 98000,
+      regionLabel: "Brazil"
+    }
+  ]);
+}
+
+// ---------------- youtube fetch ----------------
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json?.error?.message || `Request failed: ${response.status}`);
+  }
+
+  return json;
+}
+
+function buildSearchQuery() {
+  return "beef steak brisket bbq smoked ribeye picanha";
+}
+
+async function fetchLiveVideosFromYouTube() {
+  if (!API_KEY) {
+    throw new Error("Missing API key");
+  }
+
+  const searchUrl =
+    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&order=date` +
+    `&maxResults=12&q=${encodeURIComponent(buildSearchQuery())}&key=${API_KEY}`;
+
+  const searchData = await fetchJson(searchUrl);
+
+  const ids = (searchData.items || [])
+    .map(item => item?.id?.videoId)
+    .filter(Boolean);
+
+  if (!ids.length) return [];
+
+  const videosUrl =
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${API_KEY}`;
+
+  const videosData = await fetchJson(videosUrl);
+
+  return (videosData.items || []).map(item => ({
+    id: item.id,
+    title: item.snippet?.title || "Untitled",
+    thumbnail:
+      item.snippet?.thumbnails?.high?.url ||
+      item.snippet?.thumbnails?.medium?.url ||
+      item.snippet?.thumbnails?.default?.url ||
+      "",
+    channelTitle: item.snippet?.channelTitle || "Unknown Channel",
+    channelId: item.snippet?.channelId || "",
+    url: `https://www.youtube.com/watch?v=${item.id}`,
+    publishedAt: item.snippet?.publishedAt || null,
+    duration: item.contentDetails?.duration || "PT0M0S",
+    durationLabel: formatDuration(item.contentDetails?.duration || "PT0M0S"),
+    durationSeconds: parseDurationSeconds(item.contentDetails?.duration || "PT0M0S"),
+    viewCount: Number(item.statistics?.viewCount || 0),
+    likeCount: Number(item.statistics?.likeCount || 0),
+    subscriberCount: 0
+  }));
+}
+
+// ---------------- response builder ----------------
+
+function buildRadarResponse({ source, videos, cache, state, fallbackReason = null }) {
+  const enriched = enrichVideos(videos);
+  const summary = summarizeVideos(enriched);
+  const topChannels = buildTopChannels(enriched);
+  const topKeywords = buildTopKeywords(enriched);
+  const topRegions = buildTopRegions(enriched);
+  const formatStats = buildFormatStats(enriched);
+
+  const fastestBreakout = [...enriched]
+    .sort((a, b) => Number(b.viewsPerHour || 0) - Number(a.viewsPerHour || 0))[0] || null;
+
+  const oldestActiveVideo = [...enriched]
+    .sort((a, b) => Number(b.hoursSincePublished || 0) - Number(a.hoursSincePublished || 0))[0] || null;
+
+  return {
+    source,
+    fallbackReason,
     ttlMinutes: CACHE_TTL_MINUTES,
     liveRefreshWindowMinutes: LIVE_REFRESH_WINDOW_MINUTES,
-    quotaBlockedUntil: meta.quotaBlockedUntil || null,
-    total: sortedVideos.length,
-    videos: sortedVideos,
+    quotaBlockedUntil: state?.quotaBlockedUntil || null,
+    lastLiveSuccessAt: state?.lastLiveSuccessAt || null,
+    lastUpdated: cache?.fetchedAt || nowIso(),
+    cacheAgeMinutes: getCacheAgeMinutes(cache),
     summary,
+    formatStats,
     topChannels,
     topKeywords,
     topRegions,
     fastestBreakout,
     oldestActiveVideo,
-    formatStats: {
-      shortCount,
-      longCount
-    }
+    videos: enriched
   };
 }
 
-// -------------------- seed fallback --------------------
-
-function getSeedData() {
-  const now = new Date().toISOString();
-
-  const videos = [
-    {
-      id: "seed-brisket",
-      title: "Texas Style Smoked Brisket",
-      channelTitle: "BBQ Masters Texas",
-      channelId: "UCseedbrisket001",
-      publishedAt: "2025-10-01T12:00:00.000Z",
-      thumbnail: "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80",
-      viewCount: 124000,
-      likeCount: 5200,
-      subscriberCount: 185000,
-      durationSeconds: 842,
-      durationLabel: "14:02",
-      regionLabel: "United States",
-      smokeScore: 82,
-      viewsPerHour: 3400,
-      url: "https://www.youtube.com/results?search_query=Texas+Style+Smoked+Brisket"
-    },
-    {
-      id: "seed-ribeye",
-      title: "Reverse Sear Ribeye on Cast Iron",
-      channelTitle: "Meat Lab",
-      channelId: "UCseedribeye002",
-      publishedAt: "2026-03-20T10:00:00.000Z",
-      thumbnail: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
-      viewCount: 89000,
-      likeCount: 3400,
-      subscriberCount: 96000,
-      durationSeconds: 255,
-      durationLabel: "4:15",
-      regionLabel: "Global / English",
-      smokeScore: 75,
-      viewsPerHour: 2500,
-      url: "https://www.youtube.com/results?search_query=Reverse+Sear+Ribeye+Cast+Iron"
-    },
-    {
-      id: "seed-ribs",
-      title: "Beef Short Ribs Low and Slow",
-      channelTitle: "Smoke House Brasil",
-      channelId: "UCseedribs003",
-      publishedAt: "2025-09-15T09:00:00.000Z",
-      thumbnail: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80",
-      viewCount: 54000,
-      likeCount: 2100,
-      subscriberCount: 42000,
-      durationSeconds: 1012,
-      durationLabel: "16:52",
-      regionLabel: "Brazil",
-      smokeScore: 68,
-      viewsPerHour: 1800,
-      url: "https://www.youtube.com/results?search_query=Beef+Short+Ribs+Low+and+Slow"
-    }
-  ];
-
-  return buildPayload(videos, {
-    source: "seed",
-    fallbackReason: "Offline fallback snapshot",
-    fetchedAt: now,
-    lastUpdated: now
-  });
-}
-
-// -------------------- live fetch --------------------
-
-async function fetchLiveData() {
-  if (!API_KEY) {
-    throw new Error("Missing API key");
-  }
-
-  const queries = [
-    "smoked brisket steak bbq beef",
-    "wagyu ribeye tomahawk beef ribs",
-    "picanha flank sirloin beef short ribs"
-  ];
-
-  let searchItems = [];
-
-  for (const query of queries) {
-    const searchUrl =
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&order=date&q=${encodeURIComponent(query)}&key=${API_KEY}`;
-
-    const searchData = await fetchJson(searchUrl);
-    searchItems = searchItems.concat(searchData.items || []);
-  }
-
-  const uniqueVideoIds = [
-    ...new Set(
-      searchItems
-        .filter(item =>
-          item?.id?.videoId &&
-          item?.snippet?.title &&
-          isMeatRelevant(item.snippet.title, item.snippet.description || "")
-        )
-        .map(item => item.id.videoId)
-    )
-  ];
-
-  if (!uniqueVideoIds.length) {
-    return buildPayload([], {
-      source: "live",
-      fetchedAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      fallbackReason: "No relevant meat video IDs returned"
-    });
-  }
-
-  const videosUrl =
-    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,status,contentDetails&id=${uniqueVideoIds.join(",")}&key=${API_KEY}`;
-
-  const videosData = await fetchJson(videosUrl);
-
-  const rawVideos = (videosData.items || []).filter(v =>
-    v?.id &&
-    v?.snippet?.title &&
-    v?.snippet?.channelId &&
-    v?.status?.uploadStatus === "processed" &&
-    isMeatRelevant(v.snippet.title, v.snippet.description || "")
-  );
-
-  if (!rawVideos.length) {
-    return buildPayload([], {
-      source: "live",
-      fetchedAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      fallbackReason: "No relevant video details returned"
-    });
-  }
-
-  const uniqueChannelIds = [...new Set(
-    rawVideos.map(v => v.snippet.channelId).filter(Boolean)
-  )];
-
-  const channelStatsMap = {};
-
-  if (uniqueChannelIds.length) {
-    const channelsUrl =
-      `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${uniqueChannelIds.join(",")}&key=${API_KEY}`;
-
-    const channelsData = await fetchJson(channelsUrl);
-
-    for (const ch of (channelsData.items || [])) {
-      channelStatsMap[ch.id] = ch.statistics || {};
-    }
-  }
-
-  const videos = rawVideos.map(v => {
-    const stats = v.statistics || {};
-    const chStats = channelStatsMap[v.snippet.channelId] || {};
-    const durationSeconds = parseISODurationToSeconds(v.contentDetails?.duration);
-
-    return {
-      id: v.id,
-      title: v.snippet.title,
-      channelTitle: v.snippet.channelTitle,
-      channelId: v.snippet.channelId,
-      publishedAt: v.snippet.publishedAt,
-      thumbnail:
-        v.snippet.thumbnails?.high?.url ||
-        v.snippet.thumbnails?.medium?.url ||
-        v.snippet.thumbnails?.default?.url ||
-        "",
-      viewCount: Number(stats.viewCount || 0),
-      likeCount: Number(stats.likeCount || 0),
-      subscriberCount: Number(chStats.subscriberCount || 0),
-      durationSeconds,
-      durationLabel: formatDuration(durationSeconds),
-      regionLabel: inferRegion(v.snippet.title, v.snippet.channelTitle),
-      url: `https://youtube.com/watch?v=${v.id}`
-    };
-  });
-
-  return buildPayload(videos, {
-    source: "live",
-    fetchedAt: new Date().toISOString(),
-    lastUpdated: new Date().toISOString()
-  });
-}
-
-// -------------------- routes --------------------
+// ---------------- endpoints ----------------
 
 app.get("/api/smoke-radar", async (req, res) => {
   const cache = readCache();
   const state = readRuntimeState();
-  const force = req.query.force === "1";
 
   if (!API_KEY) {
-    const seed = getSeedData();
-    return res.json({
-      ...seed,
-      source: "no-key",
-      fallbackReason: "No API key configured, serving offline snapshot"
-    });
-  }
-
-  if (!shouldAttemptLive(cache, state, force)) {
-    if (cache.videos && cache.videos.length > 0) {
-      const fallbackReason = isQuotaBlocked(state)
-        ? "Quota cooldown active, serving cached snapshot"
-        : `Smart quota mode: serving cache until refresh window (${LIVE_REFRESH_WINDOW_MINUTES} min)`;
-
-      return res.json(
-        buildPayload(cache.videos, {
-          source: "cache",
-          fetchedAt: cache.fetchedAt,
-          lastUpdated: cache.lastUpdated,
-          cacheAgeMinutes: getCacheAgeMinutes(cache),
-          quotaBlockedUntil: state.quotaBlockedUntil,
-          fallbackReason
-        })
-      );
-    }
-  }
-
-  if (!force && isCacheFresh(cache) && cache.videos.length > 0) {
+    const seedVideos = cache.videos?.length ? cache.videos : getSeedVideos();
     return res.json(
-      buildPayload(cache.videos, {
+      buildRadarResponse({
+        source: cache.videos?.length ? "no-key" : "seed",
+        videos: seedVideos,
+        cache,
+        state,
+        fallbackReason: "Missing YOUTUBE_API_KEY"
+      })
+    );
+  }
+
+  if (isQuotaBlocked(state)) {
+    const fallbackVideos = cache.videos?.length ? cache.videos : getSeedVideos();
+    return res.json(
+      buildRadarResponse({
         source: "cache",
-        fetchedAt: cache.fetchedAt,
-        lastUpdated: cache.lastUpdated,
-        cacheAgeMinutes: getCacheAgeMinutes(cache),
-        quotaBlockedUntil: state.quotaBlockedUntil,
-        fallbackReason: `Fresh cached snapshot served (TTL ${CACHE_TTL_MINUTES} min)`
+        videos: fallbackVideos,
+        cache,
+        state,
+        fallbackReason: "System currently prefers cache"
+      })
+    );
+  }
+
+  if (cache.videos?.length && isWithinLiveRefreshWindow(cache)) {
+    return res.json(
+      buildRadarResponse({
+        source: "cache",
+        videos: cache.videos,
+        cache,
+        state,
+        fallbackReason: "Fresh cached window"
       })
     );
   }
 
   try {
-    writeRuntimeState({
-      lastLiveAttemptAt: new Date().toISOString()
-    });
+    const liveVideos = await fetchLiveVideosFromYouTube();
 
-    const liveData = await fetchLiveData();
-
-    if (liveData.videos.length > 0) {
-      writeCache({
-        lastUpdated: liveData.lastUpdated,
-        videos: liveData.videos
-      });
-    }
-
-    writeRuntimeState({
-      lastLiveSuccessAt: new Date().toISOString(),
-      lastFailureReason: null,
-      quotaBlockedUntil: null
-    });
-
-    clearQuotaBlocked();
-
-    return res.json(liveData);
-  } catch (error) {
-    console.error("Live fetch failed:", error.message);
-
-    const isQuota = errorLooksLikeQuota(error);
-
-    if (isQuota) {
-      const blockedUntil = setQuotaBlocked();
-
-      if (cache.videos && cache.videos.length > 0) {
-        return res.json(
-          buildPayload(cache.videos, {
-            source: "cache",
-            fetchedAt: cache.fetchedAt,
-            lastUpdated: cache.lastUpdated,
-            cacheAgeMinutes: getCacheAgeMinutes(cache),
-            quotaBlockedUntil: blockedUntil,
-            fallbackReason: "YouTube quota exceeded, cached snapshot locked in smart cooldown mode"
-          })
-        );
-      }
-    } else {
-      writeRuntimeState({
-        lastFailureReason: "liveFetchFailed"
-      });
-    }
-
-    if (cache.videos && cache.videos.length > 0) {
+    if (!liveVideos.length) {
+      const fallbackVideos = cache.videos?.length ? cache.videos : getSeedVideos();
       return res.json(
-        buildPayload(cache.videos, {
+        buildRadarResponse({
           source: "cache",
-          fetchedAt: cache.fetchedAt,
-          lastUpdated: cache.lastUpdated,
-          cacheAgeMinutes: getCacheAgeMinutes(cache),
-          quotaBlockedUntil: readRuntimeState().quotaBlockedUntil,
-          fallbackReason: "Live fetch failed, serving saved cache"
+          videos: fallbackVideos,
+          cache,
+          state,
+          fallbackReason: "No live videos returned"
         })
       );
     }
 
-    const seed = getSeedData();
-    return res.json({
-      ...seed,
-      source: "seed",
-      quotaBlockedUntil: readRuntimeState().quotaBlockedUntil,
-      fallbackReason: isQuota
-        ? "Quota exceeded and no cache available, serving offline seed"
-        : "Live fetch failed and no cache was available"
+    writeCache(liveVideos, "live");
+    writeRuntimeState({
+      quotaBlockedUntil: null,
+      lastLiveSuccessAt: nowIso()
     });
+
+    const freshCache = readCache();
+
+    return res.json(
+      buildRadarResponse({
+        source: "live",
+        videos: liveVideos,
+        cache: freshCache,
+        state: readRuntimeState(),
+        fallbackReason: null
+      })
+    );
+  } catch (error) {
+    console.error("smoke-radar live fetch failed:", error.message);
+
+    if (quotaLooksExceeded(error.message)) {
+      const blockedUntil = new Date(
+        Date.now() + QUOTA_COOLDOWN_MINUTES * 60000
+      ).toISOString();
+
+      writeRuntimeState({
+        quotaBlockedUntil: blockedUntil
+      });
+    }
+
+    const fallbackVideos = cache.videos?.length ? cache.videos : getSeedVideos();
+
+    return res.json(
+      buildRadarResponse({
+        source: "cache",
+        videos: fallbackVideos,
+        cache,
+        state: readRuntimeState(),
+        fallbackReason: error.message || "Live fetch failed"
+      })
+    );
   }
 });
 
-app.get("/api/debug/quota-mode", (req, res) => {
-  const cache = readCache();
-  const state = readRuntimeState();
+app.get("/api/ai-recipe", async (req, res) => {
+  try {
+    const { cut, method, flavor } = req.query;
 
-  res.json({
-    ok: true,
-    hasApiKey: Boolean(API_KEY),
-    cacheFresh: isCacheFresh(cache),
-    cacheAgeMinutes: getCacheAgeMinutes(cache),
-    ttlMinutes: CACHE_TTL_MINUTES,
-    liveRefreshWindowMinutes: LIVE_REFRESH_WINDOW_MINUTES,
-    quotaCooldownMinutes: QUOTA_COOLDOWN_MINUTES,
-    quotaBlocked: isQuotaBlocked(state),
-    quotaBlockedUntil: state.quotaBlockedUntil,
-    lastQuotaErrorAt: state.lastQuotaErrorAt,
-    lastLiveAttemptAt: state.lastLiveAttemptAt,
-    lastLiveSuccessAt: state.lastLiveSuccessAt,
-    lastFailureReason: state.lastFailureReason,
-    cachedVideos: Array.isArray(cache.videos) ? cache.videos.length : 0,
-    shouldAttemptLiveNow: shouldAttemptLive(cache, state, false)
-  });
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+    }
+
+    const prompt = `
+You are a professional chef specializing in beef and meat dishes.
+
+Create a detailed meat recipe based on:
+
+Cut: ${cut}
+Cooking method: ${method}
+Flavor profile: ${flavor}
+
+Return the recipe in this structure:
+
+Title:
+Ingredients:
+Steps:
+Tips:
+Target doneness:
+
+Make it practical, flavorful, and realistic.
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.8
+    });
+
+    const recipe = completion.choices?.[0]?.message?.content || "";
+
+    return res.json({
+      recipe,
+      source: "ai"
+    });
+  } catch (err) {
+    console.error("AI RECIPE ERROR:", err);
+
+    return res.status(500).json({
+      error: "AI failed",
+      details: err?.message || "Unknown error"
+    });
+  }
 });
 
 app.get("/api/debug/system-check", (req, res) => {
@@ -747,42 +604,37 @@ app.get("/api/debug/system-check", (req, res) => {
 
   const checks = [
     {
-      name: "server",
-      status: "pass",
-      details: "Express server is running"
-    },
-    {
       name: "apiKey",
       status: API_KEY ? "pass" : "fail",
-      details: API_KEY ? "YouTube API key is configured" : "Missing YouTube API key"
+      details: API_KEY ? "YOUTUBE_API_KEY detected" : "Missing YOUTUBE_API_KEY"
     },
     {
-      name: "cacheFile",
-      status: Array.isArray(cache.videos) ? "pass" : "fail",
+      name: "openAiKey",
+      status: process.env.OPENAI_API_KEY ? "pass" : "fail",
+      details: process.env.OPENAI_API_KEY
+        ? "OPENAI_API_KEY detected"
+        : "Missing OPENAI_API_KEY"
+    },
+    {
+      name: "cache",
+      status: Array.isArray(cache.videos) && cache.videos.length ? "pass" : "warn",
       details: Array.isArray(cache.videos)
-        ? `Cache loaded with ${cache.videos.length} videos`
-        : "Cache file invalid"
+        ? `${cache.videos.length} cached videos`
+        : "Cache structure invalid"
     },
     {
-      name: "cacheFreshness",
-      status: isCacheFresh(cache) ? "pass" : (cache.videos.length ? "warn" : "fail"),
-      details: cache.videos.length
-        ? `Cache age: ${getCacheAgeMinutes(cache)} min`
-        : "No cached videos available"
-    },
-    {
-      name: "quotaBlock",
+      name: "quota",
       status: isQuotaBlocked(state) ? "warn" : "pass",
       details: isQuotaBlocked(state)
         ? `Quota blocked until ${state.quotaBlockedUntil}`
         : "Quota not blocked"
     },
     {
-      name: "liveEligibility",
-      status: shouldAttemptLive(cache, state, false) ? "pass" : "warn",
-      details: shouldAttemptLive(cache, state, false)
-        ? "System may attempt a live refresh"
-        : "System currently prefers cache"
+      name: "cacheFresh",
+      status: isCacheFresh(cache) ? "pass" : "warn",
+      details: isCacheFresh(cache)
+        ? "Cache is fresh"
+        : "Cache is stale or missing"
     }
   ];
 
@@ -806,6 +658,7 @@ app.get("/health", (req, res) => {
     ok: true,
     service: "Smoke Radar",
     hasApiKey: Boolean(API_KEY),
+    hasOpenAiKey: Boolean(process.env.OPENAI_API_KEY),
     cacheVideos: Array.isArray(cache.videos) ? cache.videos.length : 0,
     cacheAgeMinutes: getCacheAgeMinutes(cache),
     cacheFresh: isCacheFresh(cache),
@@ -815,42 +668,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/api/ai-recipe", async (req, res) => {
-  try {
-    const { cut, method, flavor } = req.query;
-
-    const prompt = `
-You are a professional chef.
-
-Create a detailed meat recipe.
-
-Cut: ${cut}
-Cooking method: ${method}
-Flavor profile: ${flavor}
-
-Return:
-- Title
-- Ingredients
-- Steps
-- Tips
-- Target doneness
-`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7
-    });
-
-    const recipe = completion.choices[0].message.content;
-
-    res.json({ recipe });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "AI failed" });
-  }
-});
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Smoke Radar server running on port ${PORT}`);
 });
