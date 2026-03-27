@@ -2176,174 +2176,44 @@
       openPopover(cut.title, html, buttonEl);
     }
 
-    function generateRecipe() {
-      const cutType = document.getElementById("cutType").value;
-      const cookingMethod = document.getElementById("cookingMethod").value;
-      const flavorProfile = document.getElementById("flavorProfile").value;
-      const output = document.getElementById("recipeOutput");
+async function generateRecipe() {
+  const cut = document.getElementById("cutType").value;
+  const method = document.getElementById("cookingMethod").value;
+  const flavor = document.getElementById("flavorProfile").value;
+  const output = document.getElementById("recipeOutput");
 
-      const cutLabels = {
-        brisket: "Brisket",
-        ribeye: "Ribeye",
-        short_ribs: "Short Ribs",
-        tomahawk: "Tomahawk",
-        picanha: "Picanha"
-      };
+  output.innerHTML = `
+    <div class="recipe-placeholder">
+      🔥 Generating AI recipe...
+    </div>
+  `;
 
-      const methodLabels = {
-        smoking: "Smoking",
-        long_cook: "Long Cook",
-        cast_iron: "Cast Iron",
-        bbq: "BBQ",
-        oven_roast: "Oven Roast"
-      };
+  try {
+    const res = await fetch(
+      `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}`
+    );
 
-      const flavorLabels = {
-        classic: "Classic",
-        peppery: "Peppery",
-        garlic_herb: "Garlic & Herb",
-        sweet_smoky: "Sweet & Smoky",
-        spicy: "Spicy"
-      };
+    const data = await res.json();
 
-      const flavorMap = {
-        classic: {
-          rub: ["kosher salt", "black pepper", "paprika"],
-          addOns: ["olive oil", "butter"],
-          tip: "Keep the seasoning minimal and let the meat lead."
-        },
-        peppery: {
-          rub: ["coarse black pepper", "kosher salt", "crushed coriander"],
-          addOns: ["olive oil", "a touch of butter"],
-          tip: "Pepper should build a crust, not overpower the meat."
-        },
-        garlic_herb: {
-          rub: ["kosher salt", "black pepper", "garlic powder", "rosemary", "thyme"],
-          addOns: ["butter", "fresh garlic"],
-          tip: "Add fresh herbs late so they stay fragrant."
-        },
-        sweet_smoky: {
-          rub: ["brown sugar", "paprika", "kosher salt", "black pepper", "smoked chili"],
-          addOns: ["butter", "apple cider vinegar"],
-          tip: "Balance sweetness with enough salt and smoke."
-        },
-        spicy: {
-          rub: ["kosher salt", "black pepper", "chili flakes", "cayenne", "smoked paprika"],
-          addOns: ["butter", "lime juice"],
-          tip: "Use heat in layers so the meat still stays center stage."
-        }
-      };
-
-      const methodMap = {
-        smoking: {
-          prep: "Trim the surface lightly, pat dry, and coat evenly with oil and rub. Let it sit 30–45 minutes before smoking.",
-          steps: [
-            "Preheat the smoker to 120–135°C.",
-            "Place the meat away from direct flame and smoke until bark and color develop.",
-            "Spritz lightly if needed during the cook.",
-            "Cook until tender or until the internal temperature suits the cut.",
-            "Rest well before slicing."
-          ]
-        },
-        long_cook: {
-          prep: "Season generously and let the meat sit at room temperature for 20–30 minutes before cooking.",
-          steps: [
-            "Sear the meat first for deep color.",
-            "Move to a low oven or covered pot at low heat.",
-            "Add a little stock or cooking liquid if needed.",
-            "Cook slowly until the texture softens and the meat yields easily.",
-            "Rest briefly, then slice or shred."
-          ]
-        },
-        cast_iron: {
-          prep: "Pat the meat very dry, season well, and let it sit while the pan gets very hot.",
-          steps: [
-            "Heat a cast iron pan until very hot.",
-            "Add a little neutral oil and sear both sides deeply.",
-            "Lower heat and baste with butter if desired.",
-            "Cook to your preferred internal temperature.",
-            "Rest before slicing."
-          ]
-        },
-        bbq: {
-          prep: "Coat lightly with oil, apply rub evenly, and let it sit while the grill heats up.",
-          steps: [
-            "Prepare two-zone heat on the grill.",
-            "Sear over direct heat first.",
-            "Move to indirect heat to finish gently.",
-            "Brush lightly if using glaze or butter.",
-            "Rest before serving."
-          ]
-        },
-        oven_roast: {
-          prep: "Season thoroughly and place on a rack so heat circulates around the meat.",
-          steps: [
-            "Preheat the oven to a moderate temperature.",
-            "Roast until the outer crust forms and the center reaches the target doneness.",
-            "Use a thermometer for accuracy.",
-            "Let the meat rest before carving.",
-            "Slice against the grain where relevant."
-          ]
-        }
-      };
-
-      const cutSpecific = {
-        brisket: {
-          title: "Smoked Brisket Build",
-          ingredients: ["1 brisket", "yellow mustard or oil binder"],
-          extraTip: "Slice against the grain and do not rush the rest."
-        },
-        ribeye: {
-          title: "Ribeye Precision Cook",
-          ingredients: ["2 ribeye steaks"],
-          extraTip: "Ribeye loves a hard crust and a shorter rest."
-        },
-        short_ribs: {
-          title: "Short Ribs Low & Slow",
-          ingredients: ["beef short ribs"],
-          extraTip: "Short ribs reward patience more than almost any cut."
-        },
-        tomahawk: {
-          title: "Tomahawk Showcase Cook",
-          ingredients: ["1 tomahawk steak"],
-          extraTip: "Use indirect heat after searing so the inside catches up cleanly."
-        },
-        picanha: {
-          title: "Picanha Fire Finish",
-          ingredients: ["1 picanha roast or picanha steaks"],
-          extraTip: "Score the fat cap lightly to render it better."
-        }
-      };
-
-      const flavor = flavorMap[flavorProfile];
-      const method = methodMap[cookingMethod];
-      const cut = cutSpecific[cutType];
-
-      const title = `${cut.title} · ${methodLabels[cookingMethod]} · ${flavorLabels[flavorProfile]}`;
-      const ingredients = [...cut.ingredients, ...flavor.rub, ...flavor.addOns];
-
-      output.innerHTML = `
-        <h3>${title}</h3>
-        <h4>Overview</h4>
-        <p>
-          This recipe is designed for <strong>${cutLabels[cutType]}</strong> using
-          <strong>${methodLabels[cookingMethod]}</strong> with a
-          <strong>${flavorLabels[flavorProfile]}</strong> profile.
-        </p>
-        <h4>Ingredients</h4>
-        <ul>${ingredients.map(item => `<li>${item}</li>`).join("")}</ul>
-        <h4>Preparation</h4>
-        <p>${method.prep}</p>
-        <h4>Cooking Steps</h4>
-        <ol>${method.steps.map(step => `<li>${step}</li>`).join("")}</ol>
-        <h4>Pitmaster Tips</h4>
-        <ul>
-          <li>${flavor.tip}</li>
-          <li>${cut.extraTip}</li>
-          <li>Let the meat rest before slicing so juices redistribute properly.</li>
-        </ul>
-      `;
+    if (!res.ok) {
+      throw new Error(data.details || data.error || "AI request failed");
     }
+
+    output.innerHTML = `
+      <div style="white-space: pre-line; line-height: 1.8;">
+        ${data.recipe}
+      </div>
+    `;
+  } catch (err) {
+    console.error("Recipe UI error:", err);
+    output.innerHTML = `
+      <div class="recipe-placeholder">
+        ❌ Failed to generate AI recipe.<br>
+        ${err.message ? err.message : ""}
+      </div>
+    `;
+  }
+}
 
     function setRefreshLoading(isLoading) {
       const btn = document.getElementById("loadBtn");
