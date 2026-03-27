@@ -1483,6 +1483,32 @@
   opacity: 0.6;
   margin-top: 6px;
 }
+    .mini-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+}
+
+.mini-icon {
+  font-size: 22px;
+}
+
+.mini-title {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.mini-text {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.mini-meta {
+  font-size: 12px;
+  opacity: 0.7;
+}
   </style>
 </head>
 <body>
@@ -1591,18 +1617,23 @@
         <div class="insight-meta" id="fastestBreakoutMeta">Waiting for live signal...</div>
       </div>
 
-      <div class="insight-card">
-        <div class="insight-label">Oldest Active Video</div>
-        <div class="insight-title" id="oldestActiveTitle">—</div>
-        <div class="insight-meta" id="oldestActiveMeta">Waiting for age signal...</div>
-      </div>
+      <div class="mini-card">
+  <div class="mini-icon">🚀</div>
+  <div>
+    <div class="mini-title">Fastest Breakout</div>
+    <div class="mini-text" id="fastestBreakoutTitle"></div>
+    <div class="mini-meta" id="fastestBreakoutMeta"></div>
+  </div>
+</div>
 
-      <div class="insight-card">
-        <div class="insight-label">Top Regions</div>
-        <div class="insight-title" id="regionsLead">—</div>
-        <div class="region-chips" id="regionChips"></div>
-      </div>
-    </div>
+<div class="mini-card">
+  <div class="mini-icon">🕰️</div>
+  <div>
+    <div class="mini-title">Oldest Active</div>
+    <div class="mini-text" id="oldestActiveTitle"></div>
+    <div class="mini-meta" id="oldestActiveMeta"></div>
+  </div>
+</div>
 
     <div class="tabs app-enter app-enter-delay-2">
       <button class="tab-btn active" data-tab="hot">Hot Feed</button>
