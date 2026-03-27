@@ -545,13 +545,11 @@ app.get("/api/smoke-radar", async (req, res) => {
 
 app.get("/api/ai-recipe", async (req, res) => {
   try {
-    const { cut, method, flavor } = req.query;
+    const { cut, method, flavor, r } = req.query;
 
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
     }
-
-    const { cut, method, flavor, r } = req.query;
 
 const prompt = `
 You are a creative professional chef specializing in beef and meat dishes.
