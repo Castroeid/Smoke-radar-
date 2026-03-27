@@ -1247,6 +1247,205 @@
     grid-column: 1 / -1;
   }
 }
+    .quick-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: rgba(9, 14, 22, 0.82);
+  border: 1px solid #1b2534;
+  border-radius: 22px;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+}
+
+.quick-nav a {
+  padding: 11px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+}
+
+.quick-nav a span:first-child {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.meta-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.meta-pill {
+  gap: 8px;
+  border-radius: 18px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #0f1621;
+  color: #d9e3ef;
+  min-height: 52px;
+  justify-content: flex-start;
+}
+
+.signal-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.signal-card {
+  border-radius: 20px;
+  padding: 16px;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.signal-card::after {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  right: -40px;
+  bottom: -50px;
+  background: radial-gradient(circle, rgba(255,107,44,0.10), transparent 70%);
+  pointer-events: none;
+}
+
+.signal-label {
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.signal-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.signal-sub {
+  margin-top: 6px;
+  color: #b9c5d8;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ai-recipe-wrap {
+  display: grid;
+  gap: 14px;
+}
+
+.ai-recipe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ai-recipe-badge {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.10));
+  border: 1px solid rgba(255,107,44,0.24);
+  color: #ffd8c8;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ai-recipe-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+.ai-recipe-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.ai-recipe-card {
+  border-radius: 18px;
+  padding: 15px;
+  background: #101722;
+  border: 1px solid #1b2534;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.ai-recipe-card h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #d8e2ef;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ai-recipe-card p,
+.ai-recipe-card li {
+  color: #d7dfeb;
+  line-height: 1.75;
+  font-size: 14px;
+}
+
+.ai-recipe-card ul,
+.ai-recipe-card ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ai-recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-recipe-chip {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #131b27;
+  border: 1px solid #243043;
+  color: #dbe5f2;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.recipe-output {
+  border-radius: 22px;
+  padding: 16px;
+}
+
+@media (min-width: 760px) {
+  .meta-strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .signal-strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .ai-recipe-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ai-recipe-card.full {
+    grid-column: 1 / -1;
+  }
+}
   </style>
 </head>
 <body>
@@ -1275,14 +1474,12 @@
       </div>
     </div>
 
-    <div class="quick-nav-wrap app-enter app-enter-delay-1">
-      <div class="quick-nav">
-        <a href="#overview">Overview</a>
-        <a href="#cuts">Cuts</a>
-        <a href="#recipes">Recipes</a>
-        <a href="#feed">Feed</a>
-        <a href="#about">About</a>
-      </div>
+    <div class="quick-nav">
+  <a href="#overview"><span>📊</span><span>Overview</span></a>
+  <a href="#cuts"><span>🥩</span><span>Cuts</span></a>
+  <a href="#recipes"><span>🍳</span><span>Recipes</span></a>
+  <a href="#feed"><span>🎥</span><span>Feed</span></a>
+  <a href="#about"><span>👨‍🍳</span><span>About</span></a>
     </div>
 
     <div class="meta-strip app-enter app-enter-delay-1" id="metaStrip"></div>
@@ -2309,6 +2506,7 @@ async function generateRecipe() {
     `;
   }
 }
+    
 function renderAiRecipe(recipeText, meta = {}) {
   const parsed = parseAiRecipe(recipeText);
 
