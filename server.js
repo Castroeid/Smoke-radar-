@@ -3,6 +3,8 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 
+const OpenAI = require("openai");
+
 const app = express();
 
 app.use(cors());
@@ -11,6 +13,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.YOUTUBE_API_KEY;
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 const CACHE_FILE = path.join(__dirname, "cache.json");
 const STATE_FILE = path.join(__dirname, "runtime-state.json");
@@ -809,6 +815,42 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/api/ai-recipe", async (req, res) => {
+  try {
+    const { cut, method, flavor } = req.query;
+
+    const prompt = `
+You are a professional chef.
+
+Create a detailed meat recipe.
+
+Cut: ${cut}
+Cooking method: ${method}
+Flavor profile: ${flavor}
+
+Return:
+- Title
+- Ingredients
+- Steps
+- Tips
+- Target doneness
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7
+    });
+
+    const recipe = completion.choices[0].message.content;
+
+    res.json({ recipe });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "AI failed" });
+  }
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Smoke Radar server running on port ${PORT}`);
 });
