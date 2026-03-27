@@ -202,7 +202,8 @@
     .meta-pill,
     .pill-btn,
     .tab-btn,
-    .small-btn {
+    .small-btn,
+    .quick-nav a {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.02);
       color: var(--text);
@@ -233,7 +234,8 @@
     }
 
     .pill-btn:hover,
-    .small-btn:hover {
+    .small-btn:hover,
+    .quick-nav a:hover {
       transform: translateY(-1px);
       border-color: rgba(255,154,104,0.55);
       box-shadow: var(--glow);
@@ -275,6 +277,32 @@
 
     .pill-btn.loading .refresh-loader {
       display: inline-block;
+    }
+
+    .quick-nav-wrap {
+      position: sticky;
+      top: 8px;
+      z-index: 1500;
+      margin-bottom: 16px;
+    }
+
+    .quick-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 10px;
+      background: rgba(9, 14, 22, 0.75);
+      border: 1px solid #1b2534;
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+
+    .quick-nav a {
+      padding: 9px 12px;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: 0.18s ease;
     }
 
     .meta-strip {
@@ -349,7 +377,8 @@
     .recipe-output,
     .cuts-image-wrap,
     .cut-grid-card,
-    .insight-card {
+    .insight-card,
+    .about-card {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
@@ -752,27 +781,6 @@
       box-shadow: 0 0 18px rgba(255,107,44,0.24);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    th, td {
-      padding: 11px 8px;
-      text-align: left;
-      border-bottom: 1px solid #182231;
-      vertical-align: top;
-    }
-
-    th {
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
     .video-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -1013,6 +1021,58 @@
       cursor: pointer;
     }
 
+    .about-card {
+      border-radius: 24px;
+      padding: 20px;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .about-avatar {
+      width: 180px;
+      height: 180px;
+      border-radius: 24px;
+      object-fit: cover;
+      border: 1px solid #243043;
+      background: #111927;
+      display: block;
+    }
+
+    .about-copy h3 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      letter-spacing: -0.3px;
+    }
+
+    .about-copy p {
+      color: #d7dfeb;
+      line-height: 1.75;
+      margin: 0 0 12px;
+      font-size: 14px;
+    }
+
+    .about-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .about-pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
     canvas { max-height: 320px; }
 
     @media (min-width: 980px) {
@@ -1041,6 +1101,17 @@
         inset: auto auto 24px 50%;
         width: min(460px, calc(100vw - 32px));
         transform: translateX(-50%);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .about-avatar {
+        width: 160px;
+        height: 160px;
       }
     }
 
@@ -1095,7 +1166,7 @@
   </div>
 
   <div class="container">
-    <div class="topbar app-enter">
+    <div class="topbar app-enter" id="overview">
       <div class="brand-wrap">
         <div class="brand-icon">🥩</div>
         <div class="brand">
@@ -1110,6 +1181,16 @@
           <span class="refresh-loader"></span>
           <span id="refreshLabel">Refresh</span>
         </button>
+      </div>
+    </div>
+
+    <div class="quick-nav-wrap app-enter app-enter-delay-1">
+      <div class="quick-nav">
+        <a href="#overview">Overview</a>
+        <a href="#cuts">Cuts</a>
+        <a href="#recipes">Recipes</a>
+        <a href="#feed">Feed</a>
+        <a href="#about">About</a>
       </div>
     </div>
 
@@ -1236,7 +1317,7 @@
       </div>
     </div>
 
-    <div class="panel app-enter app-enter-delay-3">
+    <div class="panel app-enter app-enter-delay-3" id="cuts">
       <div class="panel-heading">
         <h2>Beef Cuts Explorer</h2>
         <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
@@ -1265,7 +1346,7 @@
       </div>
     </div>
 
-    <div class="panel app-enter app-enter-delay-4">
+    <div class="panel app-enter app-enter-delay-4" id="recipes">
       <div class="panel-heading">
         <h2>Recipe Generator</h2>
         <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
@@ -1327,7 +1408,7 @@
       </div>
     </div>
 
-    <div class="panel app-enter app-enter-delay-4">
+    <div class="panel app-enter app-enter-delay-4" id="feed">
       <div class="panel-heading">
         <h2 id="feedTitle">Radar Feed</h2>
         <button class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
@@ -1336,6 +1417,43 @@
       <div class="video-grid" id="results"></div>
       <div class="panel-actions">
         <button class="small-btn" id="loadMoreBtn" onclick="loadMoreVideos()" style="display:none;">Load More</button>
+      </div>
+    </div>
+
+    <div class="about-card app-enter app-enter-delay-4" id="about">
+      <div class="about-grid">
+        <img src="/images/avatar-placeholder.png" alt="Smoke Radar creator avatar" class="about-avatar" />
+
+        <div class="about-copy">
+          <h3>About Smoke Radar</h3>
+
+          <p>
+            Smoke Radar was born from a simple idea — finding the most interesting,
+            high-quality meat content out there without wasting time scrolling.
+          </p>
+
+          <p>
+            Instead of guessing what is worth watching, Smoke Radar scans, filters,
+            and highlights videos based on real signals like momentum, engagement,
+            and content movement.
+          </p>
+
+          <p>
+            Built by a meat enthusiast who loves coffee, looks for originality,
+            and is always chasing the next interesting thing worth discovering.
+          </p>
+
+          <p>
+            Built for meat lovers, pitmasters, and curious food explorers.
+          </p>
+
+          <div class="about-highlights">
+            <span class="about-pill">🥩 Meat-first discovery</span>
+            <span class="about-pill">☕ Coffee-fueled building</span>
+            <span class="about-pill">🔥 Trend-driven radar</span>
+            <span class="about-pill">🎯 Curious, original, useful</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1746,7 +1864,7 @@
       document.getElementById("fastestBreakoutMeta").innerHTML =
         fastest
           ? `${formatNum(fastest.viewsPerHour)} views/hr · ${escapeHtml(fastest.channelTitle)}`
-          : "Waiting for breakout signal...";
+          : "Waiting for live signal...";
 
       document.getElementById("oldestActiveTitle").textContent =
         oldest ? oldest.title.slice(0, 34) + (oldest.title.length > 34 ? "..." : "") : "—";
