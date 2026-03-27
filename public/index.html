@@ -201,7 +201,8 @@
 
     .meta-pill,
     .pill-btn,
-    .tab-btn {
+    .tab-btn,
+    .small-btn {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.02);
       color: var(--text);
@@ -224,13 +225,22 @@
       overflow: hidden;
     }
 
-    .pill-btn:hover {
+    .small-btn {
+      padding: 9px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .pill-btn:hover,
+    .small-btn:hover {
       transform: translateY(-1px);
       border-color: rgba(255,154,104,0.55);
       box-shadow: var(--glow);
     }
 
-    .pill-btn:disabled {
+    .pill-btn:disabled,
+    .small-btn:disabled {
       opacity: 0.78;
       cursor: wait;
     }
@@ -555,6 +565,13 @@
       flex-wrap: wrap;
     }
 
+    .panel-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
     .subtle {
       color: var(--muted);
       font-size: 13px;
@@ -759,80 +776,87 @@
     .video-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 16px;
+      gap: 12px;
     }
 
     .card {
-      border-radius: 22px;
+      border-radius: 18px;
       overflow: hidden;
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      min-height: 132px;
     }
 
     .thumb {
       position: relative;
+      min-height: 132px;
     }
 
     .thumb img {
       width: 100%;
+      height: 100%;
       display: block;
-      aspect-ratio: 16 / 9;
       object-fit: cover;
       background: #111;
     }
 
     .badge {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      padding: 8px 10px;
-      border-radius: 12px;
+      top: 8px;
+      right: 8px;
+      padding: 7px 8px;
+      border-radius: 10px;
       background: rgba(8, 12, 20, 0.82);
       border: 1px solid rgba(255,255,255,0.08);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       backdrop-filter: blur(8px);
     }
 
     .duration-badge {
       position: absolute;
-      left: 12px;
-      bottom: 12px;
-      padding: 7px 10px;
-      border-radius: 12px;
+      left: 8px;
+      bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 10px;
       background: rgba(8, 12, 20, 0.82);
       border: 1px solid rgba(255,255,255,0.08);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       backdrop-filter: blur(8px);
     }
 
     .card-body {
-      padding: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
     }
 
     .title-row {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       align-items: flex-start;
-      margin-bottom: 8px;
     }
 
     .title {
-      font-size: 18px;
-      line-height: 1.45;
+      font-size: 15px;
+      line-height: 1.4;
       font-weight: 700;
       margin: 0;
-      letter-spacing: -0.2px;
+      letter-spacing: -0.1px;
       flex: 1;
     }
 
     .format-pill {
-      padding: 8px 10px;
+      padding: 7px 8px;
       border-radius: 999px;
       border: 1px solid #243043;
       background: #131b27;
       color: #dbe5f2;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
       white-space: nowrap;
       flex-shrink: 0;
@@ -840,50 +864,38 @@
 
     .channel {
       color: var(--muted);
-      font-size: 14px;
-      margin-bottom: 14px;
+      font-size: 12px;
+      margin: 0;
+      line-height: 1.5;
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
+    .mini-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #d8e2ef;
+      font-size: 12px;
     }
 
-    .stat {
+    .mini-stat {
+      padding: 7px 8px;
+      border-radius: 10px;
       background: #121925;
       border: 1px solid #202b3b;
-      border-radius: 14px;
-      padding: 11px;
-    }
-
-    .stat small {
-      display: block;
-      color: var(--muted);
-      margin-bottom: 6px;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .stat strong {
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: -0.4px;
+      font-weight: 600;
     }
 
     .links {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     .watch-link, .secondary-link {
       text-decoration: none;
-      border-radius: 12px;
-      padding: 11px 14px;
-      font-size: 14px;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 12px;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
@@ -1063,6 +1075,15 @@
       .hero-score {
         font-size: 62px;
       }
+
+      .card {
+        grid-template-columns: 112px 1fr;
+        min-height: 112px;
+      }
+
+      .thumb {
+        min-height: 112px;
+      }
     }
   </style>
 </head>
@@ -1086,7 +1107,7 @@
       <div class="top-actions">
         <div class="meta-pill live" id="miniLiveBadge">Live</div>
         <button class="pill-btn" id="loadBtn" onclick="loadData()">
-          <span class="refresh-loader" id="refreshLoader"></span>
+          <span class="refresh-loader"></span>
           <span id="refreshLabel">Refresh</span>
         </button>
       </div>
@@ -1218,7 +1239,7 @@
     <div class="panel app-enter app-enter-delay-3">
       <div class="panel-heading">
         <h2>Beef Cuts Explorer</h2>
-        <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="A visual reference image plus a clear tap-friendly cut selector. Tap a cut below to view its location and recommended cooking styles.">i</button>
+        <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
       </div>
       <div class="subtle">Tap a cut to open a quick guide</div>
 
@@ -1227,7 +1248,6 @@
           <div class="cuts-image-wrap">
             <img src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
           </div>
-
           <div class="cuts-grid-new" id="cutsGrid"></div>
         </div>
 
@@ -1310,10 +1330,13 @@
     <div class="panel app-enter app-enter-delay-4">
       <div class="panel-heading">
         <h2 id="feedTitle">Radar Feed</h2>
-        <button class="info-btn" data-popover-title="Radar Feed" data-popover-text="The main video feed powering Smoke Radar. Results come from live YouTube queries when available, or from cached/offline fallback data when live access is unavailable.">i</button>
+        <button class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
       </div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
+      <div class="panel-actions">
+        <button class="small-btn" id="loadMoreBtn" onclick="loadMoreVideos()" style="display:none;">Load More</button>
+      </div>
     </div>
   </div>
 
@@ -1330,6 +1353,7 @@
     let allData = null;
     let currentTab = "hot";
     let openingLoaderHidden = false;
+    let visibleVideoCount = 6;
 
     const cutData = {
       brisket: {
@@ -1487,7 +1511,9 @@
 
     function openPopover(title, html, buttonEl = null) {
       document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
-      if (buttonEl) buttonEl.classList.add("active");
+      if (buttonEl && buttonEl.classList.contains("info-btn")) {
+        buttonEl.classList.add("active");
+      }
 
       document.getElementById("popoverTitle").textContent = title;
       document.getElementById("popoverText").innerHTML = html;
@@ -1499,43 +1525,86 @@
       document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
     }
 
-function attachPopovers() {
-  document.querySelectorAll(".info-btn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
+    function attachPopovers() {
+      document.querySelectorAll(".info-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const title = btn.dataset.popoverTitle || "Info";
+          const text = btn.dataset.popoverText || "";
+          const alreadyOpen =
+            btn.classList.contains("active") &&
+            document.getElementById("infoPopover").classList.contains("show");
 
-      const title = btn.dataset.popoverTitle || "Info";
-      const text = btn.dataset.popoverText || "";
-      const alreadyOpen =
-        btn.classList.contains("active") &&
-        document.getElementById("infoPopover").classList.contains("show");
+          if (alreadyOpen) {
+            closePopover();
+            return;
+          }
 
-      if (alreadyOpen) {
+          openPopover(title, `<p>${escapeHtml(text)}</p>`, btn);
+        });
+      });
+
+      document.getElementById("popoverClose").addEventListener("click", (e) => {
+        e.stopPropagation();
         closePopover();
-        return;
-      }
+      });
 
-      openPopover(title, `<p>${escapeHtml(text)}</p>`, btn);
-    });
-  });
+      document.addEventListener("click", (e) => {
+        const clickedInfoButton = e.target.closest(".info-btn");
+        const clickedCutCard = e.target.closest(".cut-grid-card");
+        const clickedVideoInfo = e.target.closest(".video-info-btn");
+        const clickedInsidePopover = e.target.closest("#infoPopover");
 
-  document.getElementById("popoverClose").addEventListener("click", (e) => {
-    e.stopPropagation();
-    closePopover();
-  });
-
-  document.addEventListener("click", (e) => {
-    const pop = document.getElementById("infoPopover");
-
-    const clickedInfoButton = e.target.closest(".info-btn");
-    const clickedCutCard = e.target.closest(".cut-grid-card");
-    const clickedInsidePopover = e.target.closest("#infoPopover");
-
-    if (!clickedInfoButton && !clickedCutCard && !clickedInsidePopover) {
-      closePopover();
+        if (!clickedInfoButton && !clickedCutCard && !clickedVideoInfo && !clickedInsidePopover) {
+          closePopover();
+        }
+      });
     }
-  });
-}
+
+    function detectDishFromTitle(title = "") {
+      const lower = title.toLowerCase();
+      const map = [
+        ["brisket", "Brisket"],
+        ["ribeye", "Ribeye"],
+        ["short ribs", "Short Ribs"],
+        ["beef ribs", "Beef Ribs"],
+        ["tomahawk", "Tomahawk"],
+        ["picanha", "Picanha"],
+        ["sirloin", "Sirloin"],
+        ["flank", "Flank"],
+        ["tenderloin", "Tenderloin"],
+        ["filet", "Filet"],
+        ["wagyu", "Wagyu"],
+        ["burger", "Burger"],
+        ["steak", "Steak"],
+        ["roast", "Roast"]
+      ];
+
+      for (const [needle, label] of map) {
+        if (lower.includes(needle)) return label;
+      }
+      return "General beef cook";
+    }
+
+    function detectTheme(title = "") {
+      const lower = title.toLowerCase();
+      const map = [
+        ["reverse sear", "Reverse sear"],
+        ["smoked", "Smoking"],
+        ["smoke", "Smoking"],
+        ["bbq", "BBQ"],
+        ["cast iron", "Cast iron"],
+        ["grill", "Grill"],
+        ["oven", "Oven roast"],
+        ["braise", "Braise"],
+        ["low and slow", "Low and slow"]
+      ];
+
+      for (const [needle, label] of map) {
+        if (lower.includes(needle)) return label;
+      }
+      return "General cooking";
+    }
 
     function renderMeta(data) {
       const metaStrip = document.getElementById("metaStrip");
@@ -1756,15 +1825,65 @@ function attachPopovers() {
       return [...videos].sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
     }
 
+    function renderVideoInfo(v) {
+      const detectedDish = detectDishFromTitle(v.title || "");
+      const detectedTheme = detectTheme(v.title || "");
+
+      const html = `
+        <h4>Video Summary</h4>
+        <p>${escapeHtml(v.title || "")}</p>
+
+        <h4>Detected cut / dish</h4>
+        <p>${escapeHtml(detectedDish)}</p>
+
+        <h4>Detected theme</h4>
+        <p>${escapeHtml(detectedTheme)}</p>
+
+        <h4>Video stats</h4>
+        <ul>
+          <li>Duration: ${escapeHtml(v.durationLabel || "0:00")}</li>
+          <li>Format: ${escapeHtml(v.formatLabel || "Video")}</li>
+          <li>Views: ${formatNum(v.viewCount || 0)}</li>
+          <li>Likes: ${formatNum(v.likeCount || 0)}</li>
+          <li>Views per hour: ${formatNum(v.viewsPerHour || 0)}</li>
+          <li>Age: ${escapeHtml(formatHours(v.hoursSincePublished || 0))}</li>
+        </ul>
+
+        <h4>Context</h4>
+        <ul>
+          <li>Channel: ${escapeHtml(v.channelTitle || "Unknown Channel")}</li>
+          <li>Region: ${escapeHtml(v.regionLabel || "Global")}</li>
+          <li>Main keyword source: title analysis</li>
+        </ul>
+      `;
+
+      openPopover("Video Info", html);
+    }
+
+    function updateLoadMoreButton(totalVideos) {
+      const btn = document.getElementById("loadMoreBtn");
+      if (!btn) return;
+
+      if (visibleVideoCount < totalVideos) {
+        btn.style.display = "inline-flex";
+        btn.textContent = `Load More (${Math.min(4, totalVideos - visibleVideoCount)})`;
+      } else {
+        btn.style.display = "none";
+      }
+    }
+
     function renderVideos(videos) {
       const el = document.getElementById("results");
 
       if (!videos.length) {
         el.innerHTML = `<div class="empty">No videos available right now.</div>`;
+        updateLoadMoreButton(0);
         return;
       }
 
-      el.innerHTML = videos.map(v => {
+      const visible = videos.slice(0, visibleVideoCount);
+
+      el.innerHTML = visible.map((v, index) => {
         const viewCount = v.viewCount ?? v.views ?? 0;
         const likeCount = v.likeCount ?? v.likes ?? 0;
         const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
@@ -1782,34 +1901,24 @@ function attachPopovers() {
             </div>
 
             <div class="card-body">
-              <div class="title-row">
-                <div class="title">${escapeHtml(v.title)}</div>
-                <div class="format-pill">${escapeHtml(v.formatLabel || "Video")}</div>
-              </div>
+              <div>
+                <div class="title-row">
+                  <div class="title">${escapeHtml(v.title)}</div>
+                  <div class="format-pill">${escapeHtml(v.formatLabel || "Video")}</div>
+                </div>
 
-              <div class="channel">${escapeHtml(channelTitle)} · ${escapeHtml(v.regionLabel || "Global")}</div>
+                <p class="channel">${escapeHtml(channelTitle)} · ${escapeHtml(v.regionLabel || "Global")}</p>
 
-              <div class="stats">
-                <div class="stat">
-                  <small>Views</small>
-                  <strong>${formatNum(viewCount)}</strong>
-                </div>
-                <div class="stat">
-                  <small>Likes</small>
-                  <strong>${formatNum(likeCount)}</strong>
-                </div>
-                <div class="stat">
-                  <small>Views / Hour</small>
-                  <strong>${formatNum(v.viewsPerHour || 0)}</strong>
-                </div>
-                <div class="stat">
-                  <small>Age</small>
-                  <strong>${escapeHtml(formatHours(v.hoursSincePublished || 0))}</strong>
+                <div class="mini-stats">
+                  <span class="mini-stat">👁 ${formatNum(viewCount)}</span>
+                  <span class="mini-stat">❤️ ${formatNum(likeCount)}</span>
+                  <span class="mini-stat">⏱ ${escapeHtml(v.durationLabel || "0:00")}</span>
                 </div>
               </div>
 
               <div class="links">
                 <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">Watch</a>
+                <button class="small-btn video-info-btn" data-video-index="${index}">Info</button>
                 ${v.channelId
                   ? `<a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>`
                   : `<span class="secondary-link disabled">Channel</span>`
@@ -1819,6 +1928,21 @@ function attachPopovers() {
           </div>
         `;
       }).join("");
+
+      el.querySelectorAll(".video-info-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const index = Number(btn.dataset.videoIndex);
+          renderVideoInfo(visible[index]);
+        });
+      });
+
+      updateLoadMoreButton(videos.length);
+    }
+
+    function loadMoreVideos() {
+      visibleVideoCount += 4;
+      renderTabState();
     }
 
     function renderScoreChart(videos) {
@@ -1891,29 +2015,30 @@ function attachPopovers() {
       document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           currentTab = btn.dataset.tab;
+          visibleVideoCount = 6;
           renderTabState();
         });
       });
     }
 
     function renderCutsGrid(activeId = "ribeye") {
-  const grid = document.getElementById("cutsGrid");
-  if (!grid) return;
+      const grid = document.getElementById("cutsGrid");
+      if (!grid) return;
 
-  grid.innerHTML = cutCards.map(c => `
-    <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
-      ${c.label}
-    </button>
-  `).join("");
+      grid.innerHTML = cutCards.map(c => `
+        <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
+          ${c.label}
+        </button>
+      `).join("");
 
-  grid.querySelectorAll(".cut-grid-card").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const key = btn.dataset.cutId;
-      renderCutsGrid(key);
-      openCutPopover(key, btn);
-    });
-  });
+      grid.querySelectorAll(".cut-grid-card").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const key = btn.dataset.cutId;
+          renderCutsGrid(key);
+          openCutPopover(key, btn);
+        });
+      });
     }
 
     function openCutPopover(cutKey, buttonEl = null) {
@@ -2130,6 +2255,7 @@ function attachPopovers() {
         }
 
         allData = data;
+        visibleVideoCount = 6;
 
         renderMeta(data);
         renderHero(data);
@@ -2176,8 +2302,6 @@ function attachPopovers() {
       attachPopovers();
       renderCutsGrid("ribeye");
       loadData();
-
-      // fallback safety
       window.setTimeout(hideOpeningLoader, 2200);
     });
   </script>
