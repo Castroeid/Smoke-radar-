@@ -6,17 +6,23 @@ It combines real-time signals, content momentum, and structured insights into on
 
 ---
 
+## 📸 Preview
+
+![Smoke Radar Preview](./public/images/smoke_radar_preview.png)
+
+---
+
 ## 🚀 Features
 
-- 📊 Live / Cached radar feed
-- 🔥 Smoke Index & momentum tracking
-- 🎯 Fastest breakout videos
-- 🌍 Regional insights
-- 🥩 Beef Cuts Explorer (interactive)
-- 🍳 Recipe Generator
-- 📺 Smart video feed with insights
-- 🧭 Quick navigation UX
-- 🧑‍🍳 About & product story
+- 📊 Live / Cached radar feed  
+- 🔥 Smoke Index & momentum tracking  
+- 🎯 Fastest breakout videos  
+- 🌍 Regional insights  
+- 🥩 Beef Cuts Explorer (interactive)  
+- 🍳 Recipe Generator  
+- 📺 Smart video feed with insights  
+- 🧭 Quick navigation UX  
+- 🧑‍🍳 About & product story  
 
 ---
 
@@ -35,15 +41,15 @@ Built for people who want **signal, not noise**.
 
 ## 🛠️ Tech Stack
 
-- Frontend: Vanilla JS + HTML + CSS
-- Backend: Node.js (Express)
-- Data: YouTube API + caching layer
+- Frontend: Vanilla JS + HTML + CSS  
+- Backend: Node.js (Express)  
+- Data: YouTube API + caching layer  
 
 ---
 
-## 📘 Product Spec
+## 📘 Full Product Spec
 
-For full architecture, roadmap, and diagrams:
+For full architecture, roadmap and diagrams:
 
 👉 [View Product Spec](./SMOKE_RADAR_SPEC.md)
 
@@ -64,12 +70,6 @@ Built by a meat enthusiast who:
 - 📍 Butcher Radar (location-based)  
 - 🔊 Sound design  
 - 🧠 smarter recommendations  
-
----
-
-## 📸 Preview
-
-*(add screenshots here later — highly recommended)*
 
 ---
 
