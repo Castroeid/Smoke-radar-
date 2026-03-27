@@ -2694,6 +2694,9 @@ function parseAiRecipe(recipeText = "") {
         allData = data;
         visibleVideoCount = 6;
 
+const smokeIndex = data.summary?.avgSmoke || 0;
+updateSmokeUI(smokeIndex);
+        
         renderMeta(data);
         renderHero(data);
         renderSignalStrip(data);
