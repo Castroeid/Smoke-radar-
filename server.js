@@ -1,4 +1,4 @@
-const express = require("express");
+yconst express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
@@ -551,24 +551,41 @@ app.get("/api/ai-recipe", async (req, res) => {
       return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
     }
 
-    const prompt = `
-You are a professional chef specializing in beef and meat dishes.
+    const { cut, method, flavor, r } = req.query;
 
-Create a detailed meat recipe based on:
+const prompt = `
+You are a creative professional chef specializing in beef and meat dishes.
+
+Create a UNIQUE meat recipe every time.
 
 Cut: ${cut}
 Cooking method: ${method}
 Flavor profile: ${flavor}
+Variation seed: ${r}
 
-Return the recipe in this structure:
+Make it slightly different each time:
+- Change ingredients a bit
+- Change technique a bit
+- Change wording
+- Keep it practical and realistic
+
+Return the recipe in this exact structure:
 
 Title:
 Ingredients:
-Steps:
-Tips:
-Target doneness:
+- item
+- item
 
-Make it practical, flavorful, and realistic.
+Steps:
+1. step
+2. step
+
+Tips:
+- tip
+- tip
+
+Target doneness:
+...
 `;
 
     const completion = await openai.chat.completions.create({
