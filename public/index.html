@@ -2223,21 +2223,21 @@
       const regions = data.topRegions || [];
 
       document.getElementById("fastestBreakoutTitle").textContent =
-        fastest ? fastest.title.slice(0, 36) + (fastest.title.length > 36 ? "..." : "") : "—";
+  fastest?.title || "No breakout video";
 
-      document.getElementById("fastestBreakoutMeta").innerHTML =
-        fastest
-          ? `${formatNum(fastest.viewsPerHour)} views/hr · ${escapeHtml(fastest.channelTitle)}`
-          : "Waiting for live signal...";
+document.getElementById("fastestBreakoutMeta").textContent =
+  fastest
+    ? `${formatNum(fastest.viewsPerHour)} views/hr • ${fastest.channelTitle}`
+    : "Waiting for live signal...";
 
-      document.getElementById("oldestActiveTitle").textContent =
-        oldest ? oldest.title.slice(0, 34) + (oldest.title.length > 34 ? "..." : "") : "—";
 
-      document.getElementById("oldestActiveMeta").innerHTML =
-        oldest
-          ? `${formatHours(oldest.hoursSincePublished)} · ${escapeHtml(oldest.channelTitle)}`
-          : "Waiting for age signal...";
+document.getElementById("oldestActiveTitle").textContent =
+  oldest?.title || "No active video";
 
+document.getElementById("oldestActiveMeta").textContent =
+  oldest
+    ? `${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}`
+    : "Waiting for age signal...";
       const lead = regions[0]?.region || "—";
       document.getElementById("regionsLead").textContent = lead;
 
