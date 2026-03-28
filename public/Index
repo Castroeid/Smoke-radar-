@@ -1,0 +1,2535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smoke Radar</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #05070b;
+      --panel: #0b1017;
+      --panel-2: #101722;
+      --border: #1b2534;
+      --text: #eef3f8;
+      --muted: #97a5bb;
+      --accent: #ff6b2c;
+      --accent-2: #ff955f;
+      --green: #2ecc71;
+      --yellow: #f5b041;
+      --red: #ff5f57;
+      --shadow: 0 10px 30px rgba(0,0,0,0.28);
+      --glow: 0 0 24px rgba(255,107,44,0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #0b1018 0%, #05070b 46%);
+      color: var(--text);
+      font-family: "Inter", Arial, sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .opening-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      background:
+        radial-gradient(circle at center, rgba(255,107,44,0.16), transparent 36%),
+        linear-gradient(180deg, #070a10 0%, #05070b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      transition: opacity 380ms ease, visibility 380ms ease;
+    }
+
+    .opening-loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .opening-loader-icon {
+      width: 94px;
+      height: 94px;
+      border-radius: 28px;
+      display: grid;
+      place-items: center;
+      font-size: 48px;
+      background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.08));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 0 32px rgba(255,107,44,0.18);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .opening-loader-icon::before,
+    .opening-loader-icon::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,149,95,0.35);
+      animation: loaderPulse 1.6s ease-out infinite;
+    }
+
+    .opening-loader-icon::after {
+      animation-delay: 0.45s;
+    }
+
+    @keyframes loaderPulse {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
+
+    .opening-loader-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+
+    .opening-loader-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .app-enter {
+      opacity: 0;
+      transform: translateY(12px);
+      animation: appEnter 700ms ease forwards;
+    }
+
+    .app-enter-delay-1 { animation-delay: 70ms; }
+    .app-enter-delay-2 { animation-delay: 130ms; }
+    .app-enter-delay-3 { animation-delay: 190ms; }
+    .app-enter-delay-4 { animation-delay: 250ms; }
+
+    @keyframes appEnter {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.1));
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 25px;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-icon::after {
+      content: "";
+      position: absolute;
+      inset: -30% -60%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+      transform: rotate(16deg);
+      animation: brandSweep 4s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes brandSweep {
+      0% { transform: translateX(-120%) rotate(16deg); }
+      100% { transform: translateX(120%) rotate(16deg); }
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -1px;
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .meta-pill,
+    .pill-btn,
+    .tab-btn,
+    .small-btn,
+    .quick-nav a {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      border-radius: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .pill-btn {
+      padding: 10px 14px;
+      font-size: 14px;
+      gap: 8px;
+      cursor: pointer;
+      transition: 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .small-btn {
+      padding: 9px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .pill-btn:hover,
+    .small-btn:hover,
+    .quick-nav a:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,154,104,0.55);
+      box-shadow: var(--glow);
+    }
+
+    .pill-btn:disabled,
+    .small-btn:disabled {
+      opacity: 0.78;
+      cursor: wait;
+    }
+
+    .refresh-loader {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      display: none;
+      position: relative;
+      background: radial-gradient(circle, #ff9d6c 0%, #ff6b2c 55%, #c94d1e 100%);
+      box-shadow: 0 0 12px rgba(255,107,44,0.4);
+      flex-shrink: 0;
+    }
+
+    .refresh-loader::before,
+    .refresh-loader::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255,149,95,0.4);
+      animation: refreshPulse 1.4s ease-out infinite;
+    }
+
+    .refresh-loader::after { animation-delay: 0.35s; }
+
+    @keyframes refreshPulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+
+    .pill-btn.loading .refresh-loader {
+      display: inline-block;
+    }
+
+    .quick-nav-wrap {
+      position: sticky;
+      top: 8px;
+      z-index: 1500;
+      margin-bottom: 16px;
+    }
+
+    .quick-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px;
+      background: rgba(9, 14, 22, 0.82);
+      border: 1px solid #1b2534;
+      border-radius: 22px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+
+    .quick-nav a {
+      padding: 11px 14px;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+    }
+
+    .quick-nav a span:first-child {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .meta-strip {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .meta-pill {
+      gap: 8px;
+      border-radius: 18px;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #0f1621;
+      color: #d9e3ef;
+      min-height: 52px;
+      justify-content: flex-start;
+    }
+
+    .meta-pill.live {
+      color: #dff8ea;
+      border-color: rgba(46, 204, 113, 0.35);
+      background: rgba(46, 204, 113, 0.08);
+    }
+
+    .meta-pill.cached {
+      color: #fff0d6;
+      border-color: rgba(245, 176, 65, 0.35);
+      background: rgba(245, 176, 65, 0.08);
+    }
+
+    .meta-pill.warn {
+      color: #ffe6d6;
+      border-color: rgba(255,107,44,0.35);
+      background: rgba(255,107,44,0.10);
+    }
+
+    .status {
+      min-height: 22px;
+      margin: 0 0 16px;
+      color: #ffd7c8;
+      font-size: 14px;
+    }
+
+    .error-banner {
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 95, 87, 0.28);
+      background: linear-gradient(180deg, rgba(255,95,87,0.11), rgba(255,95,87,0.04));
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .error-banner h3 {
+      margin: 0 0 8px;
+      color: #ffd8d4;
+      font-size: 18px;
+    }
+
+    .error-banner p {
+      margin: 0;
+      color: #ffe8e5;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .panel,
+    .signal-card,
+    .card,
+    .kpi,
+    .recipe-output,
+    .cuts-image-wrap,
+    .cut-grid-card,
+    .insight-card,
+    .about-card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      border-radius: 24px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .smoke-hero {
+      padding: 18px;
+    }
+
+    .smoke-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .smoke-value {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 10px 0;
+      letter-spacing: -1px;
+    }
+
+    .smoke-bar {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    #smokeFill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4caf50, #ff9800, #ff5722);
+      transition: width 0.35s ease;
+    }
+
+    .smoke-scale {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.65;
+      margin-top: 8px;
+    }
+
+    .signal-strip {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .signal-card {
+      border-radius: 20px;
+      padding: 16px;
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .signal-card::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -40px;
+      bottom: -50px;
+      background: radial-gradient(circle, rgba(255,107,44,0.10), transparent 70%);
+      pointer-events: none;
+    }
+
+    .signal-label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .signal-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .signal-sub {
+      margin-top: 6px;
+      color: #b9c5d8;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .insight-card {
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .insight-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .insight-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+
+    .insight-meta {
+      color: #c9d6e7;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .region-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .region-chip {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      padding: 10px 14px;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.10));
+      border-color: rgba(255,107,44,0.28);
+      color: #fff2eb;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi {
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .keywords {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .keyword {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .recipe-grid,
+    .cuts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .recipe-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .recipe-field label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .recipe-field select {
+      width: 100%;
+      background: #111927;
+      color: var(--text);
+      border: 1px solid #1f2a3a;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .recipe-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .recipe-output {
+      border-radius: 22px;
+      padding: 16px;
+    }
+
+    .recipe-output h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .recipe-output h4 {
+      margin: 16px 0 8px;
+      font-size: 14px;
+      color: #d8e2ef;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .recipe-output p,
+    .recipe-output li {
+      color: #d7dfeb;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .recipe-output ul,
+    .recipe-output ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .recipe-placeholder {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .ai-recipe-wrap {
+      display: grid;
+      gap: 14px;
+    }
+
+    .ai-recipe-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ai-recipe-badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,107,44,0.18), rgba(255,149,95,0.10));
+      border: 1px solid rgba(255,107,44,0.24);
+      color: #ffd8c8;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .ai-recipe-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+    }
+
+    .ai-recipe-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .ai-recipe-card {
+      border-radius: 18px;
+      padding: 15px;
+      background: #101722;
+      border: 1px solid #1b2534;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .ai-recipe-card h4 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: #d8e2ef;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .ai-recipe-card p,
+    .ai-recipe-card li {
+      color: #d7dfeb;
+      line-height: 1.75;
+      font-size: 14px;
+    }
+
+    .ai-recipe-card ul,
+    .ai-recipe-card ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .ai-recipe-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .ai-recipe-chip {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .cuts-image-wrap {
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .cuts-image-static {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: #0b1017;
+    }
+
+    .cuts-grid-new {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .cut-grid-card {
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.18s ease;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.2px;
+      color: #e7edf6;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .cut-grid-card:hover {
+      border-color: rgba(255,154,104,0.6);
+      background: linear-gradient(180deg, rgba(255,107,44,0.14), rgba(255,107,44,0.06));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(249,115,22,0.18);
+    }
+
+    .cut-grid-card.active {
+      background: linear-gradient(135deg, #ff6b2c, #ff955f);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 0 18px rgba(255,107,44,0.24);
+    }
+
+    .cut-panel {
+      margin-top: 0;
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #0f172a, #111827);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      animation: fadeInUp 0.3s ease;
+      min-height: 240px;
+    }
+
+    .cut-panel h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .cut-panel p {
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 8px;
+    }
+
+    .cut-panel h4 {
+      margin: 12px 0 4px;
+      font-size: 13px;
+      color: #f97316;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .cut-panel ul {
+      padding-left: 16px;
+      margin: 0;
+    }
+
+    .cut-panel li {
+      font-size: 13px;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      border-radius: 18px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      min-height: 132px;
+    }
+
+    .thumb {
+      position: relative;
+      min-height: 132px;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      background: #111;
+    }
+
+    .badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 7px 8px;
+      border-radius: 10px;
+      background: rgba(8, 12, 20, 0.82);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 11px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+    }
+
+    .duration-badge {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(8, 12, 20, 0.82);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 11px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+    }
+
+    .card-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .title {
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.1px;
+      flex: 1;
+    }
+
+    .format-pill {
+      padding: 7px 8px;
+      border-radius: 999px;
+      border: 1px solid #243043;
+      background: #131b27;
+      color: #dbe5f2;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .channel {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .mini-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #d8e2ef;
+      font-size: 12px;
+    }
+
+    .mini-stat {
+      padding: 7px 8px;
+      border-radius: 10px;
+      background: #121925;
+      border: 1px solid #202b3b;
+      font-weight: 600;
+    }
+
+    .links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .watch-link, .secondary-link {
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .watch-link {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+    }
+
+    .secondary-link {
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+    }
+
+    .secondary-link.disabled {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 15px;
+      padding: 8px 0 0;
+    }
+
+    .info-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid #2a3648;
+      background: #1a2433;
+      color: #9fb2cc;
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: 0.18s ease;
+    }
+
+    .info-btn.active {
+      color: white;
+      background: #243247;
+    }
+
+    .popover {
+      position: fixed;
+      inset: auto 16px 16px 16px;
+      background: #0f1621;
+      border: 1px solid #263244;
+      border-radius: 16px;
+      padding: 14px;
+      color: #d7dfeb;
+      line-height: 1.6;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      display: none;
+      max-height: 62vh;
+      overflow: auto;
+    }
+
+    .popover.show {
+      display: block;
+      animation: popIn 180ms ease;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .popover-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .popover-content h4 {
+      margin: 14px 0 6px;
+      font-size: 13px;
+      color: #d8e2ef;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .popover-content p,
+    .popover-content li {
+      margin: 0;
+      color: #d7dfeb;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .popover-content ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .popover-close {
+      border: 1px solid #2a3648;
+      background: #1a2433;
+      color: #d7dfeb;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .about-card {
+      border-radius: 24px;
+      padding: 20px;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .about-avatar {
+      width: 180px;
+      height: 180px;
+      border-radius: 24px;
+      object-fit: cover;
+      border: 1px solid #243043;
+      background: #111927;
+      display: block;
+    }
+
+    .about-copy h3 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      letter-spacing: -0.3px;
+    }
+
+    .about-copy p {
+      color: #d7dfeb;
+      line-height: 1.75;
+      margin: 0 0 12px;
+      font-size: 14px;
+    }
+
+    .about-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .about-pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #131b27;
+      border: 1px solid #243043;
+      color: #dbe5f2;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    canvas { max-height: 320px; }
+
+    @media (min-width: 980px) {
+      .insights-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    @media (min-width: 860px) {
+      .cuts-grid {
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: start;
+      }
+    }
+
+    @media (min-width: 760px) {
+      .video-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .two-col {
+        grid-template-columns: 1.3fr 1fr;
+      }
+
+      .meta-strip {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .signal-strip {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .ai-recipe-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .ai-recipe-card.full {
+        grid-column: 1 / -1;
+      }
+
+      .popover {
+        inset: auto auto 24px 50%;
+        width: min(460px, calc(100vw - 32px));
+        transform: translateX(-50%);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .about-avatar {
+        width: 160px;
+        height: 160px;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .insights-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .signal-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .recipe-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cuts-grid-new {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .cut-grid-card {
+        min-height: 64px;
+        font-size: 14px;
+      }
+
+      .brand h1 {
+        font-size: 26px;
+      }
+
+      .card {
+        grid-template-columns: 112px 1fr;
+        min-height: 112px;
+      }
+
+      .thumb {
+        min-height: 112px;
+      }
+
+      .smoke-value {
+        font-size: 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="opening-loader" id="openingLoader">
+    <div class="opening-loader-icon">🥩</div>
+    <div class="opening-loader-title">Smoke Radar</div>
+    <div class="opening-loader-subtitle">Initializing meat intelligence dashboard...</div>
+  </div>
+
+  <div class="container">
+    <div class="topbar app-enter" id="overview">
+      <div class="brand-wrap">
+        <div class="brand-icon">🥩</div>
+        <div class="brand">
+          <h1>Smoke Radar</h1>
+          <p>Live meat content intelligence dashboard</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="meta-pill live" id="miniLiveBadge">Live</div>
+        <button class="pill-btn" id="loadBtn" onclick="loadData()">
+          <span class="refresh-loader"></span>
+          <span id="refreshLabel">Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="quick-nav-wrap app-enter app-enter-delay-1">
+      <div class="quick-nav">
+        <a href="#overview"><span>📊</span><span>Overview</span></a>
+        <a href="#cuts"><span>🥩</span><span>Cuts</span></a>
+        <a href="#recipes"><span>🍳</span><span>Recipes</span></a>
+        <a href="#feed"><span>🎥</span><span>Feed</span></a>
+        <a href="#about"><span>👨‍🍳</span><span>About</span></a>
+      </div>
+    </div>
+
+    <div class="meta-strip app-enter app-enter-delay-1" id="metaStrip"></div>
+    <div class="status app-enter app-enter-delay-1" id="status"></div>
+    <div class="app-enter app-enter-delay-1" id="errorMount"></div>
+
+    <div class="panel smoke-hero app-enter app-enter-delay-2">
+      <div class="smoke-header">
+        <span>🔥 Smoke Index</span>
+        <span id="smokeStatus" class="badge">EARLY</span>
+      </div>
+
+      <div class="smoke-value" id="smokeValue">0%</div>
+
+      <div class="smoke-bar">
+        <div id="smokeFill"></div>
+      </div>
+
+      <div class="smoke-scale">
+        <span>Early</span>
+        <span>Rising</span>
+        <span>Hot</span>
+        <span>Breakout</span>
+      </div>
+
+      <div class="subtle" id="smokeHelper" style="margin-top:10px; margin-bottom:0;">
+        Current content heat based on average smoke score
+      </div>
+    </div>
+
+    <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
+      <div class="signal-card">
+        <div class="signal-label">Tracked Videos</div>
+        <div class="signal-value">0</div>
+        <div class="signal-sub">Current feed size</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label">Top Channel</div>
+        <div class="signal-value">—</div>
+        <div class="signal-sub">Highest current average</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label">Avg Smoke</div>
+        <div class="signal-value">0</div>
+        <div class="signal-sub">Across current scan</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label">Total Views</div>
+        <div class="signal-value">0</div>
+        <div class="signal-sub">Visible radar sample</div>
+      </div>
+    </div>
+
+    <div class="insights-grid app-enter app-enter-delay-2">
+      <div class="insight-card">
+        <div class="insight-label">🚀 Fastest Breakout</div>
+        <div class="insight-title" id="fastestBreakoutTitle">—</div>
+        <div class="insight-meta" id="fastestBreakoutMeta">Waiting for live signal...</div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-label">🕰️ Oldest Active</div>
+        <div class="insight-title" id="oldestActiveTitle">—</div>
+        <div class="insight-meta" id="oldestActiveMeta">Waiting for age signal...</div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-label">🌍 Top Regions</div>
+        <div class="insight-title" id="regionsLead">—</div>
+        <div class="region-chips" id="regionChips"></div>
+      </div>
+    </div>
+
+    <div class="tabs app-enter app-enter-delay-2">
+      <button class="tab-btn active" data-tab="hot">Hot Feed</button>
+      <button class="tab-btn" data-tab="rising">Rising</button>
+    </div>
+
+    <div class="kpis app-enter app-enter-delay-2" id="kpis"></div>
+
+    <div class="panel app-enter app-enter-delay-2">
+      <div class="panel-heading">
+        <h2 id="chartTitle">Momentum Trend</h2>
+        <button class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
+      </div>
+      <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
+      <canvas id="scoreChart"></canvas>
+    </div>
+
+    <div class="two-col app-enter app-enter-delay-3">
+      <div class="panel">
+        <div class="panel-heading">
+          <h2>Top Channels</h2>
+          <button class="info-btn" data-popover-title="Top Channels" data-popover-text="Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.">i</button>
+        </div>
+        <div class="subtle">Best-performing creators in the current dataset</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Channel</th>
+              <th>Videos</th>
+              <th>Views</th>
+              <th>Smoke</th>
+            </tr>
+          </thead>
+          <tbody id="channelTable"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">
+          <h2>Hot Keywords</h2>
+          <button class="info-btn" data-popover-title="Hot Keywords" data-popover-text="Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.">i</button>
+        </div>
+        <div class="subtle">Recurring terms extracted from current titles</div>
+        <div class="keywords" id="keywords"></div>
+      </div>
+    </div>
+
+    <div class="panel app-enter app-enter-delay-3" id="cuts">
+      <div class="panel-heading">
+        <h2>Beef Cuts Explorer</h2>
+        <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
+      </div>
+      <div class="subtle">Tap a cut to open a quick guide</div>
+
+      <div class="cuts-grid">
+        <div>
+          <div class="cuts-image-wrap">
+            <img src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
+          </div>
+          <div class="cuts-grid-new" id="cutsGrid"></div>
+        </div>
+
+        <div>
+          <div class="panel" style="margin:0 0 12px 0;">
+            <div class="panel-heading">
+              <h2 style="font-size:18px;">Quick usage</h2>
+            </div>
+            <div class="subtle" style="margin-bottom:8px;">
+              Tap a cut to view its location on the cow, best cooking styles, and a practical tip.
+            </div>
+            <div class="subtle" style="margin-bottom:0;">
+              The info appears directly inside the page instead of a floating popup.
+            </div>
+          </div>
+
+          <div id="cutInfo" class="cut-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel app-enter app-enter-delay-4" id="recipes">
+      <div class="panel-heading">
+        <h2>Recipe Generator</h2>
+        <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
+      </div>
+      <div class="subtle">Build a meat recipe by cut, method, and flavor profile</div>
+
+      <div class="recipe-grid">
+        <div class="recipe-field">
+          <label for="meatType">Meat Type</label>
+          <select id="meatType">
+            <option value="beef">Beef</option>
+            <option value="lamb">Lamb</option>
+            <option value="veal">Veal</option>
+          </select>
+        </div>
+
+        <div class="recipe-field">
+          <label for="cutType">Cut</label>
+          <select id="cutType">
+            <option value="brisket">Brisket</option>
+            <option value="ribeye" selected>Ribeye</option>
+            <option value="short_ribs">Short Ribs</option>
+            <option value="tomahawk">Tomahawk</option>
+            <option value="picanha">Picanha</option>
+          </select>
+        </div>
+
+        <div class="recipe-field">
+          <label for="cookingMethod">Cooking Method</label>
+          <select id="cookingMethod">
+            <option value="smoking">Smoking</option>
+            <option value="long_cook">Long Cook</option>
+            <option value="cast_iron" selected>Cast Iron</option>
+            <option value="bbq">BBQ</option>
+            <option value="oven_roast">Oven Roast</option>
+          </select>
+        </div>
+
+        <div class="recipe-field">
+          <label for="flavorProfile">Flavor Profile</label>
+          <select id="flavorProfile">
+            <option value="classic" selected>Classic</option>
+            <option value="peppery">Peppery</option>
+            <option value="garlic_herb">Garlic & Herb</option>
+            <option value="sweet_smoky">Sweet & Smoky</option>
+            <option value="spicy">Spicy</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="recipe-actions">
+        <button class="pill-btn" onclick="generateRecipe()">Generate Recipe</button>
+      </div>
+
+      <div class="recipe-output" id="recipeOutput">
+        <div class="recipe-placeholder">
+          Choose a meat type, cut, cooking method, and flavor profile to generate a recipe.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel app-enter app-enter-delay-4" id="feed">
+      <div class="panel-heading">
+        <h2 id="feedTitle">Radar Feed</h2>
+        <button class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
+      </div>
+      <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
+      <div class="video-grid" id="results"></div>
+      <div class="panel-actions">
+        <button class="small-btn" id="loadMoreBtn" onclick="loadMoreVideos()" style="display:none;">Load More</button>
+      </div>
+    </div>
+
+    <div class="about-card app-enter app-enter-delay-4" id="about">
+      <div class="about-grid">
+        <img src="/images/avatar-placeholder.png" alt="Smoke Radar creator avatar" class="about-avatar" />
+
+        <div class="about-copy">
+          <h3>About Smoke Radar</h3>
+
+          <p>
+            Smoke Radar was born from a simple idea — finding the most interesting,
+            high-quality meat content out there without wasting time scrolling.
+          </p>
+
+          <p>
+            Instead of guessing what is worth watching, Smoke Radar scans, filters,
+            and highlights videos based on real signals like momentum, engagement,
+            and content movement.
+          </p>
+
+          <p>
+            Built by a meat enthusiast who loves coffee, looks for originality,
+            and is always chasing the next interesting thing worth discovering.
+          </p>
+
+          <p>
+            Built for meat lovers, pitmasters, and curious food explorers.
+          </p>
+
+          <div class="about-highlights">
+            <span class="about-pill">🥩 Meat-first discovery</span>
+            <span class="about-pill">☕ Coffee-fueled building</span>
+            <span class="about-pill">🔥 Trend-driven radar</span>
+            <span class="about-pill">🎯 Curious, original, useful</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="popover" id="infoPopover">
+    <div class="popover-title">
+      <span id="popoverTitle">Info</span>
+      <button class="popover-close" id="popoverClose">Close</button>
+    </div>
+    <div class="popover-content" id="popoverText"></div>
+  </div>
+<script>
+    let scoreChartInstance = null;
+    let allData = null;
+    let currentTab = "hot";
+    let openingLoaderHidden = false;
+    let visibleVideoCount = 6;
+
+    const cutData = {
+      brisket: {
+        title: "Brisket",
+        location: "Lower chest, toward the front underside of the cow.",
+        description: "Brisket comes from the lower chest and carries a lot of connective tissue.",
+        suitable: ["Smoking", "Long braise", "Low and slow oven cook"],
+        tip: "Brisket rewards patience. Resting is almost as important as the cook itself."
+      },
+      chuck: {
+        title: "Chuck",
+        location: "Shoulder and upper front section of the cow.",
+        description: "Chuck is beefy, flavorful, and ideal for long cooking or grinding.",
+        suitable: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
+        tip: "Chuck shines when given time to break down and soften."
+      },
+      ribeye: {
+        title: "Ribeye",
+        location: "Upper rib section, along the center-back of the animal.",
+        description: "Ribeye is one of the most flavorful cuts, with generous marbling.",
+        suitable: ["Cast iron", "Grill", "Reverse sear"],
+        tip: "A strong crust and a short rest usually give ribeye its best result."
+      },
+      short_ribs: {
+        title: "Short Ribs",
+        location: "Lower rib cage and plate section.",
+        description: "Short ribs are deeply beefy and loaded with connective tissue.",
+        suitable: ["Smoking", "Braising", "Long oven cook"],
+        tip: "Short ribs need time, but they pay it back in flavor."
+      },
+      sirloin: {
+        title: "Sirloin",
+        location: "Rear upper back, behind the rib section.",
+        description: "Sirloin is leaner than rib cuts but still flavorful and versatile.",
+        suitable: ["Grilling", "Cast iron", "Roasting"],
+        tip: "Do not overcook it. Sirloin is best when sliced properly and rested."
+      },
+      flank: {
+        title: "Flank",
+        location: "Lower abdominal muscles, behind the plate section.",
+        description: "Flank is a lean, fibrous cut with bold flavor.",
+        suitable: ["High-heat grill", "Cast iron", "Marinated sear"],
+        tip: "Always slice flank against the grain."
+      },
+      filet: {
+        title: "Filet / Tenderloin",
+        location: "Inside the rear back, tucked under the spine.",
+        description: "Tenderloin is extremely tender and lean, known more for texture.",
+        suitable: ["Cast iron", "Quick roast", "Gentle grill"],
+        tip: "Because it is lean, avoid overcooking and consider butter-based finishing."
+      },
+      picanha: {
+        title: "Picanha",
+        location: "Top rear rump cap, near the tail end.",
+        description: "Picanha is prized for its fat cap and big flavor.",
+        suitable: ["BBQ", "Grill", "Reverse sear", "Roast"],
+        tip: "Score the fat cap lightly and render it carefully."
+      }
+    };
+
+    const cutCards = [
+      { id: "chuck", label: "Chuck" },
+      { id: "ribeye", label: "Ribeye" },
+      { id: "sirloin", label: "Sirloin" },
+      { id: "brisket", label: "Brisket" },
+      { id: "short_ribs", label: "Short Ribs" },
+      { id: "flank", label: "Flank" },
+      { id: "filet", label: "Filet" },
+      { id: "picanha", label: "Picanha" }
+    ];
+
+    function hideOpeningLoader() {
+      if (openingLoaderHidden) return;
+      openingLoaderHidden = true;
+      const loader = document.getElementById("openingLoader");
+      loader.classList.add("hidden");
+    }
+
+    function formatNum(n) {
+      return Number(n || 0).toLocaleString("en-US");
+    }
+
+    function formatDateTime(isoString) {
+      if (!isoString) return "Unknown";
+      const d = new Date(isoString);
+      return d.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function formatHours(hours) {
+      const h = Number(hours || 0);
+      if (h < 24) return `${Math.round(h)}h old`;
+      const days = h / 24;
+      if (days < 30) return `${Math.round(days)}d old`;
+      const months = days / 30;
+      return `${months.toFixed(1)}mo old`;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function clearErrorBanner() {
+      document.getElementById("errorMount").innerHTML = "";
+    }
+
+    function renderErrorBanner(title, message) {
+      document.getElementById("errorMount").innerHTML = `
+        <div class="error-banner">
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    function getFriendlyErrorMessage(error) {
+      const text = String(error?.message || error || "");
+
+      if (text.includes("quotaExceeded")) {
+        return {
+          title: "Quota limit reached",
+          message: "The YouTube API daily quota has been exhausted. Fresh data is temporarily unavailable. Cached results will appear automatically when available."
+        };
+      }
+
+      if (text.includes("PERMISSION_DENIED") || text.includes("forbidden")) {
+        return {
+          title: "API access blocked",
+          message: "The backend could not access the YouTube API. This usually indicates an API key restriction or permission issue."
+        };
+      }
+
+      if (text.includes("Missing API key")) {
+        return {
+          title: "Missing API key",
+          message: "The backend is running without a valid YouTube API key in the environment settings."
+        };
+      }
+
+      return {
+        title: "Unable to load radar data",
+        message: "The dashboard could not fetch data right now. Please try again later."
+      };
+    }
+
+    function openPopover(title, html, buttonEl = null) {
+      document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
+      if (buttonEl && buttonEl.classList.contains("info-btn")) {
+        buttonEl.classList.add("active");
+      }
+
+      document.getElementById("popoverTitle").textContent = title;
+      document.getElementById("popoverText").innerHTML = html;
+      document.getElementById("infoPopover").classList.add("show");
+    }
+
+    function closePopover() {
+      document.getElementById("infoPopover").classList.remove("show");
+      document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
+    }
+
+    function attachPopovers() {
+      document.querySelectorAll(".info-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const title = btn.dataset.popoverTitle || "Info";
+          const text = btn.dataset.popoverText || "";
+          const alreadyOpen =
+            btn.classList.contains("active") &&
+            document.getElementById("infoPopover").classList.contains("show");
+
+          if (alreadyOpen) {
+            closePopover();
+            return;
+          }
+
+          openPopover(title, `<p>${escapeHtml(text)}</p>`, btn);
+        });
+      });
+
+      document.getElementById("popoverClose").addEventListener("click", (e) => {
+        e.stopPropagation();
+        closePopover();
+      });
+
+      document.addEventListener("click", (e) => {
+        const clickedInfoButton = e.target.closest(".info-btn");
+        const clickedVideoInfo = e.target.closest(".video-info-btn");
+        const clickedInsidePopover = e.target.closest("#infoPopover");
+
+        if (!clickedInfoButton && !clickedVideoInfo && !clickedInsidePopover) {
+          closePopover();
+        }
+      });
+    }
+
+    function detectDishFromTitle(title = "") {
+      const lower = title.toLowerCase();
+      const map = [
+        ["brisket", "Brisket"],
+        ["ribeye", "Ribeye"],
+        ["short ribs", "Short Ribs"],
+        ["beef ribs", "Beef Ribs"],
+        ["tomahawk", "Tomahawk"],
+        ["picanha", "Picanha"],
+        ["sirloin", "Sirloin"],
+        ["flank", "Flank"],
+        ["tenderloin", "Tenderloin"],
+        ["filet", "Filet"],
+        ["wagyu", "Wagyu"],
+        ["burger", "Burger"],
+        ["steak", "Steak"],
+        ["roast", "Roast"]
+      ];
+
+      for (const [needle, label] of map) {
+        if (lower.includes(needle)) return label;
+      }
+      return "General beef cook";
+    }
+
+    function detectTheme(title = "") {
+      const lower = title.toLowerCase();
+      const map = [
+        ["reverse sear", "Reverse sear"],
+        ["smoked", "Smoking"],
+        ["smoke", "Smoking"],
+        ["bbq", "BBQ"],
+        ["cast iron", "Cast iron"],
+        ["grill", "Grill"],
+        ["oven", "Oven roast"],
+        ["braise", "Braise"],
+        ["low and slow", "Low and slow"]
+      ];
+
+      for (const [needle, label] of map) {
+        if (lower.includes(needle)) return label;
+      }
+      return "General cooking";
+    }
+
+    function renderMeta(data) {
+      const metaStrip = document.getElementById("metaStrip");
+      const miniLiveBadge = document.getElementById("miniLiveBadge");
+      const pills = [];
+
+      if (data.source === "live") {
+        pills.push(`<div class="meta-pill live">Live Data</div>`);
+        miniLiveBadge.textContent = "Live";
+        miniLiveBadge.className = "meta-pill live";
+      } else if (data.source === "cache") {
+        pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
+        miniLiveBadge.textContent = "Cached";
+        miniLiveBadge.className = "meta-pill cached";
+      } else if (data.source === "seed" || data.source === "no-key") {
+        pills.push(`<div class="meta-pill warn">Offline Snapshot</div>`);
+        miniLiveBadge.textContent = "Offline";
+        miniLiveBadge.className = "meta-pill warn";
+      } else {
+        miniLiveBadge.textContent = "Offline";
+        miniLiveBadge.className = "meta-pill warn";
+      }
+
+      if (data.lastUpdated) {
+        pills.push(`<div class="meta-pill">Updated ${escapeHtml(formatDateTime(data.lastUpdated))}</div>`);
+      }
+
+      if (typeof data.cacheAgeMinutes === "number" && Number.isFinite(data.cacheAgeMinutes)) {
+        pills.push(`<div class="meta-pill">Cache Age: ${escapeHtml(String(data.cacheAgeMinutes))} min</div>`);
+      }
+
+      if (data.ttlMinutes) {
+        pills.push(`<div class="meta-pill">TTL: ${escapeHtml(String(data.ttlMinutes))} min</div>`);
+      }
+
+      if (data.liveRefreshWindowMinutes) {
+        pills.push(`<div class="meta-pill">Live Window: ${escapeHtml(String(data.liveRefreshWindowMinutes))} min</div>`);
+      }
+
+      if (data.quotaBlockedUntil) {
+        pills.push(`<div class="meta-pill warn">Quota cooldown active</div>`);
+      }
+
+      if (data.fallbackReason) {
+        pills.push(`<div class="meta-pill cached">${escapeHtml(data.fallbackReason)}</div>`);
+      }
+
+      metaStrip.innerHTML = pills.join("");
+    }
+
+    function updateSmokeUI(value) {
+      const fill = document.getElementById("smokeFill");
+      const label = document.getElementById("smokeStatus");
+      const num = document.getElementById("smokeValue");
+
+      if (!fill || !label || !num) return;
+
+      const safe = Math.max(0, Math.min(100, Number(value || 0)));
+
+      num.textContent = safe + "%";
+      fill.style.width = safe + "%";
+
+      if (safe < 25) label.textContent = "EARLY";
+      else if (safe < 50) label.textContent = "RISING";
+      else if (safe < 75) label.textContent = "HOT";
+      else label.textContent = "BREAKOUT";
+    }
+
+    function renderHero(data = {}) {
+      updateSmokeUI(data?.summary?.avgSmokeScore || 0);
+
+      const helper = document.getElementById("smokeHelper");
+      if (!helper) return;
+
+      if (data.source === "cache") {
+        helper.textContent = "Cache-first mode to preserve quota and keep the feed alive";
+      } else if (data.source === "seed" || data.source === "no-key") {
+        helper.textContent = "Offline fallback snapshot while live radar is unavailable";
+      } else {
+        helper.textContent = "Current content heat based on average smoke score";
+      }
+    }
+
+    function renderSignalStrip(data = {}) {
+      const videos = data.videos || [];
+      const topChannel =
+        (data.topChannels && data.topChannels[0])
+          ? data.topChannels[0].channelTitle
+          : (videos[0]?.channelTitle || videos[0]?.channel || "—");
+
+      const avgSmoke = data?.summary?.avgSmokeScore
+        ? Number(data.summary.avgSmokeScore)
+        : videos.length
+        ? Math.round(videos.reduce((sum, v) => sum + Number(v.smokeScore || 0), 0) / videos.length)
+        : 0;
+
+      const totalViews = data?.summary?.totalViews
+        ? Number(data.summary.totalViews)
+        : videos.reduce((sum, v) => sum + Number(v.views || v.viewCount || 0), 0);
+
+      document.getElementById("signalStrip").innerHTML = `
+        <div class="signal-card">
+          <div class="signal-label">Tracked Videos</div>
+          <div class="signal-value">${formatNum(videos.length)}</div>
+          <div class="signal-sub">Current feed size</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Top Channel</div>
+          <div class="signal-value">${escapeHtml(String(topChannel).length > 14 ? String(topChannel).slice(0, 14) + "..." : String(topChannel))}</div>
+          <div class="signal-sub">Highest current average</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Avg Smoke</div>
+          <div class="signal-value">${formatNum(avgSmoke)}</div>
+          <div class="signal-sub">Across current scan</div>
+        </div>
+        <div class="signal-card">
+          <div class="signal-label">Total Views</div>
+          <div class="signal-value">${formatNum(totalViews)}</div>
+          <div class="signal-sub">Visible radar sample</div>
+        </div>
+      `;
+    }
+
+    function renderInsights(data = {}) {
+      const fastest = data.fastestBreakout;
+      const oldest = data.oldestActiveVideo;
+      const regions = data.topRegions || [];
+
+      document.getElementById("fastestBreakoutTitle").textContent =
+        fastest?.title || "No breakout video";
+
+      document.getElementById("fastestBreakoutMeta").textContent =
+        fastest ? `${formatNum(fastest.viewsPerHour)} views/hr • ${fastest.channelTitle}` : "Waiting for live signal...";
+
+      document.getElementById("oldestActiveTitle").textContent =
+        oldest?.title || "No active video";
+
+      document.getElementById("oldestActiveMeta").textContent =
+        oldest ? `${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}` : "Waiting for age signal...";
+
+      const lead = regions[0]?.region || "—";
+      document.getElementById("regionsLead").textContent = lead;
+
+      const chips = document.getElementById("regionChips");
+      chips.innerHTML = regions.length
+        ? regions.map(r => `<span class="region-chip">${escapeHtml(r.region)} · ${r.count}</span>`).join("")
+        : `<span class="region-chip">No region signals yet</span>`;
+    }
+
+    function renderKpis(summary = {}, formatStats = {}) {
+      document.getElementById("kpis").innerHTML = `
+        <div class="kpi">
+          <div class="kpi-label">Total Views</div>
+          <div class="kpi-value">${formatNum(summary.totalViews)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Average Views</div>
+          <div class="kpi-value">${formatNum(summary.avgViews)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Average Likes</div>
+          <div class="kpi-value">${formatNum(summary.avgLikes)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Format Split</div>
+          <div class="kpi-value">${formatNum(formatStats.shortCount || 0)} / ${formatNum(formatStats.longCount || 0)}</div>
+        </div>
+      `;
+    }
+
+    function renderKeywords(keywords) {
+      const el = document.getElementById("keywords");
+      if (!keywords.length) {
+        el.innerHTML = `<div class="empty">No keyword clusters yet.</div>`;
+        return;
+      }
+
+      el.innerHTML = keywords.map(k =>
+        `<span class="keyword">${escapeHtml(k.keyword)} · ${k.count}</span>`
+      ).join("");
+    }
+
+    function renderChannelTable(channels) {
+      const el = document.getElementById("channelTable");
+      if (!channels.length) {
+        el.innerHTML = `<tr><td colspan="4" class="empty">No channel comparison data yet.</td></tr>`;
+        return;
+      }
+
+      el.innerHTML = channels.map(ch => `
+        <tr>
+          <td>${escapeHtml(ch.channelTitle)}</td>
+          <td>${formatNum(ch.videos)}</td>
+          <td>${formatNum(ch.totalViews)}</td>
+          <td>${formatNum(ch.avgSmokeScore)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function getTabVideos() {
+      const videos = allData?.videos || [];
+
+      if (currentTab === "rising") {
+        return [...videos].sort((a, b) => Number(b.viewsPerHour || 0) - Number(a.viewsPerHour || 0));
+      }
+
+      return [...videos].sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
+    }
+
+    function renderVideoInfo(v) {
+      const detectedDish = detectDishFromTitle(v.title || "");
+      const detectedTheme = detectTheme(v.title || "");
+
+      const html = `
+        <h4>Video Summary</h4>
+        <p>${escapeHtml(v.title || "")}</p>
+
+        <h4>Detected cut / dish</h4>
+        <p>${escapeHtml(detectedDish)}</p>
+
+        <h4>Detected theme</h4>
+        <p>${escapeHtml(detectedTheme)}</p>
+
+        <h4>Video stats</h4>
+        <ul>
+          <li>Duration: ${escapeHtml(v.durationLabel || "0:00")}</li>
+          <li>Format: ${escapeHtml(v.formatLabel || "Video")}</li>
+          <li>Views: ${formatNum(v.viewCount || 0)}</li>
+          <li>Likes: ${formatNum(v.likeCount || 0)}</li>
+          <li>Views per hour: ${formatNum(v.viewsPerHour || 0)}</li>
+          <li>Age: ${escapeHtml(formatHours(v.hoursSincePublished || 0))}</li>
+        </ul>
+
+        <h4>Context</h4>
+        <ul>
+          <li>Channel: ${escapeHtml(v.channelTitle || "Unknown Channel")}</li>
+          <li>Region: ${escapeHtml(v.regionLabel || "Global")}</li>
+          <li>Main keyword source: title analysis</li>
+        </ul>
+      `;
+
+      openPopover("Video Info", html);
+    }
+
+    function updateLoadMoreButton(totalVideos) {
+      const btn = document.getElementById("loadMoreBtn");
+      if (!btn) return;
+
+      if (visibleVideoCount < totalVideos) {
+        btn.style.display = "inline-flex";
+        btn.textContent = `Load More (${Math.min(4, totalVideos - visibleVideoCount)})`;
+      } else {
+        btn.style.display = "none";
+      }
+    }
+
+    function renderVideos(videos) {
+      const el = document.getElementById("results");
+
+      if (!videos.length) {
+        el.innerHTML = `<div class="empty">No videos available right now.</div>`;
+        updateLoadMoreButton(0);
+        return;
+      }
+
+      const visible = videos.slice(0, visibleVideoCount);
+
+      el.innerHTML = visible.map((v, index) => {
+        const viewCount = v.viewCount ?? v.views ?? 0;
+        const likeCount = v.likeCount ?? v.likes ?? 0;
+        const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
+        const channelLink = v.channelId
+          ? `https://youtube.com/channel/${v.channelId}`
+          : (v.url || "https://youtube.com");
+        const watchLink = v.url ? v.url : (v.id ? `https://youtube.com/watch?v=${v.id}` : "https://youtube.com");
+
+        return `
+          <div class="card">
+            <div class="thumb">
+              <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
+              <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour || 0)}` : `Smoke ${formatNum(v.smokeScore || 0)}`}</div>
+              <div class="duration-badge">${escapeHtml(v.durationLabel || "0:00")}</div>
+            </div>
+
+            <div class="card-body">
+              <div>
+                <div class="title-row">
+                  <div class="title">${escapeHtml(v.title)}</div>
+                  <div class="format-pill">${escapeHtml(v.formatLabel || "Video")}</div>
+                </div>
+
+                <p class="channel">${escapeHtml(channelTitle)} · ${escapeHtml(v.regionLabel || "Global")}</p>
+
+                <div class="mini-stats">
+                  <span class="mini-stat">👁 ${formatNum(viewCount)}</span>
+                  <span class="mini-stat">❤️ ${formatNum(likeCount)}</span>
+                  <span class="mini-stat">⏱ ${escapeHtml(v.durationLabel || "0:00")}</span>
+                </div>
+              </div>
+
+              <div class="links">
+                <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">Watch</a>
+                <button class="small-btn video-info-btn" data-video-index="${index}">Info</button>
+                ${v.channelId
+                  ? `<a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>`
+                  : `<span class="secondary-link disabled">Channel</span>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      el.querySelectorAll(".video-info-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const index = Number(btn.dataset.videoIndex);
+          renderVideoInfo(visible[index]);
+        });
+      });
+
+      updateLoadMoreButton(videos.length);
+    }
+
+    function loadMoreVideos() {
+      visibleVideoCount += 4;
+      renderTabState();
+    }
+
+    function renderScoreChart(videos) {
+      const canvas = document.getElementById("scoreChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+
+      if (scoreChartInstance) scoreChartInstance.destroy();
+
+      const top = videos.slice(0, 10);
+      const isRising = currentTab === "rising";
+
+      scoreChartInstance = new Chart(ctx, {
+        type: isRising ? "bar" : "line",
+        data: {
+          labels: top.map(x => {
+            const t = x.title || "";
+            return t.length > 24 ? t.slice(0, 24) + "..." : t;
+          }),
+          datasets: [{
+            label: isRising ? "Views / Hour" : "Smoke Score",
+            data: top.map(x => isRising ? (x.viewsPerHour || 0) : (x.smokeScore || 0)),
+            borderColor: "#ff8f5c",
+            backgroundColor: isRising ? "#ff6b2c" : "rgba(255,107,44,0.18)",
+            tension: 0.35,
+            fill: !isRising,
+            pointRadius: isRising ? 0 : 4,
+            pointBackgroundColor: "#ff6b2c",
+            borderRadius: isRising ? 8 : 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "#edf2f7" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#a7b4c9" },
+              grid: { color: "#182231" }
+            },
+            y: {
+              ticks: { color: "#a7b4c9" },
+              grid: { color: "#182231" }
+            }
+          }
+        }
+      });
+
+      document.getElementById("chartTitle").textContent = isRising ? "Rising Momentum" : "Momentum Trend";
+      document.getElementById("chartSubtitle").textContent = isRising
+        ? "Fastest current movers by views per hour"
+        : "Highest-ranking videos across the current feed";
+
+      document.getElementById("feedTitle").textContent = isRising ? "Rising Feed" : "Radar Feed";
+      document.getElementById("feedSubtitle").textContent = isRising
+        ? "Videos currently accelerating fastest"
+        : "Live-discovered videos ranked by momentum";
+    }
+
+    function renderTabState() {
+      const videos = getTabVideos();
+      renderVideos(videos);
+      renderScoreChart(videos);
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === currentTab);
+      });
+    }
+
+    function attachTabs() {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentTab = btn.dataset.tab;
+          visibleVideoCount = 6;
+          renderTabState();
+        });
+      });
+    }
+
+    function renderCutsGrid(activeId = "ribeye") {
+      const grid = document.getElementById("cutsGrid");
+      if (!grid) return;
+
+      grid.innerHTML = cutCards.map(c => `
+        <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
+          ${c.label}
+        </button>
+      `).join("");
+
+      grid.querySelectorAll(".cut-grid-card").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const key = btn.dataset.cutId;
+          renderCutsGrid(key);
+          showCutPanel(key);
+        });
+      });
+    }
+
+    function showCutPanel(cutKey) {
+      const cut = cutData[cutKey];
+      if (!cut) return;
+
+      const panel = document.getElementById("cutInfo");
+      if (!panel) return;
+
+      panel.innerHTML = `
+        <h3>${escapeHtml(cut.title)}</h3>
+        <p>${escapeHtml(cut.description)}</p>
+
+        <h4>Location on the cow</h4>
+        <p>${escapeHtml(cut.location)}</p>
+
+        <h4>Best cooking styles</h4>
+        <ul>${cut.suitable.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+
+        <h4>Tip</h4>
+        <p>${escapeHtml(cut.tip)}</p>
+      `;
+    }
+
+    async function generateRecipe() {
+      const cut = document.getElementById("cutType").value;
+      const method = document.getElementById("cookingMethod").value;
+      const flavor = document.getElementById("flavorProfile").value;
+      const output = document.getElementById("recipeOutput");
+
+      const randomSeed = Math.floor(Math.random() * 1000000);
+
+      output.innerHTML = `
+        <div class="recipe-placeholder">
+          🔥 Generating AI recipe...
+        </div>
+      `;
+
+      try {
+        const res = await fetch(
+          `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}`
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.details || data.error || "AI request failed");
+        }
+
+        output.innerHTML = renderAiRecipe(data.recipe, {
+          cut,
+          method,
+          flavor,
+          source: data.source || "ai"
+        });
+      } catch (err) {
+        console.error("Recipe UI error:", err);
+
+        output.innerHTML = `
+          <div class="recipe-placeholder">
+            ❌ Failed to generate AI recipe.<br>
+            ${escapeHtml(err.message || "")}
+          </div>
+        `;
+      }
+    }
+
+    function renderAiRecipe(recipeText, meta = {}) {
+      const parsed = parseAiRecipe(recipeText);
+
+      const ingredientsList = parsed.ingredients.length
+        ? `<ul>${parsed.ingredients.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+        : `<p>${escapeHtml(parsed.ingredientsRaw || "Not provided.")}</p>`;
+
+      const stepsList = parsed.steps.length
+        ? `<ol>${parsed.steps.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+        : `<p>${escapeHtml(parsed.stepsRaw || "Not provided.")}</p>`;
+
+      const tipsList = parsed.tips.length
+        ? `<ul>${parsed.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+        : `<p>${escapeHtml(parsed.tipsRaw || "Not provided.")}</p>`;
+
+      return `
+        <div class="ai-recipe-wrap">
+          <div class="ai-recipe-header">
+            <h3 class="ai-recipe-title">${escapeHtml(parsed.title || "AI Recipe")}</h3>
+            <span class="ai-recipe-badge">${escapeHtml(meta.source || "ai")} powered</span>
+          </div>
+
+          <div class="ai-recipe-meta">
+            <span class="ai-recipe-chip">🥩 ${escapeHtml(meta.cut || "cut")}</span>
+            <span class="ai-recipe-chip">🔥 ${escapeHtml(meta.method || "method")}</span>
+            <span class="ai-recipe-chip">🧂 ${escapeHtml(meta.flavor || "flavor")}</span>
+          </div>
+
+          <div class="ai-recipe-grid">
+            <div class="ai-recipe-card">
+              <h4>Ingredients</h4>
+              ${ingredientsList}
+            </div>
+
+            <div class="ai-recipe-card">
+              <h4>🌡️ Target Doneness</h4>
+              <p>${escapeHtml(parsed.targetDoneness || "Use a thermometer and cook to preference.")}</p>
+            </div>
+
+            <div class="ai-recipe-card full">
+              <h4>Steps</h4>
+              ${stepsList}
+            </div>
+
+            <div class="ai-recipe-card full">
+              <h4>Tips</h4>
+              ${tipsList}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function parseAiRecipe(recipeText = "") {
+      const text = String(recipeText || "").replace(/\r/g, "");
+
+      const getSection = (label, nextLabels = []) => {
+        const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedNext = nextLabels.map(x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+
+        const pattern = escapedNext
+          ? new RegExp(`${escapedLabel}:?\\s*([\\s\\S]*?)(?=\\n\\s*(?:${escapedNext}):?\\s*|$)`, "i")
+          : new RegExp(`${escapedLabel}:?\\s*([\\s\\S]*)`, "i");
+
+        const match = text.match(pattern);
+        return match ? match[1].trim() : "";
+      };
+
+      const title =
+        getSection("Title", ["Ingredients", "Steps", "Tips", "Target doneness"]) ||
+        text.split("\n")[0].replace(/^\*\*|\*\*$/g, "").replace(/^Title:\s*/i, "").trim();
+
+      const ingredientsRaw = getSection("Ingredients", ["Steps", "Tips", "Target doneness"]);
+      const stepsRaw = getSection("Steps", ["Tips", "Target doneness"]);
+      const tipsRaw = getSection("Tips", ["Target doneness"]);
+      const targetDoneness = getSection("Target doneness");
+
+      const normalizeList = (raw) =>
+        String(raw || "")
+          .split("\n")
+          .map(line => line.trim())
+          .map(line => line.replace(/^\*\*|\*\*$/g, ""))
+          .map(line => line.replace(/^[-•]\s*/, ""))
+          .map(line => line.replace(/^\d+\.\s*/, ""))
+          .filter(Boolean);
+
+      return {
+        title,
+        ingredientsRaw,
+        stepsRaw,
+        tipsRaw,
+        targetDoneness,
+        ingredients: normalizeList(ingredientsRaw),
+        steps: normalizeList(stepsRaw),
+        tips: normalizeList(tipsRaw)
+      };
+    }
+
+    function setRefreshLoading(isLoading) {
+      const btn = document.getElementById("loadBtn");
+      const label = document.getElementById("refreshLabel");
+      if (!btn || !label) return;
+
+      btn.classList.toggle("loading", isLoading);
+      btn.disabled = isLoading;
+      label.textContent = isLoading ? "Scanning..." : "Refresh";
+    }
+
+    async function loadData() {
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+
+      setRefreshLoading(true);
+      status.textContent = "Loading radar data...";
+      results.innerHTML = "";
+      clearErrorBanner();
+
+      try {
+        const res = await fetch("/api/smoke-radar");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.details || data.error || "Unknown error");
+        }
+
+        allData = data;
+        visibleVideoCount = 6;
+
+        renderMeta(data);
+        renderHero(data);
+        renderSignalStrip(data);
+        renderInsights(data);
+        renderKpis(data.summary || {}, data.formatStats || {});
+        renderKeywords(data.topKeywords || []);
+        renderChannelTable(data.topChannels || []);
+        renderTabState();
+
+        if (!data.videos || data.videos.length === 0) {
+          status.textContent = "No videos returned in the current scan.";
+        } else if (data.source === "cache") {
+          status.textContent = `Showing cached results · ${data.videos.length} videos loaded`;
+        } else if (data.source === "seed" || data.source === "no-key") {
+          status.textContent = `Showing offline snapshot · ${data.videos.length} videos loaded`;
+        } else {
+          status.textContent = `${data.videos.length} videos loaded into the radar`;
+        }
+      } catch (error) {
+        console.error(error);
+
+        renderMeta({});
+        renderHero({});
+        renderSignalStrip({});
+        renderInsights({});
+        renderKpis({}, {});
+        renderKeywords([]);
+        renderChannelTable([]);
+        renderVideos([]);
+        renderScoreChart([]);
+
+        const friendly = getFriendlyErrorMessage(error);
+        renderErrorBanner(friendly.title, friendly.message);
+        status.textContent = "Radar data currently unavailable";
+      } finally {
+        setRefreshLoading(false);
+        window.setTimeout(hideOpeningLoader, 350);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      attachTabs();
+      attachPopovers();
+      renderCutsGrid("ribeye");
+      showCutPanel("ribeye");
+      loadData();
+      window.setTimeout(hideOpeningLoader, 2200);
+    });
+  </script>
+</body>
+</html>
