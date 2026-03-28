@@ -1298,6 +1298,50 @@
         font-size: 36px;
       }
     }
+    .smoke-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smoke-title {
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.smoke-value-wrap {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 8px;
+  flex-wrap: wrap;
+}
+
+.smoke-level-note {
+  font-size: 13px;
+  color: #d5dfeb;
+  opacity: 0.9;
+  font-weight: 700;
+}
+
+#smokeStatus {
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+#smokeFill {
+  transition: width 0.5s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.smoke-bar {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.smoke-helper {
+  margin-top: 10px;
+  margin-bottom: 0;
+  line-height: 1.6;
+}
   </style>
 </head>
 <body>
@@ -1340,29 +1384,40 @@
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
 
-    <div class="panel smoke-hero app-enter app-enter-delay-2">
-      <div class="smoke-header">
-        <span>🔥 Smoke Index</span>
-        <span id="smokeStatus" class="badge">EARLY</span>
-      </div>
-
-      <div class="smoke-value" id="smokeValue">0%</div>
-
-      <div class="smoke-bar">
-        <div id="smokeFill"></div>
-      </div>
-
-      <div class="smoke-scale">
-        <span>Early</span>
-        <span>Rising</span>
-        <span>Hot</span>
-        <span>Breakout</span>
-      </div>
-
-      <div class="subtle" id="smokeHelper" style="margin-top:10px; margin-bottom:0;">
-        Current content heat based on average smoke score
-      </div>
+<div class="panel smoke-hero app-enter app-enter-delay-2">
+  <div class="smoke-header">
+    <div class="smoke-title-wrap">
+      <span class="smoke-title">🔥 Smoke Index</span>
+      <button
+        class="info-btn"
+        data-popover-title="Smoke Index"
+        data-popover-text="Smoke Index is your dashboard’s heat score. It combines momentum signals like views, likes, and viewing speed to estimate how hot the current meat content is right now."
+      >i</button>
     </div>
+
+    <span id="smokeStatus" class="badge">EARLY</span>
+  </div>
+
+  <div class="smoke-value-wrap">
+    <div class="smoke-value" id="smokeValue">0%</div>
+    <div class="smoke-level-note" id="smokeLevelNote">Early signal</div>
+  </div>
+
+  <div class="smoke-bar">
+    <div id="smokeFill"></div>
+  </div>
+
+  <div class="smoke-scale">
+    <span>Early</span>
+    <span>Rising</span>
+    <span>Hot</span>
+    <span>Breakout</span>
+  </div>
+
+  <div class="subtle smoke-helper" id="smokeHelper">
+    A quick signal showing how hot the current content is right now.
+  </div>
+</div>
 
     <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
       <div class="signal-card">
@@ -1912,21 +1967,56 @@
     }
 
     function updateSmokeUI(value) {
-      const fill = document.getElementById("smokeFill");
-      const label = document.getElementById("smokeStatus");
-      const num = document.getElementById("smokeValue");
+  const fill = document.getElementById("smokeFill");
+  const label = document.getElementById("smokeStatus");
+  const num = document.getElementById("smokeValue");
+  const note = document.getElementById("smokeLevelNote");
+  const helper = document.getElementById("smokeHelper");
 
-      if (!fill || !label || !num) return;
+  if (!fill || !label || !num) return;
 
-      const safe = Math.max(0, Math.min(100, Number(value || 0)));
+  const safe = Math.max(0, Math.min(100, Number(value || 0)));
 
-      num.textContent = safe + "%";
-      fill.style.width = safe + "%";
+  num.textContent = `${safe}%`;
+  fill.style.width = `${safe}%`;
 
-      if (safe < 25) label.textContent = "EARLY";
-      else if (safe < 50) label.textContent = "RISING";
-      else if (safe < 75) label.textContent = "HOT";
-      else label.textContent = "BREAKOUT";
+  if (safe < 25) {
+    label.textContent = "EARLY";
+    label.style.background = "rgba(46, 204, 113, 0.16)";
+    label.style.borderColor = "rgba(46, 204, 113, 0.32)";
+    label.style.color = "#dff8ea";
+    fill.style.background = "linear-gradient(90deg, #2ecc71, #52d88a)";
+    fill.style.boxShadow = "0 0 16px rgba(46, 204, 113, 0.18)";
+    if (note) note.textContent = "Early signal";
+    if (helper) helper.textContent = "A few promising signs are showing up, but the trend is still developing.";
+  } else if (safe < 50) {
+    label.textContent = "RISING";
+    label.style.background = "rgba(245, 176, 65, 0.16)";
+    label.style.borderColor = "rgba(245, 176, 65, 0.32)";
+    label.style.color = "#fff0d6";
+    fill.style.background = "linear-gradient(90deg, #f5b041, #ffbf5e)";
+    fill.style.boxShadow = "0 0 16px rgba(245, 176, 65, 0.18)";
+    if (note) note.textContent = "Momentum is building";
+    if (helper) helper.textContent = "Content is picking up speed and starting to attract stronger attention.";
+  } else if (safe < 75) {
+    label.textContent = "HOT";
+    label.style.background = "rgba(255, 107, 44, 0.16)";
+    label.style.borderColor = "rgba(255, 107, 44, 0.32)";
+    label.style.color = "#ffd8c8";
+    fill.style.background = "linear-gradient(90deg, #ff8a4d, #ff6b2c)";
+    fill.style.boxShadow = "0 0 18px rgba(255, 107, 44, 0.24)";
+    if (note) note.textContent = "Strong heat right now";
+    if (helper) helper.textContent = "This feed is actively hot — multiple signals show strong current interest.";
+  } else {
+    label.textContent = "BREAKOUT";
+    label.style.background = "rgba(255, 95, 87, 0.16)";
+    label.style.borderColor = "rgba(255, 95, 87, 0.32)";
+    label.style.color = "#ffe2df";
+    fill.style.background = "linear-gradient(90deg, #ff7a6f, #ff5f57)";
+    fill.style.boxShadow = "0 0 20px rgba(255, 95, 87, 0.28)";
+    if (note) note.textContent = "Breakout content";
+    if (helper) helper.textContent = "The current radar is breaking out — this is the strongest level of heat in the feed.";
+  }
     }
 
     function renderHero(data = {}) {
