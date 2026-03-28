@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+9<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1559,7 +1559,54 @@
         <button class="small-btn" id="loadMoreBtn" onclick="loadMoreVideos()" style="display:none;">Load More</button>
       </div>
     </div>
+<div class="panel" id="feedback">
+  <div class="panel-heading">
+    <h2>💬 Feedback</h2>
+  </div>
 
+  <div class="subtle">
+    Found something interesting? Missing feature?  
+    Send me your thoughts 🙌
+  </div>
+
+  <form id="feedbackForm">
+    <textarea 
+      id="feedbackText"
+      placeholder="Write your feedback here..."
+      style="
+        width:100%;
+        min-height:100px;
+        border-radius:12px;
+        padding:12px;
+        background:#111827;
+        color:white;
+        border:1px solid #1f2937;
+        margin-bottom:10px;
+      "
+    ></textarea>
+
+    <input 
+      type="email" 
+      id="feedbackEmail"
+      placeholder="Your email (optional)"
+      style="
+        width:100%;
+        padding:10px;
+        border-radius:12px;
+        background:#111827;
+        color:white;
+        border:1px solid #1f2937;
+        margin-bottom:10px;
+      "
+    />
+
+    <button class="pill-btn" type="submit">
+      Send Feedback 🚀
+    </button>
+  </form>
+
+  <div id="feedbackStatus" class="subtle"></div>
+</div>
     <div class="about-card app-enter app-enter-delay-4" id="about">
       <div class="about-grid">
         <img src="/images/avatar-placeholder.png" alt="Smoke Radar creator avatar" class="about-avatar" />
@@ -2530,6 +2577,44 @@
       loadData();
       window.setTimeout(hideOpeningLoader, 2200);
     });
+  // ===== Feedback Form =====
+document.getElementById("feedbackForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+const btn = e.target.querySelector("button");
+btn.disabled = true;
+  btn.disabled = false;
+  const text = document.getElementById("feedbackText").value;
+  const email = document.getElementById("feedbackEmail").value;
+  const status = document.getElementById("feedbackStatus");
+
+  status.textContent = "Sending...";
+if (!text.trim()) {
+  status.textContent = "⚠️ Please enter feedback first";
+  return;
+}
+  try {
+    const res = await fetch("https://formspree.io/f/meepeyeo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: text,
+        email: email
+      })
+    });
+
+    if (res.ok) {
+      status.textContent = "🔥 Thanks! Feedback sent.";
+      document.getElementById("feedbackForm").reset();
+    } else {
+      status.textContent = "❌ Failed to send.";
+    }
+
+  } catch (err) {
+    status.textContent = "❌ Error sending feedback.";
+  }
+});
   </script>
 </body>
 </html>
