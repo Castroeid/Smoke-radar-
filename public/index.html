@@ -2523,22 +2523,29 @@ document.getElementById("oldestActiveMeta").textContent =
       });
     }
 
-    function openCutPopover(cutKey, buttonEl = null) {
-      const cut = cutData[cutKey];
-      if (!cut) return;
+    function showCutPanel(cutKey) {
+  const cut = cutData[cutKey];
+  if (!cut) return;
 
-      const html = `
-        <p>${escapeHtml(cut.description)}</p>
-        <h4>Location on the cow</h4>
-        <p>${escapeHtml(cut.location)}</p>
-        <h4>Best cooking styles</h4>
-        <ul>${cut.suitable.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-        <h4>Tip</h4>
-        <p>${escapeHtml(cut.tip)}</p>
-      `;
+  const panel = document.getElementById("cutInfo");
+  if (!panel) return;
 
-      openPopover(cut.title, html, buttonEl);
-    }
+  panel.innerHTML = `
+    <h3>${escapeHtml(cut.title)}</h3>
+    <p>${escapeHtml(cut.description)}</p>
+
+    <h4>Location on the cow</h4>
+    <p>${escapeHtml(cut.location)}</p>
+
+    <h4>Best cooking styles</h4>
+    <ul>${cut.suitable.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+
+    <h4>Tip</h4>
+    <p>${escapeHtml(cut.tip)}</p>
+  `;
+
+  panel.classList.remove("hidden");
+}
 
 async function generateRecipe() {
   const cut = document.getElementById("cutType").value;
