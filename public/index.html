@@ -1299,6 +1299,28 @@
         font-size: 36px;
       }
     }
+    /* =========================
+         Beef Highlight Overlay
+      ========================= */
+
+.beef-container {
+  position: relative;
+}
+
+.beef-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.beef-highlight {
+  position: absolute;
+  border-radius: 12px;
+  background: rgba(255, 107, 44, 0.18);
+  box-shadow: 0 0 30px rgba(255,107,44,0.4);
+  border: 1px solid rgba(255,107,44,0.6);
+  transition: all 0.25s ease;
+}
   </style>
 </head>
 <body>
@@ -1464,8 +1486,12 @@
       <div class="cuts-grid">
         <div>
           <div class="cuts-image-wrap">
-            <img id="beefImage" src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
-          </div>
+          <div class="beef-container">
+              <img id="beefImage" src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
+
+              <div id="beefOverlay" class="beef-overlay"></div>
+        </div>
+        </div>
           <div class="cuts-grid-new" id="cutsGrid"></div>
         </div>
 
