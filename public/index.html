@@ -2422,6 +2422,7 @@
           const key = btn.dataset.cutId;
           renderCutsGrid(key);
           showCutPanel(key);
+          updateBeefHighlight(key);
         });
       });
     }
@@ -2659,14 +2660,15 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      attachTabs();
-      attachPopovers();
-      renderCutsGrid("ribeye");
-      showCutPanel("ribeye");
-      loadData();
-      window.setTimeout(hideOpeningLoader, 2200);
-    });
+document.addEventListener("DOMContentLoaded", () => {
+  attachTabs();
+  attachPopovers();
+  renderCutsGrid("ribeye");
+  showCutPanel("ribeye");
+  updateBeefHighlight("ribeye");
+  loadData();
+  window.setTimeout(hideOpeningLoader, 2200);
+});
   // ===== Feedback Form =====
 document.getElementById("feedbackForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
