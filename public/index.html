@@ -812,6 +812,7 @@
       aspect-ratio: 16 / 9;
       object-fit: cover;
       background: #0b1017;
+      transition: opacity 0.2s ease;
     }
 
     .cuts-grid-new {
@@ -1463,7 +1464,7 @@
       <div class="cuts-grid">
         <div>
           <div class="cuts-image-wrap">
-            <img src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
+            <img id="beefImage" src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
           </div>
           <div class="cuts-grid-new" id="cutsGrid"></div>
         </div>
@@ -1681,6 +1682,16 @@
       { id: "filet", label: "Filet" },
       { id: "picanha", label: "Picanha" }
     ];
+  const cutImages = {
+  chuck: "/images/beef-chuck.png",
+  ribeye: "/images/beef-ribeye.png",
+  sirloin: "/images/beef-sirloin.png",
+  brisket: "/images/beef-brisket.png",
+  short_ribs: "/images/beef-short-ribs.png",
+  flank: "/images/beef-flank.png",
+  filet: "/images/beef-filet.png",
+  picanha: "/images/beef-picanha.png"
+};
 
     function hideOpeningLoader() {
       if (openingLoaderHidden) return;
@@ -2280,13 +2291,14 @@
       `).join("");
 
       grid.querySelectorAll(".cut-grid-card").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const key = btn.dataset.cutId;
-          renderCutsGrid(key);
-          showCutPanel(key);
-        });
-      });
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const key = btn.dataset.cutId;
+    renderCutsGrid(key);
+    showCutPanel(key);
+    updateBeefImage(key);
+  });
+});
     }
 
     function showCutPanel(cutKey) {
@@ -2310,6 +2322,20 @@
         <p>${escapeHtml(cut.tip)}</p>
       `;
     }
+  function updateBeefImage(cutKey) {
+  const img = document.getElementById("beefImage");
+  if (!img) return;
+
+  const nextImage = cutImages[cutKey];
+  if (!nextImage) return;
+
+  img.style.opacity = "0.35";
+
+  setTimeout(() => {
+    img.src = nextImage;
+    img.style.opacity = "1";
+  }, 120);
+}
 
     async function generateRecipe() {
       const cut = document.getElementById("cutType").value;
@@ -2522,14 +2548,15 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      attachTabs();
-      attachPopovers();
-      renderCutsGrid("ribeye");
-      showCutPanel("ribeye");
-      loadData();
-      window.setTimeout(hideOpeningLoader, 2200);
-    });
+   document.addEventListener("DOMContentLoaded", () => {
+  attachTabs();
+  attachPopovers();
+  renderCutsGrid("ribeye");
+  showCutPanel("ribeye");
+  updateBeefImage("ribeye");
+  loadData();
+  window.setTimeout(hideOpeningLoader, 2200);
+});
   </script>
 </body>
 </html>
