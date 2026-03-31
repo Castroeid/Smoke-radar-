@@ -1708,6 +1708,16 @@
       { id: "filet", label: "Filet" },
       { id: "picanha", label: "Picanha" }
     ];
+  const cutOverlayMap = {
+  chuck: { top: "35%", left: "10%", width: "25%", height: "30%" },
+  ribeye: { top: "25%", left: "40%", width: "20%", height: "25%" },
+  sirloin: { top: "25%", left: "65%", width: "20%", height: "25%" },
+  brisket: { top: "45%", left: "35%", width: "25%", height: "30%" },
+  short_ribs: { top: "45%", left: "55%", width: "25%", height: "30%" },
+  flank: { top: "55%", left: "50%", width: "30%", height: "25%" },
+  filet: { top: "30%", left: "55%", width: "15%", height: "20%" },
+  picanha: { top: "30%", left: "80%", width: "15%", height: "20%" }
+};
   const cutImages = {
   chuck: "/images/beef-chuck.png",
   ribeye: "/images/beef-ribeye.png",
@@ -2348,19 +2358,22 @@
         <p>${escapeHtml(cut.tip)}</p>
       `;
     }
-  function updateBeefImage(cutKey) {
-  const img = document.getElementById("beefImage");
-  if (!img) return;
+  
+function updateBeefHighlight(cutKey) {
+  const overlay = document.getElementById("beefOverlay");
+  if (!overlay) return;
 
-  const nextImage = cutImages[cutKey];
-  if (!nextImage) return;
+  overlay.innerHTML = "";
 
-  img.style.opacity = "0.35";
+  const area = cutOverlayMap[cutKey];
+  if (!area) return;
 
-  setTimeout(() => {
-    img.src = nextImage;
-    img.style.opacity = "1";
-  }, 120);
+  const div = document.createElement("div");
+  div.className = "beef-highlight";
+
+  Object.assign(div.style, area);
+
+  overlay.appendChild(div);
 }
 
     async function generateRecipe() {
