@@ -1341,33 +1341,78 @@
   position: relative;
 }
 
-.beef-svg-map {
-  position: absolute;
-  inset: 0;
+.beef-map-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 12 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.04), transparent 28%),
+    radial-gradient(circle at 70% 75%, rgba(255,140,60,0.06), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.08));
+}
+
+.beef-map {
   width: 100%;
   height: 100%;
+  display: block;
+}
+
+.cow-base {
+  fill: rgba(255, 255, 255, 0.035);
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 8;
+  vector-effect: non-scaling-stroke;
+}
+
+.cut-region {
+  fill: rgba(255, 255, 255, 0.03);
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  transition:
+    fill 180ms ease,
+    stroke 180ms ease,
+    opacity 180ms ease,
+    filter 180ms ease,
+    transform 180ms ease;
+  transform-origin: center;
+  transform-box: fill-box;
+  cursor: pointer;
+}
+
+.cut-region:hover {
+  fill: rgba(255, 140, 60, 0.18);
+  stroke: rgba(255, 166, 92, 0.95);
+  filter: drop-shadow(0 0 10px rgba(255, 140, 60, 0.22));
+}
+
+.cut-region.is-active {
+  fill: rgba(255, 140, 60, 0.32);
+  stroke: rgba(255, 176, 110, 1);
+  filter:
+    drop-shadow(0 0 10px rgba(255, 140, 60, 0.28))
+    drop-shadow(0 0 24px rgba(255, 140, 60, 0.16));
+}
+
+.cut-region.is-dimmed {
+  opacity: 0.34;
+}
+
+.cut-lines path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
-.beef-cut-shape {
-  fill: rgba(255, 107, 44, 0.00);
-  stroke: rgba(255, 140, 90, 0.00);
-  stroke-width: 2;
-  opacity: 0;
-  transition:
-    fill 0.22s ease,
-    stroke 0.22s ease,
-    filter 0.22s ease,
-    opacity 0.22s ease;
-}
-
-.beef-cut-shape.active {
-  fill: rgba(255, 107, 44, 0.20);
-  stroke: rgba(255, 170, 120, 0.70);
-  opacity: 1;
-  filter:
-    drop-shadow(0 0 8px rgba(255, 107, 44, 0.40))
-    drop-shadow(0 0 18px rgba(255, 107, 44, 0.22));
+.cuts-image-static {
+  display: none;
 }
 
 .beef-cut-shape.hovered:not(.active) {
@@ -1547,30 +1592,225 @@
       class="cuts-image-static"
       alt="Beef cuts reference image"
     />
+    <div class="beef-map-wrap">
+  <svg
+    class="beef-map"
+    viewBox="0 0 1200 700"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Beef cuts map"
+    role="img"
+  >
+    <!-- outer silhouette -->
+    <path
+      class="cow-base"
+      d="M170 410
+         C155 355, 170 290, 220 255
+         L300 210
+         C365 175, 455 155, 560 150
+         L760 145
+         C860 143, 940 165, 995 215
+         L1065 275
+         C1100 305, 1115 340, 1110 385
+         L1098 470
+         C1090 520, 1055 555, 995 570
+         L945 582
+         L930 650
+         L865 650
+         L860 590
+         L710 592
+         L700 650
+         L635 650
+         L628 592
+         L395 592
+         L390 650
+         L325 650
+         L320 586
+         L220 560
+         C170 545, 145 505, 150 455
+         Z"
+    />
 
-    <svg
-      id="beefSvgMap"
-      class="beef-svg-map"
-      viewBox="0 0 1000 560"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <path id="cut-chuck" class="beef-cut-shape" d="M250,145 L355,150 L305,290 L235,275 L190,180 Z"></path>
+    <!-- head -->
+    <path
+      class="cow-base"
+      d="M1055 240
+         L1140 205
+         C1178 190, 1198 220, 1178 252
+         L1148 300
+         C1188 332, 1194 380, 1166 420
+         L1130 470
+         C1110 498, 1072 496, 1052 470
+         L1018 430
+         C996 404, 995 365, 1018 337
+         L1042 307
+         L1020 278
+         C1000 252, 1018 224, 1055 240
+         Z"
+    />
 
-      <path id="cut-ribeye" class="beef-cut-shape" d="M400,150 L520,155 L505,245 L395,240 Z"></path>
+    <!-- neck -->
+    <path
+      class="cut-region"
+      data-cut="neck"
+      d="M905 245
+         L995 218
+         L1042 256
+         L1030 320
+         L980 355
+         L900 330
+         L878 278
+         Z"
+    />
 
-      <path id="cut-sirloin" class="beef-cut-shape" d="M610,150 L770,155 L745,235 L600,230 Z"></path>
+    <!-- chuck -->
+    <path
+      class="cut-region"
+      data-cut="chuck"
+      d="M760 205
+         L905 205
+         L900 330
+         L810 372
+         L705 350
+         L690 255
+         Z"
+    />
 
-      <path id="cut-brisket" class="beef-cut-shape" d="M305,255 L395,260 L380,335 L290,320 L270,285 Z"></path>
+    <!-- rib -->
+    <path
+      class="cut-region"
+      data-cut="rib"
+      d="M610 190
+         L760 205
+         L705 350
+         L590 360
+         L550 285
+         Z"
+    />
 
-      <path id="cut-short_ribs" class="beef-cut-shape" d="M400,245 L700,210 L700,305 L400,285 Z"></path>
+    <!-- short loin -->
+    <path
+      class="cut-region"
+      data-cut="loin"
+      d="M500 185
+         L610 190
+         L590 360
+         L490 360
+         L465 285
+         Z"
+    />
 
-      <path id="cut-flank" class="beef-cut-shape" d="M455,300 L760,350 L675,410 L450,385 Z"></path>
+    <!-- sirloin -->
+    <path
+      class="cut-region"
+      data-cut="sirloin"
+      d="M420 190
+         L500 185
+         L490 360
+         L405 355
+         L385 285
+         Z"
+    />
 
-      <path id="cut-filet" class="beef-cut-shape" d="M525,160 L610,160 L605,230 L520,235 Z"></path>
+    <!-- rump -->
+    <path
+      class="cut-region"
+      data-cut="rump"
+      d="M315 215
+         L420 190
+         L405 355
+         L310 380
+         L270 310
+         Z"
+    />
 
-      <path id="cut-picanha" class="beef-cut-shape" d="M760,170 L895,185 L875,320 L770,305 Z"></path>
-    </svg>
+    <!-- brisket -->
+    <path
+      class="cut-region"
+      data-cut="brisket"
+      d="M760 360
+         L850 390
+         L835 475
+         L720 500
+         L675 430
+         Z"
+    />
+
+    <!-- plate -->
+    <path
+      class="cut-region"
+      data-cut="plate"
+      d="M590 360
+         L705 350
+         L675 430
+         L620 505
+         L555 500
+         L535 430
+         Z"
+    />
+
+    <!-- flank -->
+    <path
+      class="cut-region"
+      data-cut="flank"
+      d="M490 360
+         L590 360
+         L535 430
+         L555 500
+         L470 500
+         L430 430
+         Z"
+    />
+
+    <!-- round -->
+    <path
+      class="cut-region"
+      data-cut="round"
+      d="M310 380
+         L405 355
+         L430 430
+         L470 500
+         L390 545
+         L300 525
+         L270 455
+         Z"
+    />
+
+    <!-- shank front -->
+    <path
+      class="cut-region"
+      data-cut="foreshank"
+      d="M760 500
+         L835 475
+         L820 590
+         L730 590
+         Z"
+    />
+
+    <!-- shank rear -->
+    <path
+      class="cut-region"
+      data-cut="hindshank"
+      d="M390 545
+         L470 500
+         L455 590
+         L375 590
+         Z"
+    />
+
+    <!-- divider strokes -->
+    <g class="cut-lines">
+      <path d="M905 205 L900 330" />
+      <path d="M760 205 L705 350" />
+      <path d="M610 190 L590 360" />
+      <path d="M500 185 L490 360" />
+      <path d="M420 190 L405 355" />
+      <path d="M760 360 L835 475" />
+      <path d="M590 360 L535 430" />
+      <path d="M490 360 L430 430" />
+      <path d="M310 380 L390 545" />
+    </g>
+  </svg>
+   </div> 
   </div>
 </div>
           <div class="cuts-grid-new" id="cutsGrid"></div>
