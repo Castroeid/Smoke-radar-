@@ -1315,10 +1315,18 @@
 
 .beef-highlight {
   position: absolute;
-  border-radius: 12px;
-  background: rgba(255, 107, 44, 0.18);
-  box-shadow: 0 0 30px rgba(255,107,44,0.4);
-  border: 1px solid rgba(255,107,44,0.6);
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 44, 0.30) 0%,
+    rgba(255, 107, 44, 0.18) 40%,
+    rgba(255, 107, 44, 0.08) 70%,
+    rgba(255, 107, 44, 0.00) 100%
+  );
+  box-shadow:
+    0 0 28px rgba(255,107,44,0.28),
+    0 0 52px rgba(255,107,44,0.14);
+  border: 1px solid rgba(255,140,90,0.28);
   transition: all 0.25s ease;
 }
   </style>
