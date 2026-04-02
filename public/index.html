@@ -1329,6 +1329,10 @@
   border: 1px solid rgba(255,140,90,0.28);
   transition: all 0.25s ease;
 }
+  .beef-highlight {
+  opacity: 0.9;
+  backdrop-filter: blur(2px);
+}  
   </style>
 </head>
 <body>
@@ -1741,30 +1745,33 @@
     rotate: "-6deg",
     radius: "44%"
   },
-  brisket: {
-    top: "46%",
-    left: "35%",
-    width: "15%",
-    height: "18%",
-    rotate: "-16deg",
-    radius: "42%"
-  },
-  short_ribs: {
-    top: "40%",
-    left: "49%",
-    width: "24%",
-    height: "16%",
-    rotate: "8deg",
-    radius: "38%"
-  },
-  flank: {
-    top: "54%",
-    left: "56%",
-    width: "23%",
-    height: "13%",
-    rotate: "10deg",
-    radius: "36%"
-  },
+ brisket: {
+  top: "46%",
+  left: "35%",
+  width: "15%",
+  height: "18%",
+  rotate: "-16deg",
+  radius: "0%",
+  clipPath: "polygon(10% 0%, 90% 10%, 100% 80%, 40% 100%, 0% 70%)"
+},
+ short_ribs: {
+  top: "40%",
+  left: "49%",
+  width: "24%",
+  height: "16%",
+  rotate: "8deg",
+  radius: "0%",
+  clipPath: "polygon(0% 30%, 100% 0%, 100% 70%, 0% 100%)"
+},
+ flank: {
+  top: "54%",
+  left: "56%",
+  width: "24%",
+  height: "14%",
+  rotate: "10deg",
+  radius: "0%",
+  clipPath: "polygon(5% 30%, 95% 10%, 100% 60%, 70% 100%, 0% 80%)"
+},
   filet: {
     top: "34%",
     left: "58%",
@@ -2431,6 +2438,10 @@ function updateBeefHighlight(cutKey) {
   div.style.transform = `rotate(${area.rotate || "0deg"})`;
   div.style.borderRadius = area.radius || "999px";
 
+  if (area.clipPath) {
+  div.style.clipPath = area.clipPath;
+}
+  
   overlay.appendChild(div);
 }
 
