@@ -2455,10 +2455,25 @@
         </button>
       `).join("");
 
-      grid.querySelectorAll(".cut-grid-card").forEach(btn => {
+   grid.querySelectorAll(".cut-grid-card").forEach(btn => {
+  const key = btn.dataset.cutId;
+
+  btn.addEventListener("mouseenter", () => {
+    const shape = document.getElementById(`cut-${key}`);
+    if (shape && !shape.classList.contains("active")) {
+      shape.classList.add("hovered");
+    }
+  });
+
+  btn.addEventListener("mouseleave", () => {
+    const shape = document.getElementById(`cut-${key}`);
+    if (shape) {
+      shape.classList.remove("hovered");
+    }
+  });
+
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    const key = btn.dataset.cutId;
     renderCutsGrid(key);
     showCutPanel(key);
     updateBeefHighlight(key);
