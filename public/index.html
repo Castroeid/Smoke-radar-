@@ -1716,15 +1716,71 @@
       { id: "filet", label: "Filet" },
       { id: "picanha", label: "Picanha" }
     ];
-  const cutOverlayMap = {
-  chuck: { top: "35%", left: "10%", width: "25%", height: "30%" },
-  ribeye: { top: "25%", left: "40%", width: "20%", height: "25%" },
-  sirloin: { top: "25%", left: "65%", width: "20%", height: "25%" },
-  brisket: { top: "45%", left: "35%", width: "25%", height: "30%" },
-  short_ribs: { top: "45%", left: "55%", width: "25%", height: "30%" },
-  flank: { top: "55%", left: "50%", width: "30%", height: "25%" },
-  filet: { top: "30%", left: "55%", width: "15%", height: "20%" },
-  picanha: { top: "30%", left: "80%", width: "15%", height: "20%" }
+ const cutOverlayMap = {
+  chuck: {
+    top: "28%",
+    left: "24%",
+    width: "16%",
+    height: "26%",
+    rotate: "-18deg",
+    radius: "42%"
+  },
+  ribeye: {
+    top: "27%",
+    left: "45%",
+    width: "13%",
+    height: "18%",
+    rotate: "-4deg",
+    radius: "50%"
+  },
+  sirloin: {
+    top: "27%",
+    left: "63%",
+    width: "15%",
+    height: "18%",
+    rotate: "-6deg",
+    radius: "44%"
+  },
+  brisket: {
+    top: "46%",
+    left: "35%",
+    width: "15%",
+    height: "18%",
+    rotate: "-16deg",
+    radius: "42%"
+  },
+  short_ribs: {
+    top: "40%",
+    left: "49%",
+    width: "24%",
+    height: "16%",
+    rotate: "8deg",
+    radius: "38%"
+  },
+  flank: {
+    top: "54%",
+    left: "56%",
+    width: "23%",
+    height: "13%",
+    rotate: "10deg",
+    radius: "36%"
+  },
+  filet: {
+    top: "34%",
+    left: "58%",
+    width: "8%",
+    height: "13%",
+    rotate: "0deg",
+    radius: "50%"
+  },
+  picanha: {
+    top: "34%",
+    left: "77%",
+    width: "11%",
+    height: "15%",
+    rotate: "-10deg",
+    radius: "44%"
+  }
 };
     function hideOpeningLoader() {
       if (openingLoaderHidden) return;
@@ -2368,7 +2424,12 @@ function updateBeefHighlight(cutKey) {
   const div = document.createElement("div");
   div.className = "beef-highlight";
 
-  Object.assign(div.style, area);
+  div.style.top = area.top;
+  div.style.left = area.left;
+  div.style.width = area.width;
+  div.style.height = area.height;
+  div.style.transform = `rotate(${area.rotate || "0deg"})`;
+  div.style.borderRadius = area.radius || "999px";
 
   overlay.appendChild(div);
 }
