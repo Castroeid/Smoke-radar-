@@ -2489,31 +2489,15 @@
     }
   
 function updateBeefHighlight(cutKey) {
-  const overlay = document.getElementById("beefOverlay");
-  if (!overlay) return;
+  document.querySelectorAll(".beef-cut-shape").forEach(shape => {
+    shape.classList.remove("active");
+  });
 
-  overlay.innerHTML = "";
-
-  const area = cutOverlayMap[cutKey];
-  if (!area) return;
-
-  const div = document.createElement("div");
-  div.className = "beef-highlight";
-
-  div.style.top = area.top;
-  div.style.left = area.left;
-  div.style.width = area.width;
-  div.style.height = area.height;
-  div.style.transform = `rotate(${area.rotate || "0deg"})`;
-  div.style.borderRadius = area.radius || "999px";
-
-  if (area.clipPath) {
-  div.style.clipPath = area.clipPath;
+  const activeShape = document.getElementById(`cut-${cutKey}`);
+  if (activeShape) {
+    activeShape.classList.add("active");
+  }
 }
-  
-  overlay.appendChild(div);
-}
-
     async function generateRecipe() {
       const cut = document.getElementById("cutType").value;
       const method = document.getElementById("cookingMethod").value;
