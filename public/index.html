@@ -2388,20 +2388,32 @@ function updateBeefHighlight(cutKey) {
       `;
 
       try {
-        const res = await fetch(
-          `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}`
-        );
+       const res = await fetch(
+  `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}`
+);
 
-        const data = await res.json();
+const contentType = res.headers.get("content-type") || "";
+const isJson = contentType.includes("application/json");
 
-               if (!res.ok) {
-          output.innerHTML = `
-            <div class="recipe-placeholder">
-              ⚠️ AI recipe not available in dev environment
-            </div>
-          `;
-          return;
-        }
+if (!res.ok) {
+  output.innerHTML = `
+    <div class="recipe-placeholder">
+      ⚠️ AI recipe not available in dev environment
+    </div>
+  `;
+  return;
+}
+
+if (!isJson) {
+  output.innerHTML = `
+    <div class="recipe-placeholder">
+      ⚠️ AI recipe not available in dev environment
+    </div>
+  `;
+  return;
+}
+
+const data = await res.json();
 
         output.innerHTML = renderAiRecipe(data.recipe, {
           cut,
