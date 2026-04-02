@@ -2394,8 +2394,13 @@ function updateBeefHighlight(cutKey) {
 
         const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(data.details || data.error || "AI request failed");
+               if (!res.ok) {
+          output.innerHTML = `
+            <div class="recipe-placeholder">
+              ⚠️ AI recipe not available in dev environment
+            </div>
+          `;
+          return;
         }
 
         output.innerHTML = renderAiRecipe(data.recipe, {
