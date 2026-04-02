@@ -1718,17 +1718,6 @@
   filet: { top: "30%", left: "55%", width: "15%", height: "20%" },
   picanha: { top: "30%", left: "80%", width: "15%", height: "20%" }
 };
-  const cutImages = {
-  chuck: "/images/beef-chuck.png",
-  ribeye: "/images/beef-ribeye.png",
-  sirloin: "/images/beef-sirloin.png",
-  brisket: "/images/beef-brisket.png",
-  short_ribs: "/images/beef-short-ribs.png",
-  flank: "/images/beef-flank.png",
-  filet: "/images/beef-filet.png",
-  picanha: "/images/beef-picanha.png"
-};
-
     function hideOpeningLoader() {
       if (openingLoaderHidden) return;
       openingLoaderHidden = true;
@@ -2332,7 +2321,7 @@
     const key = btn.dataset.cutId;
     renderCutsGrid(key);
     showCutPanel(key);
-    updateBeefImage(key);
+    updateBeefHighlight(key);
   });
 });
     }
@@ -2592,7 +2581,7 @@ function updateBeefHighlight(cutKey) {
   attachPopovers();
   renderCutsGrid("ribeye");
   showCutPanel("ribeye");
-  updateBeefImage("ribeye");
+  updateBeefHighlight("ribeye");
   loadData();
   window.setTimeout(hideOpeningLoader, 2200);
 });
