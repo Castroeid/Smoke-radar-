@@ -1427,6 +1427,28 @@
   opacity: 0.6;
   filter: brightness(1.2);
 }
+    .cut-region {
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.cut-region.is-active {
+  fill: rgba(255, 120, 60, 0.25);
+  stroke: rgba(255, 140, 90, 0.9);
+  filter: drop-shadow(0 0 8px rgba(255, 120, 60, 0.6));
+}
+
+.cut-region.is-dimmed {
+  opacity: 0.15;
+}
+
+.cut-region.hovered {
+  opacity: 0.6;
+  filter: brightness(1.2);
+}
+ .cut-region:hover {
+  transform: scale(1.01);
+}   
   </style>
 </head>
 <body>
