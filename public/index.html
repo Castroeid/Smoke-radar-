@@ -2638,9 +2638,9 @@ document.querySelectorAll(".cut-region").forEach((el) => {
   });
 
   el.addEventListener("mouseleave", () => {
-    const activeBtn = document.querySelector(".cut-btn.active");
+    const activeBtn = document.querySelector(".cut-grid-card.active");
     if (activeBtn) {
-      updateBeefHighlight(activeBtn.dataset.cut);
+      updateBeefHighlight(activeBtn.dataset.cutId);
     } else {
       updateBeefHighlight(null);
     }
@@ -2648,13 +2648,9 @@ document.querySelectorAll(".cut-region").forEach((el) => {
 
   el.addEventListener("click", () => {
     const mappedCut = reverseMap[el.id] || el.id;
-    const btn = document.querySelector(`.cut-btn[data-cut="${mappedCut}"]`);
-
-    if (btn) {
-      btn.click();
-    } else {
-      updateBeefHighlight(mappedCut);
-    }
+    renderCutsGrid(mappedCut);
+    showCutPanel(mappedCut);
+    updateBeefHighlight(mappedCut);
   });
 });
     async function generateRecipe() {
