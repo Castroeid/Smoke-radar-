@@ -1420,6 +1420,9 @@
   stroke: rgba(255, 170, 120, 0.30);
   opacity: 1;
 }
+    .cut-region {
+  cursor: pointer;
+}
   </style>
 </head>
 <body>
@@ -2617,6 +2620,53 @@ function updateBeefHighlight(cutName) {
     }
   });
 }
+  document.querySelectorAll(".cut-region").forEach((el) => {
+  // hover
+  el.addEventListener("mouseenter", () => {
+    const cut = el.id;
+    updateBeefHighlight(cut);
+  });
+
+  // יציאה מה-hover
+  el.addEventListener("mouseleave", () => {
+    const activeBtn = document.querySelector(".cut-btn.active");
+    if (activeBtn) {
+      updateBeefHighlight(activeBtn.dataset.cut);
+    } else {
+      updateBeefHighlight(null);
+    }
+  });
+
+  // click
+  el.addEventListener("click", () => {
+    const cut = el.id;
+
+    // הפוך ל־cut של הכפתורים (reverse mapping)
+    const reverseMap = {
+      rib: "ribeye",
+      short_loin: "filet",
+      plate: "short_ribs",
+    };
+
+    const mappedCut = reverseMap[cut] || cut;
+
+    // עדכון highlight
+    updateBeefHighlight(mappedCut);
+
+    // עדכון כפתורים
+    document.querySelectorAll(".cut-btn").forEach((btn) => {
+      btn.classList.remove("active");
+      if (btn.dataset.cut === mappedCut) {
+        btn.classList.add("active");
+      }
+    });
+
+    // 🔥 אם יש לך פונקציה שמעדכנת את הפאנל הימני
+    if (typeof updateCutInfo === "function") {
+      updateCutInfo(mappedCut);
+    }
+  });
+});
     async function generateRecipe() {
       const cut = document.getElementById("cutType").value;
       const method = document.getElementById("cookingMethod").value;
