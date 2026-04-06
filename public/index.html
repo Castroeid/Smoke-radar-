@@ -2620,14 +2620,23 @@ function updateBeefHighlight(cutName) {
     }
   });
 }
-  document.querySelectorAll(".cut-region").forEach((el) => {
-  // hover
+document.querySelectorAll(".cut-region").forEach((el) => {
+  const reverseMap = {
+    rib: "ribeye",
+    short_loin: "filet",
+    plate: "short_ribs",
+    sirloin: "sirloin",
+    chuck: "chuck",
+    brisket: "brisket",
+    picanha: "picanha",
+    round: "picanha"
+  };
+
   el.addEventListener("mouseenter", () => {
-    const cut = el.id;
-    updateBeefHighlight(cut);
+    const mappedCut = reverseMap[el.id] || el.id;
+    updateBeefHighlight(mappedCut);
   });
 
-  // יציאה מה-hover
   el.addEventListener("mouseleave", () => {
     const activeBtn = document.querySelector(".cut-btn.active");
     if (activeBtn) {
@@ -2637,33 +2646,14 @@ function updateBeefHighlight(cutName) {
     }
   });
 
-  // click
   el.addEventListener("click", () => {
-    const cut = el.id;
+    const mappedCut = reverseMap[el.id] || el.id;
+    const btn = document.querySelector(`.cut-btn[data-cut="${mappedCut}"]`);
 
-    // הפוך ל־cut של הכפתורים (reverse mapping)
-    const reverseMap = {
-      rib: "ribeye",
-      short_loin: "filet",
-      plate: "short_ribs",
-    };
-
-    const mappedCut = reverseMap[cut] || cut;
-
-    // עדכון highlight
-    updateBeefHighlight(mappedCut);
-
-    // עדכון כפתורים
-    document.querySelectorAll(".cut-btn").forEach((btn) => {
-      btn.classList.remove("active");
-      if (btn.dataset.cut === mappedCut) {
-        btn.classList.add("active");
-      }
-    });
-
-    // 🔥 אם יש לך פונקציה שמעדכנת את הפאנל הימני
-    if (typeof updateCutInfo === "function") {
-      updateCutInfo(mappedCut);
+    if (btn) {
+      btn.click();
+    } else {
+      updateBeefHighlight(mappedCut);
     }
   });
 });
