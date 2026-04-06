@@ -2539,52 +2539,59 @@
       });
     }
 
-    function renderCutsGrid(activeId = "ribeye") {
-      const grid = document.getElementById("cutsGrid");
-      if (!grid) return;
+   function renderCutsGrid(activeId = "ribeye") {
+  const grid = document.getElementById("cutsGrid");
+  if (!grid) return;
 
-      grid.innerHTML = cutCards.map(c => `
-        <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
-          ${c.label}
-        </button>
-      `).join("");
+  grid.innerHTML = cutCards.map(c => `
+    <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
+      ${c.label}
+    </button>
+  `).join("");
 
-   grid.querySelectorAll(".cut-grid-card").forEach(btn => {
-  const key = btn.dataset.cutId;
+  grid.querySelectorAll(".cut-grid-card").forEach((btn) => {
+    const key = btn.dataset.cutId;
 
-  btn.addEventListener("mouseenter", () => {
-btn.addEventListener("mouseenter", () => {
-  const map = {
-    ribeye: "rib",
-    filet: "short_loin",
-    short_ribs: "plate",
-    flank: "plate"
-  };
+    btn.addEventListener("mouseenter", () => {
+      const map = {
+        ribeye: "rib",
+        filet: "short_loin",
+        short_ribs: "plate",
+        flank: "plate"
+      };
 
-  const shapeId = map[key] || key;
-  const shape = document.getElementById(shapeId);
+      const shapeId = map[key] || key;
+      const shape = document.getElementById(shapeId);
 
-  if (shape && !shape.classList.contains("is-active")) {
-    shape.classList.add("hovered");
-  }
-});
+      if (shape && !shape.classList.contains("is-active")) {
+        shape.classList.add("hovered");
+      }
+    });
 
-btn.addEventListener("mouseleave", () => {
-  const map = {
-    ribeye: "rib",
-    filet: "short_loin",
-    short_ribs: "plate",
-    flank: "plate"
-  };
+    btn.addEventListener("mouseleave", () => {
+      const map = {
+        ribeye: "rib",
+        filet: "short_loin",
+        short_ribs: "plate",
+        flank: "plate"
+      };
 
-  const shapeId = map[key] || key;
-  const shape = document.getElementById(shapeId);
+      const shapeId = map[key] || key;
+      const shape = document.getElementById(shapeId);
 
-  if (shape) {
-    shape.classList.remove("hovered");
-  }
-});
-  
+      if (shape) {
+        shape.classList.remove("hovered");
+      }
+    });
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      renderCutsGrid(key);
+      showCutPanel(key);
+      updateBeefHighlight(key);
+    });
+  });
+}
 
     function showCutPanel(cutKey) {
       const cut = cutData[cutKey];
