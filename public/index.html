@@ -2590,15 +2590,32 @@
       `;
     }
   
-function updateBeefHighlight(cutKey) {
-  document.querySelectorAll(".beef-cut-shape").forEach(shape => {
-    shape.classList.remove("active");
-  });
+function updateBeefHighlight(cutName) {
+  const cutMap = {
+    chuck: "chuck",
+    ribeye: "rib",
+    sirloin: "sirloin",
+    brisket: "brisket",
+    short_ribs: "plate",
+    picanha: "picanha",
+    filet: "short_loin",
+    flank: "plate"
+  };
 
-  const activeShape = document.getElementById(`cut-${cutKey}`);
-  if (activeShape) {
-    activeShape.classList.add("active");
-  }
+  const targetId = cutMap[cutName] || cutName;
+  const allCuts = document.querySelectorAll(".cut-region");
+
+  allCuts.forEach((el) => {
+    el.classList.remove("is-active", "is-dimmed");
+
+    if (!targetId) return;
+
+    if (el.id === targetId) {
+      el.classList.add("is-active");
+    } else {
+      el.classList.add("is-dimmed");
+    }
+  });
 }
     async function generateRecipe() {
       const cut = document.getElementById("cutType").value;
