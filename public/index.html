@@ -1423,6 +1423,10 @@
     .cut-region {
   cursor: pointer;
 }
+    .cut-region.hovered {
+  opacity: 0.6;
+  filter: brightness(1.2);
+}
   </style>
 </head>
 <body>
@@ -2549,25 +2553,36 @@
   const key = btn.dataset.cutId;
 
   btn.addEventListener("mouseenter", () => {
-    const shape = document.getElementById(`cut-${key}`);
-    if (shape && !shape.classList.contains("active")) {
-      shape.classList.add("hovered");
-    }
-  });
+btn.addEventListener("mouseenter", () => {
+  const map = {
+    ribeye: "rib",
+    filet: "short_loin",
+    short_ribs: "plate",
+    flank: "plate"
+  };
 
-  btn.addEventListener("mouseleave", () => {
-    const shape = document.getElementById(`cut-${key}`);
-    if (shape) {
-      shape.classList.remove("hovered");
-    }
-  });
+  const shapeId = map[key] || key;
+  const shape = document.getElementById(shapeId);
 
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    renderCutsGrid(key);
-    showCutPanel(key);
-    updateBeefHighlight(key);
-  });
+  if (shape && !shape.classList.contains("is-active")) {
+    shape.classList.add("hovered");
+  }
+});
+
+btn.addEventListener("mouseleave", () => {
+  const map = {
+    ribeye: "rib",
+    filet: "short_loin",
+    short_ribs: "plate",
+    flank: "plate"
+  };
+
+  const shapeId = map[key] || key;
+  const shape = document.getElementById(shapeId);
+
+  if (shape) {
+    shape.classList.remove("hovered");
+  }
 });
     }
 
