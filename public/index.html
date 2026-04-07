@@ -1300,42 +1300,25 @@
       }
     }
     /* =========================
-         Beef Highlight Overlay
-      ========================= */
-
-.beef-container {
-  position: relative;
-}
-
-.beef-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.beef-highlight {
-  position: absolute;
-  border-radius: 999px;
-  background: radial-gradient(
-    circle,
-    rgba(255, 107, 44, 0.30) 0%,
-    rgba(255, 107, 44, 0.18) 40%,
-    rgba(255, 107, 44, 0.08) 70%,
-    rgba(255, 107, 44, 0.00) 100%
-  );
-  box-shadow:
-    0 0 28px rgba(255,107,44,0.28),
-    0 0 52px rgba(255,107,44,0.14);
-  border: 1px solid rgba(255,140,90,0.28);
-  transition: all 0.25s ease;
-}
-  .beef-highlight {
-  opacity: 0.9;
-  backdrop-filter: blur(2px);
-}  
-    /* =========================
    Beef SVG Map
-    .beef-map {
+========================= */
+
+.beef-map-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 12 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.04), transparent 28%),
+    radial-gradient(circle at 70% 75%, rgba(255,140,60,0.06), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.08));
+}
+
+.beef-map {
   width: 100%;
   height: 100%;
   display: block;
@@ -1355,6 +1338,31 @@
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
   cursor: pointer;
+  transition:
+    fill 180ms ease,
+    stroke 180ms ease,
+    opacity 180ms ease,
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.cut-region:hover,
+.cut-region.hovered {
+  fill: rgba(255,140,60,0.18);
+  stroke: rgba(255,166,92,0.95);
+  filter: drop-shadow(0 0 10px rgba(255,140,60,0.22));
+}
+
+.cut-region.is-active {
+  fill: rgba(255,140,60,0.28);
+  stroke: rgba(255,176,110,1);
+  filter:
+    drop-shadow(0 0 10px rgba(255,140,60,0.28))
+    drop-shadow(0 0 24px rgba(255,140,60,0.16));
+}
+
+.cut-region.is-dimmed {
+  opacity: 0.28;
 }
   </style>
 </head>
