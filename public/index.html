@@ -1335,120 +1335,6 @@
 }  
     /* =========================
    Beef SVG Map
-========================= */
-
-.beef-map-shell {
-  position: relative;
-}
-
-.beef-map-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 12 / 7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.04), transparent 28%),
-    radial-gradient(circle at 70% 75%, rgba(255,140,60,0.06), transparent 30%),
-    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.08));
-}
-
-.beef-map {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.cow-base {
-  fill: rgba(255, 255, 255, 0.035);
-  stroke: rgba(255, 255, 255, 0.16);
-  stroke-width: 8;
-  vector-effect: non-scaling-stroke;
-}
-
-.cut-region {
-  fill: rgba(255, 255, 255, 0.03);
-  stroke: rgba(255, 255, 255, 0.18);
-  stroke-width: 3;
-  vector-effect: non-scaling-stroke;
-  transition:
-    fill 180ms ease,
-    stroke 180ms ease,
-    opacity 180ms ease,
-    filter 180ms ease,
-    transform 180ms ease;
-  transform-origin: center;
-  transform-box: fill-box;
-  cursor: pointer;
-}
-
-.cut-region:hover {
-  fill: rgba(255, 140, 60, 0.18);
-  stroke: rgba(255, 166, 92, 0.95);
-  filter: drop-shadow(0 0 10px rgba(255, 140, 60, 0.22));
-}
-
-.cut-region.is-active {
-  fill: rgba(255, 140, 60, 0.32);
-  stroke: rgba(255, 176, 110, 1);
-  filter:
-    drop-shadow(0 0 10px rgba(255, 140, 60, 0.28))
-    drop-shadow(0 0 24px rgba(255, 140, 60, 0.16));
-}
-
-.cut-region.is-dimmed {
-  opacity: 0.34;
-}
-
-.cut-lines path {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.12);
-  stroke-width: 2.5;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
-.cuts-image-static {
-  display: none;
-}
-
-.beef-cut-shape.hovered:not(.active) {
-  fill: rgba(255, 107, 44, 0.10);
-  stroke: rgba(255, 170, 120, 0.30);
-  opacity: 1;
-}
-    .cut-region {
-  cursor: pointer;
-}
-    .cut-region.hovered {
-  opacity: 0.6;
-  filter: brightness(1.2);
-}
-    .cut-region {
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.cut-region.is-active {
-  fill: rgba(255, 120, 60, 0.25);
-  stroke: rgba(255, 140, 90, 0.9);
-  filter: drop-shadow(0 0 8px rgba(255, 120, 60, 0.6));
-}
-
-.cut-region.is-dimmed {
-  opacity: 0.15;
-}
-
-.cut-region.hovered {
-  opacity: 0.6;
-  filter: brightness(1.2);
-}
- .cut-region:hover {
-  transform: scale(1.01);
-}   
   </style>
 </head>
 <body>
@@ -1491,29 +1377,40 @@
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
 
-    <div class="panel smoke-hero app-enter app-enter-delay-2">
-      <div class="smoke-header">
-        <span>🔥 Smoke Index</span>
-        <span id="smokeStatus" class="badge">EARLY</span>
-      </div>
-
-      <div class="smoke-value" id="smokeValue">0%</div>
-
-      <div class="smoke-bar">
-        <div id="smokeFill"></div>
-      </div>
-
-      <div class="smoke-scale">
-        <span>Early</span>
-        <span>Rising</span>
-        <span>Hot</span>
-        <span>Breakout</span>
-      </div>
-
-      <div class="subtle" id="smokeHelper" style="margin-top:10px; margin-bottom:0;">
-        Current content heat based on average smoke score
-      </div>
+<div class="panel smoke-hero app-enter app-enter-delay-2">
+  <div class="smoke-header">
+    <div class="smoke-title-wrap">
+      <span class="smoke-title">🔥 Smoke Index</span>
+      <button
+        class="info-btn"
+        data-popover-title="Smoke Index"
+        data-popover-text="Smoke Index is your dashboard’s heat score. It combines momentum signals like views, likes, and viewing speed to estimate how hot the current meat content is right now."
+      >i</button>
     </div>
+
+    <span id="smokeStatus" class="badge">EARLY</span>
+  </div>
+
+  <div class="smoke-value-wrap">
+    <div class="smoke-value" id="smokeValue">0%</div>
+    <div class="smoke-level-note" id="smokeLevelNote">Early signal</div>
+  </div>
+
+  <div class="smoke-bar">
+    <div id="smokeFill"></div>
+  </div>
+
+  <div class="smoke-scale">
+    <span>Early</span>
+    <span>Rising</span>
+    <span>Hot</span>
+    <span>Breakout</span>
+  </div>
+
+  <div class="subtle smoke-helper" id="smokeHelper">
+    A quick signal showing how hot the current content is right now.
+  </div>
+</div>
 
     <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
       <div class="signal-card">
@@ -1783,7 +1680,54 @@
         <button class="small-btn" id="loadMoreBtn" onclick="loadMoreVideos()" style="display:none;">Load More</button>
       </div>
     </div>
+<div class="panel" id="feedback">
+  <div class="panel-heading">
+    <h2>💬 Feedback</h2>
+  </div>
 
+  <div class="subtle">
+    Found something interesting? Missing feature?  
+    Send me your thoughts 🙌
+  </div>
+
+  <form id="feedbackForm">
+    <textarea 
+      id="feedbackText"
+      placeholder="Write your feedback here..."
+      style="
+        width:100%;
+        min-height:100px;
+        border-radius:12px;
+        padding:12px;
+        background:#111827;
+        color:white;
+        border:1px solid #1f2937;
+        margin-bottom:10px;
+      "
+    ></textarea>
+
+    <input 
+      type="email" 
+      id="feedbackEmail"
+      placeholder="Your email (optional)"
+      style="
+        width:100%;
+        padding:10px;
+        border-radius:12px;
+        background:#111827;
+        color:white;
+        border:1px solid #1f2937;
+        margin-bottom:10px;
+      "
+    />
+
+    <button class="pill-btn" type="submit">
+      Send Feedback 🚀
+    </button>
+  </form>
+
+  <div id="feedbackStatus" class="subtle"></div>
+</div>
     <div class="about-card app-enter app-enter-delay-4" id="about">
       <div class="about-grid">
         <img src="/images/avatar-placeholder.png" alt="Smoke Radar creator avatar" class="about-avatar" />
@@ -2204,21 +2148,56 @@
     }
 
     function updateSmokeUI(value) {
-      const fill = document.getElementById("smokeFill");
-      const label = document.getElementById("smokeStatus");
-      const num = document.getElementById("smokeValue");
+  const fill = document.getElementById("smokeFill");
+  const label = document.getElementById("smokeStatus");
+  const num = document.getElementById("smokeValue");
+  const note = document.getElementById("smokeLevelNote");
+  const helper = document.getElementById("smokeHelper");
 
-      if (!fill || !label || !num) return;
+  if (!fill || !label || !num) return;
 
-      const safe = Math.max(0, Math.min(100, Number(value || 0)));
+  const safe = Math.max(0, Math.min(100, Number(value || 0)));
 
-      num.textContent = safe + "%";
-      fill.style.width = safe + "%";
+  num.textContent = `${safe}%`;
+  fill.style.width = `${safe}%`;
 
-      if (safe < 25) label.textContent = "EARLY";
-      else if (safe < 50) label.textContent = "RISING";
-      else if (safe < 75) label.textContent = "HOT";
-      else label.textContent = "BREAKOUT";
+  if (safe < 25) {
+    label.textContent = "EARLY";
+    label.style.background = "rgba(46, 204, 113, 0.16)";
+    label.style.borderColor = "rgba(46, 204, 113, 0.32)";
+    label.style.color = "#dff8ea";
+    fill.style.background = "linear-gradient(90deg, #2ecc71, #52d88a)";
+    fill.style.boxShadow = "0 0 16px rgba(46, 204, 113, 0.18)";
+    if (note) note.textContent = "Early signal";
+    if (helper) helper.textContent = "A few promising signs are showing up, but the trend is still developing.";
+  } else if (safe < 50) {
+    label.textContent = "RISING";
+    label.style.background = "rgba(245, 176, 65, 0.16)";
+    label.style.borderColor = "rgba(245, 176, 65, 0.32)";
+    label.style.color = "#fff0d6";
+    fill.style.background = "linear-gradient(90deg, #f5b041, #ffbf5e)";
+    fill.style.boxShadow = "0 0 16px rgba(245, 176, 65, 0.18)";
+    if (note) note.textContent = "Momentum is building";
+    if (helper) helper.textContent = "Content is picking up speed and starting to attract stronger attention.";
+  } else if (safe < 75) {
+    label.textContent = "HOT";
+    label.style.background = "rgba(255, 107, 44, 0.16)";
+    label.style.borderColor = "rgba(255, 107, 44, 0.32)";
+    label.style.color = "#ffd8c8";
+    fill.style.background = "linear-gradient(90deg, #ff8a4d, #ff6b2c)";
+    fill.style.boxShadow = "0 0 18px rgba(255, 107, 44, 0.24)";
+    if (note) note.textContent = "Strong heat right now";
+    if (helper) helper.textContent = "This feed is actively hot — multiple signals show strong current interest.";
+  } else {
+    label.textContent = "BREAKOUT";
+    label.style.background = "rgba(255, 95, 87, 0.16)";
+    label.style.borderColor = "rgba(255, 95, 87, 0.32)";
+    label.style.color = "#ffe2df";
+    fill.style.background = "linear-gradient(90deg, #ff7a6f, #ff5f57)";
+    fill.style.boxShadow = "0 0 20px rgba(255, 95, 87, 0.28)";
+    if (note) note.textContent = "Breakout content";
+    if (helper) helper.textContent = "The current radar is breaking out — this is the strongest level of heat in the feed.";
+  }
     }
 
     function renderHero(data = {}) {
