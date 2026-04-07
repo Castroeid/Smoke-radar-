@@ -812,6 +812,7 @@
       aspect-ratio: 16 / 9;
       object-fit: cover;
       background: #0b1017;
+      transition: opacity 0.2s ease;
     }
 
     .cuts-grid-new {
@@ -1298,50 +1299,42 @@
         font-size: 36px;
       }
     }
-    .smoke-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    /* =========================
+         Beef Highlight Overlay
+      ========================= */
+
+.beef-container {
+  position: relative;
 }
 
-.smoke-title {
-  font-weight: 800;
-  letter-spacing: -0.2px;
+.beef-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.smoke-value-wrap {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 10px 0 8px;
-  flex-wrap: wrap;
+.beef-highlight {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 44, 0.30) 0%,
+    rgba(255, 107, 44, 0.18) 40%,
+    rgba(255, 107, 44, 0.08) 70%,
+    rgba(255, 107, 44, 0.00) 100%
+  );
+  box-shadow:
+    0 0 28px rgba(255,107,44,0.28),
+    0 0 52px rgba(255,107,44,0.14);
+  border: 1px solid rgba(255,140,90,0.28);
+  transition: all 0.25s ease;
 }
-
-.smoke-level-note {
-  font-size: 13px;
-  color: #d5dfeb;
+  .beef-highlight {
   opacity: 0.9;
-  font-weight: 700;
-}
-
-#smokeStatus {
-  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
-}
-
-#smokeFill {
-  transition: width 0.5s ease, background 0.3s ease, box-shadow 0.3s ease;
-}
-
-.smoke-bar {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
-}
-
-.smoke-helper {
-  margin-top: 10px;
-  margin-bottom: 0;
-  line-height: 1.6;
-}
+  backdrop-filter: blur(2px);
+}  
+    /* =========================
+   Beef SVG Map
   </style>
 </head>
 <body>
@@ -1517,9 +1510,82 @@
 
       <div class="cuts-grid">
         <div>
-          <div class="cuts-image-wrap">
-            <img src="/images/beef-map-premium.png" class="cuts-image-static" alt="Beef cuts reference image" />
-          </div>
+         <div class="cuts-image-wrap">
+  <div class="beef-map-shell">
+    
+    <div class="beef-map-wrap">
+  <svg
+    class="beef-map"
+    viewBox="0 0 400 297"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Beef cuts map"
+    role="img"
+  >
+    <g id="layer1">
+      <path
+        id="silhouette"
+        class="cow-base"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 47.795119,44.062602 -2.126491,9.923627 c 0,0 -13.467781,12.404536 -14.531025,15.594276 -1.063247,3.18974 6.379474,15.59427 12.758949,14.88544 6.379474,-0.70883 18.784009,-4.96182 24.454653,-3.18974 5.670645,1.77208 28.353222,39.340095 29.770883,47.491645 1.417661,8.15155 18.429592,10.63246 18.429592,10.63246 l 7.08831,26.22673 c 0,0 -2.48091,19.84725 -18.07518,21.61933 -15.594273,1.77207 18.42959,3.18973 18.42959,3.18973 0,0 1.41767,0.35442 4.25299,-7.44272 2.83532,-7.79713 4.6074,-32.96062 4.6074,-32.96062 h 10.98687 c 0,0 6.37948,24.10024 0.70883,25.87232 -5.67064,1.77208 -7.0883,12.05012 -7.0883,12.05012 l 24.80906,0.70883 -6.73389,-14.53103 c 0,0 -1.41766,-36.15036 3.54416,-38.27685 4.96181,-2.12649 37.92243,2.12649 47.13723,3.54416 9.2148,1.41766 24.80907,-10.63246 31.89738,-9.56922 7.0883,1.06325 34.02386,9.56922 34.02386,9.56922 0,0 -7.79713,43.59307 -15.23986,45.36515 -7.44272,1.77207 25.16349,2.83532 25.16349,2.83532 l -9.92363,-8.50596 15.23986,-31.18855 c 0,0 10.27804,15.23986 6.02506,25.87232 -4.25299,10.63245 -2.83532,15.23985 -2.83532,15.23985 l 25.51789,-0.35441 -3.18973,-45.36516 c 0,0 -16.3031,-26.22673 -6.02506,-58.478515 C 317.15073,52.56857 295.5314,49.378833 295.5314,49.378833 c 0,0 -2.48091,-14.885443 -40.75776,-10.278044 -38.27685,4.607399 -63.44033,5.316228 -63.44033,5.316228"
+      />
+      <path
+        id="head"
+        class="cow-base"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 97.413258,43.353773 c 0,0 14.176612,-8.151553 2.835322,-8.860383 -11.341289,-0.708832 -17.720764,3.544152 -17.720764,3.544152 0,0 -6.02506,-7.442721 -14.885441,-7.088303 -8.860382,0.354414 -15.594273,-5.670646 -15.594273,-5.670646 0,0 0.354415,10.278044 8.151552,10.632459 7.797136,0.354414 -0.70883,2.480905 -0.70883,2.480905 0,0 -13.467781,-8.15155 -15.948687,-6.733889 -2.480908,1.417661 9.214797,10.632458 9.214797,10.632458 l -5.31623,1.772076 z"
+      />
+      <path
+        id="chuck"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 68.705621,81.630615 c 0,0 16.657517,18.07518 16.657517,20.556085 0,2.48091 46.428402,0.70883 46.428402,0.70883 l 1.06325,-59.541757 -35.441532,1.772076 c 0,0 -3.898569,41.112166 -28.707637,36.504766 z"
+      />
+      <path
+        id="sirloin"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 204.80109,42.999356 8.15155,57.060854 47.13723,0.35442 -8.86038,-60.605012 z"
+      />
+      <path
+        id="round"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 248.03975,38.746374 14.17661,81.515506 c 0,0 37.21361,18.42959 48.20048,18.78401 10.98687,0.35442 -9.2148,-23.03699 -9.2148,-23.03699 0,0 7.44272,-32.960615 7.44272,-40.403335 0,-7.44272 -9.56921,-38.631269 -30.12529,-37.922437 -20.55609,0.708829 -30.47972,1.063246 -30.47972,1.063246 z"
+      />
+      <path
+        id="plate"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 131.43713,102.1867 126.52625,-3.898565 7.44272,41.112175 -16.3031,-2.48091 c 0,0 -2.12649,-8.15155 -14.88544,-6.73389 -12.75895,1.41766 -24.45466,9.92362 -24.45466,9.92362 0,0 -44.30191,-6.02506 -51.74463,-5.31622 -7.44272,0.70883 -14.17661,0.35441 -14.17661,0.35441 z"
+      />
+      <path
+        id="picanha"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 244.4956,39.455204 -0.70883,21.264916 47.49164,-3.189737 -2.12649,-19.847255 z"
+      />
+      <path
+        id="rib"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 130.72829,42.999356 0.35442,59.187344 64.858,-1.06324 -9.56922,-57.769687 z"
+      />
+      <path
+        id="short_loin"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 185.30825,43.353773 11.6957,59.896177 19.49284,-3.898565 -7.0883,-57.769691 z"
+      />
+      <path
+        id="brisket"
+        class="cut-region"
+        style="fill:#111111;stroke-width:0.264583"
+        d="m 83.591062,100.41463 c 1.417661,0 49.618138,2.4809 49.618138,2.4809 l 12.40454,34.02387 -30.83413,3.54415 c 0,0 -18.429598,-5.31623 -18.784014,-10.98687 -0.354415,-5.67065 -9.923627,-28.70764 -12.404534,-29.06205 z"
+      />
+    </g>
+  </svg>
+
+</div>
           <div class="cuts-grid-new" id="cutsGrid"></div>
         </div>
 
@@ -1783,7 +1849,75 @@
       { id: "filet", label: "Filet" },
       { id: "picanha", label: "Picanha" }
     ];
-
+ const cutOverlayMap = {
+  chuck: {
+    top: "28%",
+    left: "24%",
+    width: "16%",
+    height: "26%",
+    rotate: "-18deg",
+    radius: "42%"
+  },
+  ribeye: {
+    top: "27%",
+    left: "45%",
+    width: "13%",
+    height: "18%",
+    rotate: "-4deg",
+    radius: "50%"
+  },
+  sirloin: {
+    top: "27%",
+    left: "63%",
+    width: "15%",
+    height: "18%",
+    rotate: "-6deg",
+    radius: "44%"
+  },
+ brisket: {
+  top: "46%",
+  left: "35%",
+  width: "15%",
+  height: "18%",
+  rotate: "-16deg",
+  radius: "0%",
+  clipPath: "polygon(10% 0%, 90% 10%, 100% 80%, 40% 100%, 0% 70%)"
+},
+ short_ribs: {
+  top: "40%",
+  left: "49%",
+  width: "24%",
+  height: "16%",
+  rotate: "8deg",
+  radius: "0%",
+  clipPath: "polygon(0% 30%, 100% 0%, 100% 70%, 0% 100%)"
+},
+ flank: {
+  top: "54%",
+  left: "56%",
+  width: "24%",
+  height: "14%",
+  rotate: "10deg",
+  radius: "0%",
+  clipPath: "polygon(5% 30%, 95% 10%, 100% 60%, 70% 100%, 0% 80%)"
+},
+  filet: {
+    top: "34%",
+    left: "58%",
+    width: "8%",
+    height: "13%",
+    rotate: "0deg",
+    radius: "50%"
+  },
+  picanha: {
+    top: "34%",
+    left: "77%",
+    width: "11%",
+    height: "15%",
+    rotate: "-10deg",
+    radius: "44%"
+  }
+};
     function hideOpeningLoader() {
       if (openingLoaderHidden) return;
       openingLoaderHidden = true;
@@ -2406,25 +2540,59 @@
       });
     }
 
-    function renderCutsGrid(activeId = "ribeye") {
-      const grid = document.getElementById("cutsGrid");
-      if (!grid) return;
+   function renderCutsGrid(activeId = "ribeye") {
+  const grid = document.getElementById("cutsGrid");
+  if (!grid) return;
 
-      grid.innerHTML = cutCards.map(c => `
-        <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
-          ${c.label}
-        </button>
-      `).join("");
+  grid.innerHTML = cutCards.map(c => `
+    <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
+      ${c.label}
+    </button>
+  `).join("");
 
-      grid.querySelectorAll(".cut-grid-card").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const key = btn.dataset.cutId;
-          renderCutsGrid(key);
-          showCutPanel(key);
-                });
-      });
-    }
+  grid.querySelectorAll(".cut-grid-card").forEach((btn) => {
+    const key = btn.dataset.cutId;
+
+    btn.addEventListener("mouseenter", () => {
+      const map = {
+        ribeye: "rib",
+        filet: "short_loin",
+        short_ribs: "plate",
+        flank: "plate"
+      };
+
+      const shapeId = map[key] || key;
+      const shape = document.getElementById(shapeId);
+
+      if (shape && !shape.classList.contains("is-active")) {
+        shape.classList.add("hovered");
+      }
+    });
+
+    btn.addEventListener("mouseleave", () => {
+      const map = {
+        ribeye: "rib",
+        filet: "short_loin",
+        short_ribs: "plate",
+        flank: "plate"
+      };
+
+      const shapeId = map[key] || key;
+      const shape = document.getElementById(shapeId);
+
+      if (shape) {
+        shape.classList.remove("hovered");
+      }
+    });
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      renderCutsGrid(key);
+      showCutPanel(key);
+      updateBeefHighlight(key);
+    });
+  });
+}
 
     function showCutPanel(cutKey) {
       const cut = cutData[cutKey];
@@ -2447,7 +2615,67 @@
         <p>${escapeHtml(cut.tip)}</p>
       `;
     }
+  
+function updateBeefHighlight(cutName) {
+  const cutMap = {
+    chuck: "chuck",
+    ribeye: "rib",
+    sirloin: "sirloin",
+    brisket: "brisket",
+    short_ribs: "plate",
+    picanha: "picanha",
+    filet: "short_loin",
+    flank: "plate"
+  };
 
+  const targetId = cutMap[cutName] || cutName;
+  const allCuts = document.querySelectorAll(".cut-region");
+
+  allCuts.forEach((el) => {
+    el.classList.remove("is-active", "is-dimmed");
+
+    if (!targetId) return;
+
+    if (el.id === targetId) {
+      el.classList.add("is-active");
+    } else {
+      el.classList.add("is-dimmed");
+    }
+  });
+}
+document.querySelectorAll(".cut-region").forEach((el) => {
+  const reverseMap = {
+    rib: "ribeye",
+    short_loin: "filet",
+    plate: "short_ribs",
+    sirloin: "sirloin",
+    chuck: "chuck",
+    brisket: "brisket",
+    picanha: "picanha",
+    round: "picanha"
+  };
+
+  el.addEventListener("mouseenter", () => {
+    const mappedCut = reverseMap[el.id] || el.id;
+    updateBeefHighlight(mappedCut);
+  });
+
+  el.addEventListener("mouseleave", () => {
+    const activeBtn = document.querySelector(".cut-grid-card.active");
+    if (activeBtn) {
+      updateBeefHighlight(activeBtn.dataset.cutId);
+    } else {
+      updateBeefHighlight(null);
+    }
+  });
+
+  el.addEventListener("click", () => {
+    const mappedCut = reverseMap[el.id] || el.id;
+    renderCutsGrid(mappedCut);
+    showCutPanel(mappedCut);
+    updateBeefHighlight(mappedCut);
+  });
+});
     async function generateRecipe() {
       const cut = document.getElementById("cutType").value;
       const method = document.getElementById("cookingMethod").value;
@@ -2463,15 +2691,32 @@
       `;
 
       try {
-        const res = await fetch(
-          `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}`
-        );
+       const res = await fetch(
+  `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}`
+);
 
-        const data = await res.json();
+const contentType = res.headers.get("content-type") || "";
+const isJson = contentType.includes("application/json");
 
-        if (!res.ok) {
-          throw new Error(data.details || data.error || "AI request failed");
-        }
+if (!res.ok) {
+  output.innerHTML = `
+    <div class="recipe-placeholder">
+      ⚠️ AI recipe not available in dev environment
+    </div>
+  `;
+  return;
+}
+
+if (!isJson) {
+  output.innerHTML = `
+    <div class="recipe-placeholder">
+      ⚠️ AI recipe not available in dev environment
+    </div>
+  `;
+  return;
+}
+
+const data = await res.json();
 
         output.innerHTML = renderAiRecipe(data.recipe, {
           cut,
@@ -2609,12 +2854,20 @@
       clearErrorBanner();
 
       try {
-        const res = await fetch("/api/smoke-radar");
-        const data = await res.json();
+   const res = await fetch("/api/smoke-radar");
 
-        if (!res.ok) {
-          throw new Error(data.details || data.error || "Unknown error");
-        }
+const contentType = res.headers.get("content-type") || "";
+const isJson = contentType.includes("application/json");
+
+if (!res.ok) {
+  const errorText = isJson
+    ? (await res.json()).details || (await res.json()).error
+    : await res.text();
+
+  throw new Error(errorText || "API not available (dev mode)");
+}
+
+const data = isJson ? await res.json() : null;
 
         allData = data;
         visibleVideoCount = 6;
@@ -2650,6 +2903,17 @@
         renderVideos([]);
         renderScoreChart([]);
 
+        console.warn("DEV MODE - no API");
+      
+        const results = document.getElementById("results");
+        if (results) {
+          results.innerHTML = `
+            <div class="empty">
+              ⚠️ Dev mode – no live data connected
+            </div>
+  `;
+}
+
         const friendly = getFriendlyErrorMessage(error);
         renderErrorBanner(friendly.title, friendly.message);
         status.textContent = "Radar data currently unavailable";
@@ -2659,7 +2923,7 @@
       }
     }
 
-document.addEventListener("DOMContentLoaded", () => {
+   document.addEventListener("DOMContentLoaded", () => {
   attachTabs();
   attachPopovers();
   renderCutsGrid("ribeye");
@@ -2667,44 +2931,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateBeefHighlight("ribeye");
   loadData();
   window.setTimeout(hideOpeningLoader, 2200);
-});
-  // ===== Feedback Form =====
-document.getElementById("feedbackForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-const btn = e.target.querySelector("button");
-btn.disabled = true;
-  btn.disabled = false;
-  const text = document.getElementById("feedbackText").value;
-  const email = document.getElementById("feedbackEmail").value;
-  const status = document.getElementById("feedbackStatus");
-
-  status.textContent = "Sending...";
-if (!text.trim()) {
-  status.textContent = "⚠️ Please enter feedback first";
-  return;
-}
-  try {
-    const res = await fetch("https://formspree.io/f/meepeyeo", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: text,
-        email: email
-      })
-    });
-
-    if (res.ok) {
-      status.textContent = "🔥 Thanks! Feedback sent.";
-      document.getElementById("feedbackForm").reset();
-    } else {
-      status.textContent = "❌ Failed to send.";
-    }
-
-  } catch (err) {
-    status.textContent = "❌ Error sending feedback.";
-  }
 });
   </script>
 </body>
