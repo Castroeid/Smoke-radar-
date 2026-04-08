@@ -2637,11 +2637,11 @@ function updateSmokeUI(data = {}) {
     }
   }
 
-const infoBtn = document.getElementById("smokeInfoBtn");
-if (infoBtn) {
-  const tooltipText = `Smoke Index = Live heat score
+  const infoBtn = document.getElementById("smokeInfoBtn");
+  if (infoBtn) {
+    const tooltipText = `Smoke Index = Live heat score
 
-How it is calculated:
+How it's calculated:
 
 Score =
 ( Momentum × 0.40 ) +
@@ -2663,11 +2663,11 @@ Signals:
 The system is relative to current radar data,
 so scores adapt dynamically.`;
 
-  infoBtn.setAttribute("data-popover-text", tooltipText);
+    infoBtn.setAttribute("data-popover-text", tooltipText);
+  }
+
+  previousSmokeScore = score;
 }
-
-previousSmokeScore = score;
-
 function renderHero(data = {}) {
   updateSmokeUI(data);
 }
