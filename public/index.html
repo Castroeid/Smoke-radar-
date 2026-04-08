@@ -2040,6 +2040,11 @@
   document.getElementById("popoverText").innerHTML = html;
 
   popover.classList.add("show");
+    popover.style.top = "0px";
+popover.style.left = "0px";
+popover.style.right = "auto";
+popover.style.bottom = "auto";
+popover.style.transform = "none";
 
 if (!buttonEl) return;
 
