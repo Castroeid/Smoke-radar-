@@ -1084,9 +1084,7 @@
     }
 
 .popover {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
   background: #0f1621;
   border: 1px solid #263244;
   border-radius: 16px;
@@ -1097,7 +1095,7 @@
   z-index: 9999;
   display: none;
   width: 260px;
-  max-width: min(320px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
   max-height: 62vh;
   overflow: auto;
 }
@@ -2044,38 +2042,40 @@ function openPopover(title, html, buttonEl = null) {
   document.getElementById("popoverTitle").textContent = title;
   document.getElementById("popoverText").innerHTML = html;
 
-  if (!buttonEl) {
-    popover.classList.add("show");
-    return;
+  if (buttonEl) {
+    buttonEl.classList.add("active");
   }
 
-  buttonEl.classList.add("active");
-
-  const host =
-    buttonEl.closest(".smoke-title-wrap") ||
-    buttonEl.closest(".panel-heading") ||
-    buttonEl.parentElement;
-
-  if (host && getComputedStyle(host).position === "static") {
-    host.style.position = "relative";
-  }
-
-  if (host) {
-    host.appendChild(popover);
-  }
-
-const hostRect = host.getBoundingClientRect();
-const btnRect = buttonEl.getBoundingClientRect();
-
-popover.style.top = `${buttonEl.offsetTop + buttonEl.offsetHeight + 4}px`;
-popover.style.right = `${Math.max(0, hostRect.right - btnRect.right)}px`;
-popover.style.left = "auto";
-popover.style.bottom = "auto";
-popover.style.transform = "none";
-
+  document.body.appendChild(popover);
   popover.classList.add("show");
-}
 
+  if (!buttonEl) return;
+
+  requestAnimationFrame(() => {
+    const rect = buttonEl.getBoundingClientRect();
+    const popRect = popover.getBoundingClientRect();
+
+    let top = rect.bottom + 8;
+    let left = rect.right - popRect.width;
+
+    if (left < 12) left = 12;
+    if (left + popRect.width > window.innerWidth - 12) {
+      left = window.innerWidth - popRect.width - 12;
+    }
+
+    if (top + popRect.height > window.innerHeight - 12) {
+      top = rect.top - popRect.height - 8;
+    }
+
+    if (top < 12) top = 12;
+
+    popover.style.top = `${top}px`;
+    popover.style.left = `${left}px`;
+    popover.style.right = "auto";
+    popover.style.bottom = "auto";
+    popover.style.transform = "none";
+  });
+}
     function closePopover() {
       document.getElementById("infoPopover").classList.remove("show");
       document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
