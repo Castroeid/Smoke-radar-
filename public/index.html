@@ -2063,11 +2063,14 @@ function openPopover(title, html, buttonEl = null) {
     host.appendChild(popover);
   }
 
-  popover.style.top = "calc(100% + 8px)";
-  popover.style.right = "0";
-  popover.style.left = "auto";
-  popover.style.bottom = "auto";
-  popover.style.transform = "none";
+const hostRect = host.getBoundingClientRect();
+const btnRect = buttonEl.getBoundingClientRect();
+
+popover.style.top = `${buttonEl.offsetTop + buttonEl.offsetHeight + 4}px`;
+popover.style.right = `${Math.max(0, hostRect.right - btnRect.right)}px`;
+popover.style.left = "auto";
+popover.style.bottom = "auto";
+popover.style.transform = "none";
 
   popover.classList.add("show");
 }
