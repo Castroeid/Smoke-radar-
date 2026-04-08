@@ -1081,21 +1081,25 @@
       background: #243247;
     }
 
-    .popover {
-      position: fixed;
-      inset: auto 16px 16px 16px;
-      background: #0f1621;
-      border: 1px solid #263244;
-      border-radius: 16px;
-      padding: 14px;
-      color: #d7dfeb;
-      line-height: 1.6;
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      display: none;
-      max-height: 62vh;
-      overflow: auto;
-    }
+  .popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+
+  width: 260px;
+  max-width: 90vw;
+
+  background: #0f1621;
+  border: 1px solid #263244;
+  border-radius: 16px;
+  padding: 12px;
+
+  color: #d7dfeb;
+  box-shadow: var(--shadow);
+
+  z-index: 1000;
+  display: none;
+}
 
     .popover.show {
       display: block;
