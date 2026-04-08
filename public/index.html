@@ -1083,8 +1083,10 @@
       background: #243247;
     }
 
-  .popover {
-  position: fixed;
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
   background: #0f1621;
   border: 1px solid #263244;
   border-radius: 16px;
@@ -1095,7 +1097,7 @@
   z-index: 1000;
   display: none;
   width: 260px;
-  max-width: calc(100vw - 24px);
+  max-width: min(320px, calc(100vw - 24px));
   max-height: 62vh;
   overflow: auto;
 }
@@ -2028,50 +2030,40 @@
         message: "The dashboard could not fetch data right now. Please try again later."
       };
     }
-
-  function openPopover(title, html, buttonEl = null) {
+function openPopover(title, html, buttonEl = null) {
   document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
-  if (buttonEl && buttonEl.classList.contains("info-btn")) {
-    buttonEl.classList.add("active");
-  }
 
   const popover = document.getElementById("infoPopover");
   document.getElementById("popoverTitle").textContent = title;
   document.getElementById("popoverText").innerHTML = html;
 
-  popover.classList.add("show");
-    popover.style.top = "0px";
-popover.style.left = "0px";
-popover.style.right = "auto";
-popover.style.bottom = "auto";
-popover.style.transform = "none";
-
-if (!buttonEl) return;
-
-requestAnimationFrame(() => {
-  const rect = buttonEl.getBoundingClientRect();
-  const popRect = popover.getBoundingClientRect();
-
-  let top = rect.bottom + 8;
-  let left = rect.right - popRect.width;
-
-  if (left < 12) left = 12;
-  if (left + popRect.width > window.innerWidth - 12) {
-    left = window.innerWidth - popRect.width - 12;
+  if (!buttonEl) {
+    popover.classList.add("show");
+    return;
   }
 
-  if (top + popRect.height > window.innerHeight - 12) {
-    top = rect.top - popRect.height - 8;
+  buttonEl.classList.add("active");
+
+  const host =
+    buttonEl.closest(".smoke-title-wrap") ||
+    buttonEl.closest(".panel-heading") ||
+    buttonEl.parentElement;
+
+  if (host && getComputedStyle(host).position === "static") {
+    host.style.position = "relative";
   }
 
-  if (top < 12) top = 12;
+  if (host) {
+    host.appendChild(popover);
+  }
 
-  popover.style.top = `${top}px`;
-  popover.style.left = `${left}px`;
-  popover.style.right = "auto";
+  popover.style.top = "calc(100% + 8px)";
+  popover.style.right = "0";
+  popover.style.left = "auto";
   popover.style.bottom = "auto";
   popover.style.transform = "none";
-});
+
+  popover.classList.add("show");
 }
 
     function closePopover() {
