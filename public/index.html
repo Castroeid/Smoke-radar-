@@ -429,49 +429,7 @@
       margin-bottom: 14px;
     }
 
-    .smoke-hero {
-      padding: 18px;
-    }
-
-    .smoke-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      position: relative;
-    }
-
-    .smoke-value {
-      font-size: 42px;
-      font-weight: 800;
-      margin: 10px 0;
-      letter-spacing: -1px;
-    }
-
-    .smoke-bar {
-      height: 10px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    #smokeFill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #4caf50, #ff9800, #ff5722);
-      transition: width 0.35s ease;
-    }
-
-    .smoke-scale {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      opacity: 0.65;
-      margin-top: 8px;
-    }
+   
 
     .signal-strip {
       display: grid;
@@ -1361,13 +1319,252 @@
 .cut-region.is-dimmed {
   opacity: 0.28;
 }
+.smoke-hero {
+  position: relative;
+  padding: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(255,107,44,0.12), transparent 35%),
+    linear-gradient(180deg, var(--panel), var(--panel-2));
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.smoke-hero:hover {
+  transform: translateY(-2px);
+}
+
 .smoke-title-wrap {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 20;
+  width: 100%;
+}
+
+.smoke-index-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.smoke-index-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.smoke-tier-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  z-index: 20;
-}   
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #ffd8c8;
+}
+
+.smoke-delta {
+  min-width: 68px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 800;
+  color: #d7dfeb;
+}
+
+.smoke-main-row {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.smoke-score-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.smoke-value {
+  font-size: clamp(44px, 6vw, 72px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  margin: 0;
+}
+
+.smoke-level-note {
+  font-size: 14px;
+  color: #d8e2ef;
+  font-weight: 700;
+}
+
+.smoke-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.smoke-breakdown-item {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #d8e2ef;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.smoke-bar {
+  height: 12px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+#smokeFill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  transition: width 0.4s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.smoke-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.72;
+  margin-top: 8px;
+}
+
+.smoke-helper {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+.smoke-hero.tier-cold {
+  border-color: rgba(90,160,255,0.26);
+}
+
+.smoke-hero.tier-cold .smoke-tier-badge,
+.smoke-hero.tier-cold .smoke-value,
+.smoke-hero.tier-cold .smoke-delta {
+  color: #72a8ff;
+}
+
+.smoke-hero.tier-cold #smokeFill {
+  background: linear-gradient(90deg, #4d7fff, #78b5ff);
+  box-shadow: 0 0 16px rgba(90,160,255,0.18);
+}
+
+.smoke-hero.tier-warming {
+  border-color: rgba(255,196,80,0.26);
+}
+
+.smoke-hero.tier-warming .smoke-tier-badge,
+.smoke-hero.tier-warming .smoke-value,
+.smoke-hero.tier-warming .smoke-delta {
+  color: #ffc85a;
+}
+
+.smoke-hero.tier-warming #smokeFill {
+  background: linear-gradient(90deg, #ffb347, #ffd26f);
+  box-shadow: 0 0 16px rgba(255,196,80,0.18);
+}
+
+.smoke-hero.tier-smoking {
+  border-color: rgba(255,145,60,0.28);
+}
+
+.smoke-hero.tier-smoking .smoke-tier-badge,
+.smoke-hero.tier-smoking .smoke-value,
+.smoke-hero.tier-smoking .smoke-delta {
+  color: #ff9d57;
+}
+
+.smoke-hero.tier-smoking #smokeFill {
+  background: linear-gradient(90deg, #ff8a3d, #ffb061);
+  box-shadow: 0 0 16px rgba(255,145,60,0.18);
+}
+
+.smoke-hero.tier-hot {
+  border-color: rgba(255,95,45,0.30);
+  box-shadow: 0 0 0 1px rgba(255,95,45,0.05), 0 12px 34px rgba(255,98,49,0.14);
+}
+
+.smoke-hero.tier-hot .smoke-tier-badge,
+.smoke-hero.tier-hot .smoke-value,
+.smoke-hero.tier-hot .smoke-delta {
+  color: #ff6b3d;
+}
+
+.smoke-hero.tier-hot #smokeFill {
+  background: linear-gradient(90deg, #ff6738, #ff8b43);
+  box-shadow: 0 0 18px rgba(255,107,44,0.24);
+}
+
+.smoke-hero.tier-inferno {
+  border-color: rgba(255,72,26,0.34);
+  box-shadow: 0 0 0 1px rgba(255,72,26,0.06), 0 16px 40px rgba(255,72,26,0.20);
+  animation: smokePulse 2.6s ease-in-out infinite;
+}
+
+.smoke-hero.tier-inferno .smoke-tier-badge,
+.smoke-hero.tier-inferno .smoke-value,
+.smoke-hero.tier-inferno .smoke-delta {
+  color: #ff552f;
+}
+
+.smoke-hero.tier-inferno #smokeFill {
+  background: linear-gradient(90deg, #ff4e2c, #ff7a3a);
+  box-shadow: 0 0 22px rgba(255,72,26,0.28);
+}
+
+.smoke-hero.delta-up-strong .smoke-value {
+  animation: smokeBump 0.45s ease;
+}
+
+.smoke-hero.delta-down .smoke-delta {
+  color: #b9c3d6 !important;
+}
+
+@keyframes smokePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(255,72,26,0.06), 0 16px 40px rgba(255,72,26,0.20);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(255,72,26,0.12), 0 18px 46px rgba(255,72,26,0.30);
+  }
+}
+
+@keyframes smokeBump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 760px) {
+  .smoke-main-row {
+    grid-template-columns: 1fr;
+  }
+
+  .smoke-breakdown {
+    grid-template-columns: 1fr;
+  }
+}
   </style>
 </head>
 <body>
@@ -1410,24 +1607,38 @@
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
 
-<div class="panel smoke-hero app-enter app-enter-delay-2">
-  <div class="smoke-header">
+<div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
+  <div class="smoke-index-top">
     <div class="smoke-title-wrap">
-      <span class="smoke-title">🔥 Smoke Index</span>
+      <div class="smoke-index-heading-row">
+        <span class="smoke-title">🔥 Smoke Index</span>
+        <span class="smoke-tier-badge" id="smokeTierBadge">🔥 WARMING</span>
+      </div>
+
       <button
         type="button"
         class="info-btn"
+        id="smokeInfoBtn"
         data-popover-title="Smoke Index"
-        data-popover-text="Smoke Index is your dashboard’s heat score. It combines momentum signals like views, likes, and viewing speed to estimate how hot the current meat content is right now."
+        data-popover-text="Smoke Index is your live heat signal. It blends momentum, engagement, freshness, and acceleration to show how hot the current radar really is."
       >i</button>
     </div>
 
-    <span id="smokeStatus" class="badge">EARLY</span>
+    <div class="smoke-delta" id="smokeDelta">→ 0</div>
   </div>
 
-  <div class="smoke-value-wrap">
-    <div class="smoke-value" id="smokeValue">0%</div>
-    <div class="smoke-level-note" id="smokeLevelNote">Early signal</div>
+  <div class="smoke-main-row">
+    <div class="smoke-score-block">
+      <div class="smoke-value" id="smokeValue">0</div>
+      <div class="smoke-level-note" id="smokeLevelNote">No active heat</div>
+    </div>
+
+    <div class="smoke-breakdown" id="smokeBreakdown">
+      <div class="smoke-breakdown-item" id="breakdownMomentum">🚀 Momentum: 0</div>
+      <div class="smoke-breakdown-item" id="breakdownEngagement">💬 Engagement: 0</div>
+      <div class="smoke-breakdown-item" id="breakdownFreshness">🕒 Freshness: 0</div>
+      <div class="smoke-breakdown-item" id="breakdownVelocity">⚡ Velocity: 0</div>
+    </div>
   </div>
 
   <div class="smoke-bar">
@@ -1435,14 +1646,15 @@
   </div>
 
   <div class="smoke-scale">
-    <span>Early</span>
-    <span>Rising</span>
-    <span>Hot</span>
-    <span>Breakout</span>
+    <span>Cold</span>
+    <span>Warming</span>
+    <span>Smoking</span>
+    <span>Hot Grill</span>
+    <span>Inferno</span>
   </div>
 
   <div class="subtle smoke-helper" id="smokeHelper">
-    A quick signal showing how hot the current content is right now.
+    Live trend signal for the current radar state.
   </div>
 </div>
 
@@ -2210,74 +2422,226 @@ function openPopover(title, html, buttonEl = null) {
       metaStrip.innerHTML = pills.join("");
     }
 
-    function updateSmokeUI(value) {
-  const fill = document.getElementById("smokeFill");
-  const label = document.getElementById("smokeStatus");
-  const num = document.getElementById("smokeValue");
-  const note = document.getElementById("smokeLevelNote");
-  const helper = document.getElementById("smokeHelper");
+   let previousSmokeScore = null;
 
-  if (!fill || !label || !num) return;
-
-  const safe = Math.max(0, Math.min(100, Number(value || 0)));
-
-  num.textContent = `${safe}%`;
-  fill.style.width = `${safe}%`;
-
-  if (safe < 25) {
-    label.textContent = "EARLY";
-    label.style.background = "rgba(46, 204, 113, 0.16)";
-    label.style.borderColor = "rgba(46, 204, 113, 0.32)";
-    label.style.color = "#dff8ea";
-    fill.style.background = "linear-gradient(90deg, #2ecc71, #52d88a)";
-    fill.style.boxShadow = "0 0 16px rgba(46, 204, 113, 0.18)";
-    if (note) note.textContent = "Early signal";
-    if (helper) helper.textContent = "A few promising signs are showing up, but the trend is still developing.";
-  } else if (safe < 50) {
-    label.textContent = "RISING";
-    label.style.background = "rgba(245, 176, 65, 0.16)";
-    label.style.borderColor = "rgba(245, 176, 65, 0.32)";
-    label.style.color = "#fff0d6";
-    fill.style.background = "linear-gradient(90deg, #f5b041, #ffbf5e)";
-    fill.style.boxShadow = "0 0 16px rgba(245, 176, 65, 0.18)";
-    if (note) note.textContent = "Momentum is building";
-    if (helper) helper.textContent = "Content is picking up speed and starting to attract stronger attention.";
-  } else if (safe < 75) {
-    label.textContent = "HOT";
-    label.style.background = "rgba(255, 107, 44, 0.16)";
-    label.style.borderColor = "rgba(255, 107, 44, 0.32)";
-    label.style.color = "#ffd8c8";
-    fill.style.background = "linear-gradient(90deg, #ff8a4d, #ff6b2c)";
-    fill.style.boxShadow = "0 0 18px rgba(255, 107, 44, 0.24)";
-    if (note) note.textContent = "Strong heat right now";
-    if (helper) helper.textContent = "This feed is actively hot — multiple signals show strong current interest.";
-  } else {
-    label.textContent = "BREAKOUT";
-    label.style.background = "rgba(255, 95, 87, 0.16)";
-    label.style.borderColor = "rgba(255, 95, 87, 0.32)";
-    label.style.color = "#ffe2df";
-    fill.style.background = "linear-gradient(90deg, #ff7a6f, #ff5f57)";
-    fill.style.boxShadow = "0 0 20px rgba(255, 95, 87, 0.28)";
-    if (note) note.textContent = "Breakout content";
-    if (helper) helper.textContent = "The current radar is breaking out — this is the strongest level of heat in the feed.";
+function getSmokeTier(score) {
+  if (score >= 80) {
+    return {
+      key: "inferno",
+      label: "🚨 INFERNO",
+      note: "Breaking out"
+    };
   }
+
+  if (score >= 60) {
+    return {
+      key: "hot",
+      label: "🔥 HOT GRILL",
+      note: "Trending fast"
+    };
+  }
+
+  if (score >= 40) {
+    return {
+      key: "smoking",
+      label: "💨 SMOKING",
+      note: "Building momentum"
+    };
+  }
+
+  if (score >= 20) {
+    return {
+      key: "warming",
+      label: "🔥 WARMING",
+      note: "Picking up"
+    };
+  }
+
+  return {
+    key: "cold",
+    label: "🧊 COLD CUT",
+    note: "No active heat"
+  };
+}
+
+function calculateSmokeBreakdown(data = {}) {
+  const videos = data.videos || [];
+  const summary = data.summary || {};
+
+  if (!videos.length) {
+    return {
+      score: 0,
+      momentum: 0,
+      engagement: 0,
+      freshness: 0,
+      velocity: 0
+    };
+  }
+
+  const safeVideos = videos.map(v => {
+    const views = Number(v.viewCount ?? v.views ?? 0);
+    const likes = Number(v.likeCount ?? v.likes ?? 0);
+    const comments = Number(v.commentCount ?? v.comments ?? 0);
+    const viewsPerHour = Number(v.viewsPerHour ?? 0);
+    const hoursSincePublished = Number(v.hoursSincePublished ?? 0);
+    const smokeScore = Number(v.smokeScore ?? 0);
+
+    return {
+      views,
+      likes,
+      comments,
+      viewsPerHour,
+      hoursSincePublished,
+      smokeScore
+    };
+  });
+
+  const avgViewsPerHour =
+    safeVideos.reduce((sum, v) => sum + v.viewsPerHour, 0) / safeVideos.length;
+
+  const maxViewsPerHour = Math.max(...safeVideos.map(v => v.viewsPerHour), 1);
+  const avgEngagementRate =
+    safeVideos.reduce((sum, v) => {
+      if (v.views <= 0) return sum;
+      return sum + ((v.likes + v.comments * 2) / v.views) * 100;
+    }, 0) / safeVideos.length;
+
+  const maxEngagementRate = Math.max(
+    ...safeVideos.map(v => v.views > 0 ? ((v.likes + v.comments * 2) / v.views) * 100 : 0),
+    1
+  );
+
+  const avgAgeHours =
+    safeVideos.reduce((sum, v) => sum + v.hoursSincePublished, 0) / safeVideos.length;
+
+  const momentum = Math.max(0, Math.min(100, Math.round((avgViewsPerHour / maxViewsPerHour) * 100)));
+  const engagement = Math.max(0, Math.min(100, Math.round((avgEngagementRate / maxEngagementRate) * 100)));
+
+  let freshness = 20;
+  if (avgAgeHours <= 2) freshness = 100;
+  else if (avgAgeHours <= 6) freshness = 80;
+  else if (avgAgeHours <= 24) freshness = 60;
+  else if (avgAgeHours <= 72) freshness = 40;
+
+  const summaryAvgSmoke = Number(summary.avgSmokeScore ?? 0);
+  const topSmoke = Math.max(...safeVideos.map(v => v.smokeScore), 1);
+
+  const velocity = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(((summaryAvgSmoke || topSmoke) / topSmoke) * 100)
+    )
+  );
+
+  const rawScore =
+    momentum * 0.35 +
+    engagement * 0.25 +
+    freshness * 0.20 +
+    velocity * 0.20;
+
+  const score = Math.max(0, Math.min(100, Math.round(rawScore)));
+
+  return {
+    score,
+    momentum,
+    engagement,
+    freshness,
+    velocity
+  };
+}
+
+function updateSmokeUI(data = {}) {
+  const card = document.getElementById("smokeIndexCard");
+  const fill = document.getElementById("smokeFill");
+  const valueEl = document.getElementById("smokeValue");
+  const tierBadge = document.getElementById("smokeTierBadge");
+  const deltaEl = document.getElementById("smokeDelta");
+  const noteEl = document.getElementById("smokeLevelNote");
+  const helperEl = document.getElementById("smokeHelper");
+
+  const momentumEl = document.getElementById("breakdownMomentum");
+  const engagementEl = document.getElementById("breakdownEngagement");
+  const freshnessEl = document.getElementById("breakdownFreshness");
+  const velocityEl = document.getElementById("breakdownVelocity");
+
+  if (!card || !fill || !valueEl || !tierBadge || !deltaEl || !noteEl) return;
+
+  const breakdown = calculateSmokeBreakdown(data);
+  const score = breakdown.score;
+  const tier = getSmokeTier(score);
+
+  const delta = previousSmokeScore === null ? 0 : score - previousSmokeScore;
+
+  card.classList.remove(
+    "tier-cold",
+    "tier-warming",
+    "tier-smoking",
+    "tier-hot",
+    "tier-inferno",
+    "delta-up-strong",
+    "delta-down"
+  );
+
+  card.classList.add(`tier-${tier.key}`);
+
+  if (delta >= 8) card.classList.add("delta-up-strong");
+  if (delta < 0) card.classList.add("delta-down");
+
+  valueEl.textContent = score;
+  tierBadge.textContent = tier.label;
+  noteEl.textContent = tier.note;
+  fill.style.width = `${score}%`;
+
+  if (delta > 0) {
+    deltaEl.textContent = `↑ +${Math.round(delta)}`;
+  } else if (delta < 0) {
+    deltaEl.textContent = `↓ ${Math.round(delta)}`;
+  } else {
+    deltaEl.textContent = "→ 0";
+  }
+
+  if (momentumEl) momentumEl.textContent = `🚀 Momentum: ${breakdown.momentum}`;
+  if (engagementEl) engagementEl.textContent = `💬 Engagement: ${breakdown.engagement}`;
+  if (freshnessEl) freshnessEl.textContent = `🕒 Freshness: ${breakdown.freshness}`;
+  if (velocityEl) velocityEl.textContent = `⚡ Velocity: ${breakdown.velocity}`;
+
+  if (helperEl) {
+    if (data.source === "cache") {
+      helperEl.textContent = "Cached radar state with live-style heat analysis.";
+    } else if (data.source === "seed" || data.source === "no-key") {
+      helperEl.textContent = "Offline snapshot analyzed through Smoke Index logic.";
+    } else if (tier.key === "inferno") {
+      helperEl.textContent = "Breakout heat driven by strong momentum across the current radar.";
+    } else if (tier.key === "hot") {
+      helperEl.textContent = "Strong live heat with multiple signals pointing up.";
+    } else if (tier.key === "smoking") {
+      helperEl.textContent = "Momentum is building and the radar is starting to heat up.";
+    } else if (tier.key === "warming") {
+      helperEl.textContent = "Early positive signals are starting to appear.";
+    } else {
+      helperEl.textContent = "No major heat cluster detected in the current radar state.";
     }
+  }
 
-    function renderHero(data = {}) {
-      updateSmokeUI(data?.summary?.avgSmokeScore || 0);
+  const infoBtn = document.getElementById("smokeInfoBtn");
+  if (infoBtn) {
+    let tooltipText = `Smoke Index is your live heat signal.
 
-      const helper = document.getElementById("smokeHelper");
-      if (!helper) return;
+• Momentum: ${breakdown.momentum}
+• Engagement: ${breakdown.engagement}
+• Freshness: ${breakdown.freshness}
+• Velocity: ${breakdown.velocity}`;
 
-      if (data.source === "cache") {
-        helper.textContent = "Cache-first mode to preserve quota and keep the feed alive";
-      } else if (data.source === "seed" || data.source === "no-key") {
-        helper.textContent = "Offline fallback snapshot while live radar is unavailable";
-      } else {
-        helper.textContent = "Current content heat based on average smoke score";
-      }
-    }
+    infoBtn.setAttribute("data-popover-text", tooltipText);
+  }
 
+  previousSmokeScore = score;
+}
+
+function renderHero(data = {}) {
+  updateSmokeUI(data);
+}
     function renderSignalStrip(data = {}) {
       const videos = data.videos || [];
       const topChannel =
