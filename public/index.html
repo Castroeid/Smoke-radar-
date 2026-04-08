@@ -2486,61 +2486,75 @@ function calculateSmokeBreakdown(data = {}) {
     const hoursSincePublished = Number(v.hoursSincePublished ?? 0);
     const smokeScore = Number(v.smokeScore ?? 0);
 
+    const engagementRate =
+      views > 0 ? ((likes + comments * 2) / views) * 100 : 0;
+
     return {
       views,
       likes,
       comments,
       viewsPerHour,
       hoursSincePublished,
-      smokeScore
+      smokeScore,
+      engagementRate
     };
   });
 
   const avgViewsPerHour =
     safeVideos.reduce((sum, v) => sum + v.viewsPerHour, 0) / safeVideos.length;
 
-  const maxViewsPerHour = Math.max(...safeVideos.map(v => v.viewsPerHour), 1);
-  const avgEngagementRate =
-    safeVideos.reduce((sum, v) => {
-      if (v.views <= 0) return sum;
-      return sum + ((v.likes + v.comments * 2) / v.views) * 100;
-    }, 0) / safeVideos.length;
+  const topViewsPerHour = Math.max(...safeVideos.map(v => v.viewsPerHour), 1);
 
-  const maxEngagementRate = Math.max(
-    ...safeVideos.map(v => v.views > 0 ? ((v.likes + v.comments * 2) / v.views) * 100 : 0),
+  const avgEngagementRate =
+    safeVideos.reduce((sum, v) => sum + v.engagementRate, 0) / safeVideos.length;
+
+  const topEngagementRate = Math.max(
+    ...safeVideos.map(v => v.engagementRate),
     1
   );
 
   const avgAgeHours =
     safeVideos.reduce((sum, v) => sum + v.hoursSincePublished, 0) / safeVideos.length;
 
-  const momentum = Math.max(0, Math.min(100, Math.round((avgViewsPerHour / maxViewsPerHour) * 100)));
-  const engagement = Math.max(0, Math.min(100, Math.round((avgEngagementRate / maxEngagementRate) * 100)));
+  let momentum = Math.round(
+    ((avgViewsPerHour / topViewsPerHour) * 70) +
+    ((topViewsPerHour / Math.max(topViewsPerHour, 1)) * 30)
+  );
+  momentum = Math.max(0, Math.min(100, momentum));
 
-  let freshness = 20;
+  let engagement = Math.round(
+    ((avgEngagementRate / topEngagementRate) * 70) +
+    ((topEngagementRate / Math.max(topEngagementRate, 1)) * 30)
+  );
+  engagement = Math.max(0, Math.min(100, engagement));
+
+  let freshness = 15;
   if (avgAgeHours <= 2) freshness = 100;
-  else if (avgAgeHours <= 6) freshness = 80;
-  else if (avgAgeHours <= 24) freshness = 60;
+  else if (avgAgeHours <= 6) freshness = 85;
+  else if (avgAgeHours <= 24) freshness = 65;
   else if (avgAgeHours <= 72) freshness = 40;
 
   const summaryAvgSmoke = Number(summary.avgSmokeScore ?? 0);
   const topSmoke = Math.max(...safeVideos.map(v => v.smokeScore), 1);
 
-  const velocity = Math.max(
-    0,
-    Math.min(
-      100,
-      Math.round(((summaryAvgSmoke || topSmoke) / topSmoke) * 100)
-    )
+  let velocity = Math.round(
+    ((summaryAvgSmoke || topSmoke) / topSmoke) * 100
   );
+  velocity = Math.max(0, Math.min(100, velocity));
 
-  const rawScore =
-    momentum * 0.35 +
-    engagement * 0.25 +
-    freshness * 0.20 +
-    velocity * 0.20;
+  let score =
+    (momentum * 0.40) +
+    (engagement * 0.25) +
+    (freshness * 0.15) +
+    (velocity * 0.20);
 
-  const score = Math.max(0, Math.min(100, Math.round(rawScore)));
+  if (momentum > 75 && velocity > 60) {
+    score += 15;
+  } else if (momentum > 60) {
+    score += 8;
+  }
+
+  score = Math.round(Math.max(0, Math.min(100, score)));
 
   return {
     score,
@@ -2550,7 +2564,6 @@ function calculateSmokeBreakdown(data = {}) {
     velocity
   };
 }
-
 function updateSmokeUI(data = {}) {
   const card = document.getElementById("smokeIndexCard");
   const fill = document.getElementById("smokeFill");
@@ -2624,20 +2637,29 @@ function updateSmokeUI(data = {}) {
     }
   }
 
-  const infoBtn = document.getElementById("smokeInfoBtn");
-  if (infoBtn) {
-    let tooltipText = `Smoke Index is your live heat signal.
+const infoBtn = document.getElementById("smokeInfoBtn");
+if (infoBtn) {
+  const tooltipText = `Smoke Index is your live heat signal.
 
-• Momentum: ${breakdown.momentum}
-• Engagement: ${breakdown.engagement}
-• Freshness: ${breakdown.freshness}
-• Velocity: ${breakdown.velocity}`;
+Calculated from:
 
-    infoBtn.setAttribute("data-popover-text", tooltipText);
-  }
+• Momentum (${breakdown.momentum}) → view growth speed
+• Engagement (${breakdown.engagement}) → likes and comments strength
+• Freshness (${breakdown.freshness}) → how recent the content is
+• Velocity (${breakdown.velocity}) → whether the trend is accelerating
 
-  previousSmokeScore = score;
+Weighted formula:
+40% Momentum
+25% Engagement
+15% Freshness
+20% Velocity
+
+Dynamic boost is applied to highlight breakout trends.`;
+
+  infoBtn.setAttribute("data-popover-text", tooltipText);
 }
+
+previousSmokeScore = score;
 
 function renderHero(data = {}) {
   updateSmokeUI(data);
