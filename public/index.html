@@ -413,6 +413,7 @@
       gap: 8px;
       margin-bottom: 8px;
       flex-wrap: wrap;
+      position: relative;
     }
 
     .panel-actions {
@@ -440,6 +441,7 @@
       font-size: 14px;
       font-weight: 700;
       margin-bottom: 10px;
+      position: relative;
     }
 
     .smoke-value {
@@ -1082,23 +1084,20 @@
     }
 
   .popover {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-
-  width: 260px;
-  max-width: 90vw;
-
+  position: fixed;
   background: #0f1621;
   border: 1px solid #263244;
   border-radius: 16px;
   padding: 12px;
-
   color: #d7dfeb;
+  line-height: 1.6;
   box-shadow: var(--shadow);
-
   z-index: 1000;
   display: none;
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  max-height: 62vh;
+  overflow: auto;
 }
 
     .popover.show {
@@ -2030,16 +2029,43 @@
       };
     }
 
-    function openPopover(title, html, buttonEl = null) {
-      document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
-      if (buttonEl && buttonEl.classList.contains("info-btn")) {
-        buttonEl.classList.add("active");
-      }
+  function openPopover(title, html, buttonEl = null) {
+  document.querySelectorAll(".info-btn").forEach(btn => btn.classList.remove("active"));
+  if (buttonEl && buttonEl.classList.contains("info-btn")) {
+    buttonEl.classList.add("active");
+  }
 
-      document.getElementById("popoverTitle").textContent = title;
-      document.getElementById("popoverText").innerHTML = html;
-      document.getElementById("infoPopover").classList.add("show");
+  const popover = document.getElementById("infoPopover");
+  document.getElementById("popoverTitle").textContent = title;
+  document.getElementById("popoverText").innerHTML = html;
+
+  popover.classList.add("show");
+
+  if (buttonEl) {
+    const rect = buttonEl.getBoundingClientRect();
+    const popRect = popover.getBoundingClientRect();
+
+    let top = rect.bottom + 8;
+    let left = rect.right - popRect.width;
+
+    if (left < 12) left = 12;
+    if (left + popRect.width > window.innerWidth - 12) {
+      left = window.innerWidth - popRect.width - 12;
     }
+
+    if (top + popRect.height > window.innerHeight - 12) {
+      top = rect.top - popRect.height - 8;
+    }
+
+    if (top < 12) top = 12;
+
+    popover.style.top = `${top}px`;
+    popover.style.left = `${left}px`;
+    popover.style.right = "auto";
+    popover.style.bottom = "auto";
+    popover.style.transform = "none";
+  }
+}
 
     function closePopover() {
       document.getElementById("infoPopover").classList.remove("show");
