@@ -1,4 +1,5 @@
 # 🔥 Smoke Radar
+<img width="1197" height="889" alt="image" src="https://github.com/user-attachments/assets/c059c49c-ee71-4836-a6dd-27b84288b1b6" />
 
 **Live Meat Content Intelligence Dashboard**
 
