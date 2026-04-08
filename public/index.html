@@ -2041,30 +2041,32 @@
 
   popover.classList.add("show");
 
-  if (buttonEl) {
-    const rect = buttonEl.getBoundingClientRect();
-    const popRect = popover.getBoundingClientRect();
+if (!buttonEl) return;
 
-    let top = rect.bottom + 8;
-    let left = rect.right - popRect.width;
+requestAnimationFrame(() => {
+  const rect = buttonEl.getBoundingClientRect();
+  const popRect = popover.getBoundingClientRect();
 
-    if (left < 12) left = 12;
-    if (left + popRect.width > window.innerWidth - 12) {
-      left = window.innerWidth - popRect.width - 12;
-    }
+  let top = rect.bottom + 8;
+  let left = rect.right - popRect.width;
 
-    if (top + popRect.height > window.innerHeight - 12) {
-      top = rect.top - popRect.height - 8;
-    }
-
-    if (top < 12) top = 12;
-
-    popover.style.top = `${top}px`;
-    popover.style.left = `${left}px`;
-    popover.style.right = "auto";
-    popover.style.bottom = "auto";
-    popover.style.transform = "none";
+  if (left < 12) left = 12;
+  if (left + popRect.width > window.innerWidth - 12) {
+    left = window.innerWidth - popRect.width - 12;
   }
+
+  if (top + popRect.height > window.innerHeight - 12) {
+    top = rect.top - popRect.height - 8;
+  }
+
+  if (top < 12) top = 12;
+
+  popover.style.top = `${top}px`;
+  popover.style.left = `${left}px`;
+  popover.style.right = "auto";
+  popover.style.bottom = "auto";
+  popover.style.transform = "none";
+});
 }
 
     function closePopover() {
@@ -2087,7 +2089,7 @@
             return;
           }
 
-          openPopover(title, `<p>${escapeHtml(text)}</p>`, btn);
+          openPopover(title, `<p>${escapeHtml(text)}</p>`, e.currentTarget);
         });
       });
 
