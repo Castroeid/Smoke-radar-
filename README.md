@@ -1,85 +1,93 @@
-# 🥩 Smoke Radar
+# 🔥 Smoke Radar
 
-Smoke Radar is a **meat intelligence dashboard** that surfaces the most relevant and trending meat content — without endless scrolling.
+**Live Meat Content Intelligence Dashboard**
 
-It combines real-time signals, content momentum, and structured insights into one clean interface.
+Smoke Radar is a real-time dashboard that tracks trending meat & BBQ content across YouTube, analyzing momentum, engagement, and emerging patterns.
 
----
-
-## 📸 Preview
-
-![Smoke Radar Preview](./public/images/smoke_radar_preview.png)
+👉 Live Demo: https://smoke-radar.onrender.com/
 
 ---
 
-## 🚀 Features
+## 🚀 What is this?
 
-- 📊 Live / Cached radar feed  
-- 🔥 Smoke Index & momentum tracking  
-- 🎯 Fastest breakout videos  
-- 🌍 Regional insights  
-- 🥩 Beef Cuts Explorer (interactive)  
-- 🍳 Recipe Generator  
-- 📺 Smart video feed with insights  
-- 🧭 Quick navigation UX  
-- 🧑‍🍳 About & product story  
+Smoke Radar helps you discover:
+
+- 🔥 Trending BBQ & meat videos
+- 📈 Momentum-based ranking (not just views)
+- 🧠 Emerging keywords and patterns
+- 📊 Channel performance insights
+- 🌍 Regional and trend signals
 
 ---
 
-## 🧠 What makes it different?
+## 💡 Why it’s different
 
-Smoke Radar is not just a feed.
+Most platforms show:
+> "what is popular"
 
-It’s:
-- a discovery engine  
-- a trend analyzer  
-- a meat-focused dashboard  
+Smoke Radar shows:
+> "what is *gaining momentum right now*"
 
-Built for people who want **signal, not noise**.
-
----
-
-## 🛠️ Tech Stack
-
-- Frontend: Vanilla JS + HTML + CSS  
-- Backend: Node.js (Express)  
-- Data: YouTube API + caching layer  
+This makes it useful for:
+- Content creators
+- Trend hunters
+- Food & BBQ enthusiasts
+- Data lovers
 
 ---
 
-## 📘 Full Product Spec
+## 🧠 Core Features
 
-For full architecture, roadmap and diagrams:
-
-👉 [View Product Spec](./SMOKE_RADAR_SPEC.md)
-
----
-
-## 🧑‍🍳 About
-
-Built by a meat enthusiast who:
-- loves coffee ☕  
-- explores trends 🔍  
-- and constantly looks for what’s next  
+- **Live Radar Feed** – ranked by momentum
+- **Smoke Index** – custom scoring algorithm
+- **Top Channels** – best performing creators
+- **Hot Keywords** – recurring trends
+- **Momentum Chart** – trend visualization
+- **Beef Cuts Explorer** – interactive meat cuts UI 🐄
+- **AI Recipe Generator**
+- **Advanced Analytics Panel**
 
 ---
 
-## 🔮 Roadmap
+## ⚙️ Tech Stack
 
-- 🤖 AI Recipe Generator  
-- 📍 Butcher Radar (location-based)  
-- 🔊 Sound design  
-- 🧠 smarter recommendations  
-
----
-
-## ⚡ Status
-
-🟢 Active development  
-🔥 Rapid iteration  
+- Frontend: HTML, CSS, JavaScript
+- Charts: Chart.js
+- API: YouTube Data API v3
+- Hosting: Render
+- Version Control: GitHub
 
 ---
 
-## 🤝 Contributing
+## 🧩 Challenges Solved
 
-Currently a personal project — but feedback is welcome.
+- Handling YouTube API quota limits
+- Caching vs Live data strategy
+- Real-time feeling without real-time infra
+- Ranking algorithm (Smoke Score)
+- UI/UX for fast exploration
+
+---
+
+## 🧪 Future Plans
+
+- 📍 Location-based "Butcher Radar"
+- 🔊 Sound / trend detection
+- 🤖 Smarter AI insights
+- 📦 API layer for external use
+- 📊 Deeper analytics
+
+---
+
+## 🤝 Feedback
+
+Got ideas, feedback, or want to collaborate?
+
+Open an issue or reach out 🙌
+
+---
+
+## ⭐ If you like this project
+
+Give it a star ⭐  
+It helps a lot!
