@@ -1411,6 +1411,7 @@
     <div class="smoke-title-wrap">
       <span class="smoke-title">🔥 Smoke Index</span>
       <button
+        type="button"
         class="info-btn"
         data-popover-title="Smoke Index"
         data-popover-text="Smoke Index is your dashboard’s heat score. It combines momentum signals like views, likes, and viewing speed to estimate how hot the current meat content is right now."
@@ -1494,7 +1495,7 @@
     <div class="panel app-enter app-enter-delay-2">
       <div class="panel-heading">
         <h2 id="chartTitle">Momentum Trend</h2>
-        <button class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
+        <button type="button" class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
       </div>
       <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
       <canvas id="scoreChart"></canvas>
@@ -1504,7 +1505,7 @@
       <div class="panel">
         <div class="panel-heading">
           <h2>Top Channels</h2>
-          <button class="info-btn" data-popover-title="Top Channels" data-popover-text="Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.">i</button>
+          <button type="button" class="info-btn" data-popover-title="Top Channels" data-popover-text="Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.">i</button>
         </div>
         <div class="subtle">Best-performing creators in the current dataset</div>
         <table>
@@ -1523,7 +1524,7 @@
       <div class="panel">
         <div class="panel-heading">
           <h2>Hot Keywords</h2>
-          <button class="info-btn" data-popover-title="Hot Keywords" data-popover-text="Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.">i</button>
+          <button type="button" class="info-btn" data-popover-title="Hot Keywords" data-popover-text="Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.">i</button>
         </div>
         <div class="subtle">Recurring terms extracted from current titles</div>
         <div class="keywords" id="keywords"></div>
@@ -1533,7 +1534,7 @@
     <div class="panel app-enter app-enter-delay-3" id="cuts">
       <div class="panel-heading">
         <h2>Beef Cuts Explorer</h2>
-        <button class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
+        <button type="button" class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
       </div>
       <div class="subtle">Tap a cut to open a quick guide</div>
 
@@ -1639,7 +1640,7 @@
     <div class="panel app-enter app-enter-delay-4" id="recipes">
       <div class="panel-heading">
         <h2>Recipe Generator</h2>
-        <button class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
+        <button type="button" class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
       </div>
       <div class="subtle">Build a meat recipe by cut, method, and flavor profile</div>
 
@@ -1701,7 +1702,7 @@
     <div class="panel app-enter app-enter-delay-4" id="feed">
       <div class="panel-heading">
         <h2 id="feedTitle">Radar Feed</h2>
-        <button class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
+        <button type="button" class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
       </div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
