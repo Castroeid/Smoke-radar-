@@ -2639,22 +2639,29 @@ function updateSmokeUI(data = {}) {
 
 const infoBtn = document.getElementById("smokeInfoBtn");
 if (infoBtn) {
-  const tooltipText = `Smoke Index is your live heat signal.
+ const tooltipText = `Smoke Index = Live heat score
 
-Calculated from:
+How it's calculated:
+
+Score =
+( Momentum × 0.40 ) +
+( Engagement × 0.25 ) +
+( Freshness × 0.15 ) +
+( Velocity × 0.20 )
+
+Dynamic boost is applied when:
+• Momentum is high
+• Trend is accelerating
+
+Signals:
 
 • Momentum (${breakdown.momentum}) → view growth speed
-• Engagement (${breakdown.engagement}) → likes and comments strength
-• Freshness (${breakdown.freshness}) → how recent the content is
-• Velocity (${breakdown.velocity}) → whether the trend is accelerating
+• Engagement (${breakdown.engagement}) → likes & comments strength
+• Freshness (${breakdown.freshness}) → how recent content is
+• Velocity (${breakdown.velocity}) → acceleration of the trend
 
-Weighted formula:
-40% Momentum
-25% Engagement
-15% Freshness
-20% Velocity
-
-Dynamic boost is applied to highlight breakout trends.`;
+The system is relative to current radar data,
+so scores adapt dynamically.`;
 
   infoBtn.setAttribute("data-popover-text", tooltipText);
 }
