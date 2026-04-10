@@ -2492,7 +2492,133 @@ function getSmokeTier(score) {
   };
 }
 
+function calculateSmokeBreakdown(data = {}) {
+  const videos = data.videos || [];
+  const summary = data.summary || {};
 
+  if (!videos.length) {
+    return {
+      score: 0,
+      momentum: 0,
+      engagement: 0,
+      freshness: 0,
+      velocity: 0,
+      topVideoTitle: "—",
+      topVideoBoost: 0
+    };
+  }
+
+  const safeVideos = videos.map(v => {
+    const views = Number(v.viewCount ?? v.views ?? 0);
+    const likes = Number(v.likeCount ?? v.likes ?? 0);
+    const comments = Number(v.commentCount ?? v.comments ?? 0);
+    const viewsPerHour = Number(v.viewsPerHour ?? 0);
+    const hoursSincePublished = Number(v.hoursSincePublished ?? 0);
+    const smokeScore = Number(v.smokeScore ?? 0);
+
+    const engagementRate =
+      views > 0 ? ((likes + comments * 2) / views) * 100 : 0;
+
+    return {
+      ...v,
+      views,
+      likes,
+      comments,
+      viewsPerHour,
+      hoursSincePublished,
+      smokeScore,
+      engagementRate
+    };
+  });
+
+  const avgViewsPerHour =
+    safeVideos.reduce((sum, v) => sum + v.viewsPerHour, 0) / safeVideos.length;
+
+  const topViewsPerHour = Math.max(...safeVideos.map(v => v.viewsPerHour), 1);
+
+  const avgEngagementRate =
+    safeVideos.reduce((sum, v) => sum + v.engagementRate, 0) / safeVideos.length;
+
+  const topEngagementRate = Math.max(...safeVideos.map(v => v.engagementRate), 1);
+
+  const avgAgeHours =
+    safeVideos.reduce((sum, v) => sum + v.hoursSincePublished, 0) / safeVideos.length;
+
+  let momentum = Math.round(
+    ((avgViewsPerHour / topViewsPerHour) * 70) +
+    ((topViewsPerHour / Math.max(topViewsPerHour, 1)) * 30)
+  );
+  momentum = Math.max(0, Math.min(100, momentum));
+
+  let engagement = Math.round(
+    ((avgEngagementRate / topEngagementRate) * 70) +
+    ((topEngagementRate / Math.max(topEngagementRate, 1)) * 30)
+  );
+  engagement = Math.max(0, Math.min(100, engagement));
+
+  let freshness = 15;
+  if (avgAgeHours <= 2) freshness = 100;
+  else if (avgAgeHours <= 6) freshness = 85;
+  else if (avgAgeHours <= 24) freshness = 65;
+  else if (avgAgeHours <= 72) freshness = 40;
+
+  const summaryAvgSmoke = Number(summary.avgSmokeScore ?? 0);
+  const topSmoke = Math.max(...safeVideos.map(v => v.smokeScore), 1);
+
+  let velocity = Math.round(
+    ((summaryAvgSmoke || topSmoke) / topSmoke) * 100
+  );
+  velocity = Math.max(0, Math.min(100, velocity));
+
+  let score =
+    (momentum * 0.40) +
+    (engagement * 0.25) +
+    (freshness * 0.15) +
+    (velocity * 0.20);
+
+  if (momentum > 75 && velocity > 60) {
+    score += 15;
+  } else if (momentum > 60) {
+    score += 8;
+  }
+
+  const topVideo = [...safeVideos].sort((a, b) => {
+    const aSignal = (a.viewsPerHour * 0.6) + (a.engagementRate * 20) + (a.smokeScore * 0.2);
+    const bSignal = (b.viewsPerHour * 0.6) + (b.engagementRate * 20) + (b.smokeScore * 0.2);
+    return bSignal - aSignal;
+  })[0];
+
+  let topVideoBoost = 0;
+
+  if (topVideo) {
+    const topVideoDominance = topVideo.viewsPerHour / Math.max(avgViewsPerHour, 1);
+
+    if (topVideoDominance >= 2.5) {
+      topVideoBoost = 12;
+    } else if (topVideoDominance >= 1.8) {
+      topVideoBoost = 8;
+    } else if (topVideoDominance >= 1.3) {
+      topVideoBoost = 4;
+    }
+
+    if (topVideo.hoursSincePublished <= 6) {
+      topVideoBoost += 3;
+    }
+  }
+
+  score += topVideoBoost;
+  score = Math.round(Math.max(0, Math.min(100, score)));
+
+  return {
+    score,
+    momentum,
+    engagement,
+    freshness,
+    velocity,
+    topVideoTitle: topVideo?.title || "—",
+    topVideoBoost
+  };
+}
 function updateSmokeUI(data = {}) {
   const card = document.getElementById("smokeIndexCard");
   const fill = document.getElementById("smokeFill");
