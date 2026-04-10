@@ -1553,6 +1553,18 @@
   font-weight: 800;
 }
 
+    .smoke-top-source a {
+  color: #ffd8c8;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.smoke-top-source a:hover {
+  border-bottom-color: rgba(255,216,200,0.7);
+  opacity: 0.92;
+}
+
 .heat-driver-badge {
   position: absolute;
   left: 8px;
@@ -2497,13 +2509,14 @@ function calculateSmokeBreakdown(data = {}) {
   const summary = data.summary || {};
 
   if (!videos.length) {
-    return {
+     return {
       score: 0,
       momentum: 0,
       engagement: 0,
       freshness: 0,
       velocity: 0,
       topVideoTitle: "—",
+      topVideoUrl: "",
       topVideoBoost: 0
     };
   }
@@ -2609,13 +2622,14 @@ function calculateSmokeBreakdown(data = {}) {
   score += topVideoBoost;
   score = Math.round(Math.max(0, Math.min(100, score)));
 
-  return {
+return {
     score,
     momentum,
     engagement,
     freshness,
     velocity,
     topVideoTitle: topVideo?.title || "—",
+    topVideoUrl: topVideo?.url || (topVideo?.id ? `https://youtube.com/watch?v=${topVideo.id}` : ""),
     topVideoBoost
   };
 }
@@ -2692,51 +2706,42 @@ function updateSmokeUI(data = {}) {
       helperEl.textContent = "No major heat cluster detected in the current radar state.";
     }
   }
-
 const infoBtn = document.getElementById("smokeInfoBtn");
 if (infoBtn) {
-  const tooltipText = `Smoke Index = Live heat score
+  const tooltipText = `Smoke Index is a live heat score for the current radar.
 
-How it's calculated:
+Built from:
+• Momentum
+• Engagement
+• Freshness
+• Velocity
 
-Score =
-( Momentum × 0.40 ) +
-( Engagement × 0.25 ) +
-( Freshness × 0.15 ) +
-( Velocity × 0.20 ) +
-Top Video Boost
-
-Dynamic boost is applied when:
-• Momentum is high
-• Trend is accelerating
-• A breakout top video dominates the radar
-
-Signals:
-
-• Momentum (${breakdown.momentum}) → view growth speed
-• Engagement (${breakdown.engagement}) → likes & comments strength
-• Freshness (${breakdown.freshness}) → how recent content is
-• Velocity (${breakdown.velocity}) → acceleration of the trend
-• Top Video Boost (+${breakdown.topVideoBoost}) → strongest heat-driving video influence
-
-Top Heat Source:
-${breakdown.topVideoTitle}
-
-The system is relative to current radar data,
-so scores adapt dynamically.`;
+Higher scores reflect stronger trend activity.
+A breakout top video can also lift the score.`;
 
   infoBtn.setAttribute("data-popover-text", tooltipText);
 }
-
-  if (topSourceEl) {
-  const shortTitle =
-    breakdown.topVideoTitle && breakdown.topVideoTitle.length > 68
-      ? breakdown.topVideoTitle.slice(0, 68) + "..."
-      : breakdown.topVideoTitle || "—";
-
-  topSourceEl.innerHTML = `Top Heat Source: <strong>${shortTitle}</strong>`;
 }
 
+if (topSourceEl) {
+  let cleanTitle = breakdown.topVideoTitle || "—";
+
+  cleanTitle = cleanTitle
+    .replace(/#\S+/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  const shortTitle =
+    cleanTitle.length > 44
+      ? cleanTitle.slice(0, 44).trim() + "..."
+      : cleanTitle;
+
+  if (breakdown.topVideoUrl) {
+    topSourceEl.innerHTML = `Top Heat Source: <strong><a href="${breakdown.topVideoUrl}" target="_blank" rel="noopener noreferrer">${shortTitle}</a></strong>`;
+  } else {
+    topSourceEl.innerHTML = `Top Heat Source: <strong>${shortTitle}</strong>`;
+  }
+}
   previousSmokeScore = score;
 }
 function renderHero(data = {}) {
