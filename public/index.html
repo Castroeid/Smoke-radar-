@@ -2689,38 +2689,22 @@ function updateSmokeUI(data = {}) {
   if (freshnessEl) freshnessEl.textContent = `🕒 Freshness: ${breakdown.freshness}`;
   if (velocityEl) velocityEl.textContent = `⚡ Velocity: ${breakdown.velocity}`;
 
-  if (helperEl) {
-    if (data.source === "cache") {
-      helperEl.textContent = "Cached radar state with live-style heat analysis.";
-    } else if (data.source === "seed" || data.source === "no-key") {
-      helperEl.textContent = "Offline snapshot analyzed through Smoke Index logic.";
-    } else if (tier.key === "inferno") {
-      helperEl.textContent = "Breakout heat driven by strong momentum across the current radar.";
-    } else if (tier.key === "hot") {
-      helperEl.textContent = "Strong live heat with multiple signals pointing up.";
-    } else if (tier.key === "smoking") {
-      helperEl.textContent = "Momentum is building and the radar is starting to heat up.";
-    } else if (tier.key === "warming") {
-      helperEl.textContent = "Early positive signals are starting to appear.";
-    } else {
-      helperEl.textContent = "No major heat cluster detected in the current radar state.";
-    }
+if (helperEl) {
+  if (data.source === "cache") {
+    helperEl.textContent = "Cached radar state with live-style heat analysis.";
+  } else if (data.source === "seed" || data.source === "no-key") {
+    helperEl.textContent = "Offline snapshot analyzed through Smoke Index logic.";
+  } else if (tier.key === "inferno") {
+    helperEl.textContent = "Breakout heat driven by strong momentum across the current radar.";
+  } else if (tier.key === "hot") {
+    helperEl.textContent = "Strong live heat with multiple signals pointing up.";
+  } else if (tier.key === "smoking") {
+    helperEl.textContent = "Momentum is building and the radar is starting to heat up.";
+  } else if (tier.key === "warming") {
+    helperEl.textContent = "Early positive signals are starting to appear.";
+  } else {
+    helperEl.textContent = "No major heat cluster detected in the current radar state.";
   }
-const infoBtn = document.getElementById("smokeInfoBtn");
-if (infoBtn) {
-  const tooltipText = `Smoke Index is a live heat score for the current radar.
-
-Built from:
-• Momentum
-• Engagement
-• Freshness
-• Velocity
-
-Higher scores reflect stronger trend activity.
-A breakout top video can also lift the score.`;
-
-  infoBtn.setAttribute("data-popover-text", tooltipText);
-}
 }
 
 if (topSourceEl) {
@@ -2742,7 +2726,24 @@ if (topSourceEl) {
     topSourceEl.innerHTML = `Top Heat Source: <strong>${shortTitle}</strong>`;
   }
 }
-  previousSmokeScore = score;
+
+const infoBtn = document.getElementById("smokeInfoBtn");
+if (infoBtn) {
+  const tooltipText = `Smoke Index is a live heat score for the current radar.
+
+Built from:
+• Momentum
+• Engagement
+• Freshness
+• Velocity
+
+Higher scores reflect stronger trend activity.
+A breakout top video can also lift the score.`;
+
+  infoBtn.setAttribute("data-popover-text", tooltipText);
+}
+
+previousSmokeScore = score;
 }
 function renderHero(data = {}) {
   updateSmokeUI(data);
