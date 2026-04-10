@@ -1540,7 +1540,34 @@
 .smoke-hero.delta-down .smoke-delta {
   color: #b9c3d6 !important;
 }
+.smoke-top-source {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #cfd8e6;
+  font-weight: 600;
+  opacity: 0.92;
+}
 
+.smoke-top-source strong {
+  color: #ffd8c8;
+  font-weight: 800;
+}
+
+.heat-driver-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255,107,44,0.92), rgba(255,149,95,0.88));
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 8px 18px rgba(255,107,44,0.18);
+  z-index: 2;
+}
 @keyframes smokePulse {
   0%, 100% {
     box-shadow: 0 0 0 1px rgba(255,72,26,0.06), 0 16px 40px rgba(255,72,26,0.20);
@@ -1656,6 +1683,7 @@
   <div class="subtle smoke-helper" id="smokeHelper">
     Live trend signal for the current radar state.
   </div>
+  <div class="smoke-top-source" id="smokeTopSource">Top Heat Source: —</div>
 </div>
 
     <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
@@ -2464,106 +2492,7 @@ function getSmokeTier(score) {
   };
 }
 
-function calculateSmokeBreakdown(data = {}) {
-  const videos = data.videos || [];
-  const summary = data.summary || {};
 
-  if (!videos.length) {
-    return {
-      score: 0,
-      momentum: 0,
-      engagement: 0,
-      freshness: 0,
-      velocity: 0
-    };
-  }
-
-  const safeVideos = videos.map(v => {
-    const views = Number(v.viewCount ?? v.views ?? 0);
-    const likes = Number(v.likeCount ?? v.likes ?? 0);
-    const comments = Number(v.commentCount ?? v.comments ?? 0);
-    const viewsPerHour = Number(v.viewsPerHour ?? 0);
-    const hoursSincePublished = Number(v.hoursSincePublished ?? 0);
-    const smokeScore = Number(v.smokeScore ?? 0);
-
-    const engagementRate =
-      views > 0 ? ((likes + comments * 2) / views) * 100 : 0;
-
-    return {
-      views,
-      likes,
-      comments,
-      viewsPerHour,
-      hoursSincePublished,
-      smokeScore,
-      engagementRate
-    };
-  });
-
-  const avgViewsPerHour =
-    safeVideos.reduce((sum, v) => sum + v.viewsPerHour, 0) / safeVideos.length;
-
-  const topViewsPerHour = Math.max(...safeVideos.map(v => v.viewsPerHour), 1);
-
-  const avgEngagementRate =
-    safeVideos.reduce((sum, v) => sum + v.engagementRate, 0) / safeVideos.length;
-
-  const topEngagementRate = Math.max(
-    ...safeVideos.map(v => v.engagementRate),
-    1
-  );
-
-  const avgAgeHours =
-    safeVideos.reduce((sum, v) => sum + v.hoursSincePublished, 0) / safeVideos.length;
-
-  let momentum = Math.round(
-    ((avgViewsPerHour / topViewsPerHour) * 70) +
-    ((topViewsPerHour / Math.max(topViewsPerHour, 1)) * 30)
-  );
-  momentum = Math.max(0, Math.min(100, momentum));
-
-  let engagement = Math.round(
-    ((avgEngagementRate / topEngagementRate) * 70) +
-    ((topEngagementRate / Math.max(topEngagementRate, 1)) * 30)
-  );
-  engagement = Math.max(0, Math.min(100, engagement));
-
-  let freshness = 15;
-  if (avgAgeHours <= 2) freshness = 100;
-  else if (avgAgeHours <= 6) freshness = 85;
-  else if (avgAgeHours <= 24) freshness = 65;
-  else if (avgAgeHours <= 72) freshness = 40;
-
-  const summaryAvgSmoke = Number(summary.avgSmokeScore ?? 0);
-  const topSmoke = Math.max(...safeVideos.map(v => v.smokeScore), 1);
-
-  let velocity = Math.round(
-    ((summaryAvgSmoke || topSmoke) / topSmoke) * 100
-  );
-  velocity = Math.max(0, Math.min(100, velocity));
-
-  let score =
-    (momentum * 0.40) +
-    (engagement * 0.25) +
-    (freshness * 0.15) +
-    (velocity * 0.20);
-
-  if (momentum > 75 && velocity > 60) {
-    score += 15;
-  } else if (momentum > 60) {
-    score += 8;
-  }
-
-  score = Math.round(Math.max(0, Math.min(100, score)));
-
-  return {
-    score,
-    momentum,
-    engagement,
-    freshness,
-    velocity
-  };
-}
 function updateSmokeUI(data = {}) {
   const card = document.getElementById("smokeIndexCard");
   const fill = document.getElementById("smokeFill");
@@ -2572,6 +2501,7 @@ function updateSmokeUI(data = {}) {
   const deltaEl = document.getElementById("smokeDelta");
   const noteEl = document.getElementById("smokeLevelNote");
   const helperEl = document.getElementById("smokeHelper");
+  const topSourceEl = document.getElementById("smokeTopSource");
 
   const momentumEl = document.getElementById("breakdownMomentum");
   const engagementEl = document.getElementById("breakdownEngagement");
@@ -2637,9 +2567,9 @@ function updateSmokeUI(data = {}) {
     }
   }
 
-  const infoBtn = document.getElementById("smokeInfoBtn");
-  if (infoBtn) {
-    const tooltipText = `Smoke Index = Live heat score
+const infoBtn = document.getElementById("smokeInfoBtn");
+if (infoBtn) {
+  const tooltipText = `Smoke Index = Live heat score
 
 How it's calculated:
 
@@ -2647,11 +2577,13 @@ Score =
 ( Momentum × 0.40 ) +
 ( Engagement × 0.25 ) +
 ( Freshness × 0.15 ) +
-( Velocity × 0.20 )
+( Velocity × 0.20 ) +
+Top Video Boost
 
 Dynamic boost is applied when:
 • Momentum is high
 • Trend is accelerating
+• A breakout top video dominates the radar
 
 Signals:
 
@@ -2659,12 +2591,25 @@ Signals:
 • Engagement (${breakdown.engagement}) → likes & comments strength
 • Freshness (${breakdown.freshness}) → how recent content is
 • Velocity (${breakdown.velocity}) → acceleration of the trend
+• Top Video Boost (+${breakdown.topVideoBoost}) → strongest heat-driving video influence
+
+Top Heat Source:
+${breakdown.topVideoTitle}
 
 The system is relative to current radar data,
 so scores adapt dynamically.`;
 
-    infoBtn.setAttribute("data-popover-text", tooltipText);
-  }
+  infoBtn.setAttribute("data-popover-text", tooltipText);
+}
+
+  if (topSourceEl) {
+  const shortTitle =
+    breakdown.topVideoTitle && breakdown.topVideoTitle.length > 68
+      ? breakdown.topVideoTitle.slice(0, 68) + "..."
+      : breakdown.topVideoTitle || "—";
+
+  topSourceEl.innerHTML = `Top Heat Source: <strong>${shortTitle}</strong>`;
+}
 
   previousSmokeScore = score;
 }
@@ -2867,8 +2812,9 @@ function renderHero(data = {}) {
 
         return `
           <div class="card">
-            <div class="thumb">
-              <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
+             <div class="thumb">
+                ${index === 0 ? `<div class="heat-driver-badge">🔥 Driving the Heat</div>` : ""}
+                <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
               <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour || 0)}` : `Smoke ${formatNum(v.smokeScore || 0)}`}</div>
               <div class="duration-badge">${escapeHtml(v.durationLabel || "0:00")}</div>
             </div>
