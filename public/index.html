@@ -1604,6 +1604,76 @@
     grid-template-columns: 1fr;
   }
 }
+    /* ===== ZONES BASE ===== */
+.zone {
+  margin-top: 100px;
+  padding: 60px 0;
+  position: relative;
+}
+
+/* ===== RADAR ===== */
+.zone-radar {
+  background: radial-gradient(circle at top, rgba(255,120,0,0.08), transparent 60%);
+}
+
+/* ===== CUTS ===== */
+.zone-cuts {
+  background: rgba(255,255,255,0.02);
+  border-radius: 20px;
+  padding: 40px;
+}
+
+/* ===== TOOLS ===== */
+.zone-tools {
+  background: rgba(255,255,255,0.015);
+  border-radius: 20px;
+  padding: 40px;
+}
+
+/* ===== SYSTEM ===== */
+.zone-system {
+  background: rgba(0,0,0,0.4);
+  border-radius: 20px;
+  padding: 40px;
+}
+    .zone-divider {
+  margin: 100px 0 40px;
+  text-align: center;
+  position: relative;
+}
+
+.zone-divider span {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  background: #0b0f14;
+  padding: 0 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.zone-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255,120,0,0.3),
+    transparent
+  );
+}
+    .zone {
+  margin-top: 100px;
+  padding: 60px 0;
+  position: relative;
+
+  /* זה החלק החדש */
+  grid-column: 1 / -1;
+}
   </style>
 </head>
 <body>
