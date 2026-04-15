@@ -600,13 +600,17 @@
       margin-bottom: 16px;
     }
 
-    .cuts-grid {
+.cuts-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 32px;
   align-items: start;
 }
-
+    .cuts-grid > div:last-child {
+  width: 100%;
+  max-width: 420px;
+  justify-self: end;
+}
 .recipe-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1181,7 +1185,7 @@
 
  @media (min-width: 860px) {
   .cuts-grid {
-    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    grid-template-columns: minmax(0, 1fr) 420px;
     align-items: start;
   }
 }
