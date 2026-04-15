@@ -602,15 +602,13 @@
 
 .cuts-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 32px;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
   align-items: start;
 }
-    .cuts-grid > div:last-child {
-  width: 100%;
-  max-width: 420px;
-  justify-self: end;
-}
+  
 .recipe-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -825,19 +823,21 @@
       box-shadow: 0 0 18px rgba(255,107,44,0.24);
     }
 
-    .cut-panel {
-        margin-top: 0;
-        width: 100%;
-        min-height: 240px;
-        padding: 28px;
-        border-radius: 24px;
-        background: linear-gradient(180deg, rgba(12,22,40,0.95), rgba(8,16,30,0.92));
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 18px 48px rgba(0,0,0,0.28);
-        animation: fadeInUp 0.3s ease;
-        position: sticky;
-        top: 24px;
-    }
+   .cut-panel {
+  margin-top: 0;
+  width: 100%;
+  min-height: 0;
+  padding: 24px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(12,22,40,0.95), rgba(8,16,30,0.92));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 18px 48px rgba(0,0,0,0.28);
+  animation: fadeInUp 0.3s ease;
+  position: static;
+}
+    .cut-panel.is-hidden {
+  display: none;
+}
 
     .cut-panel h3 {
       margin: 0 0 8px;
@@ -1988,7 +1988,7 @@
             </div>
           </div>
 
-          <div id="cutInfo" class="cut-panel"></div>
+          <div id="cutInfo" class="cut-panel is-hidden"></div>
         </div>
       </div>
     </div>
@@ -3255,6 +3255,8 @@ function renderHero(data = {}) {
         <h4>Tip</h4>
         <p>${escapeHtml(cut.tip)}</p>
       `;
+      panel.classList.remove("is-hidden");
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   
 function updateBeefHighlight(cutName) {
