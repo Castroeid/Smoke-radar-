@@ -3184,69 +3184,88 @@ function renderHero(data = {}) {
       });
     }
 
- function renderCutsGrid(activeId = null) {
-  const grid = document.getElementById("cutsGrid");
-  if (!grid) return;
+    const CUT_TO_REGION_MAP = {
+      chuck: "chuck",
+      ribeye: "rib",
+      sirloin: "sirloin",
+      brisket: "brisket",
+      short_ribs: "plate",
+      picanha: "picanha",
+      filet: "short_loin",
+      flank: "plate"
+    };
 
-  grid.innerHTML = cutCards.map(c => `
-    <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
-      ${c.label}
-    </button>
-  `).join("");
+    const REGION_TO_CUT_MAP = {
+      rib: "ribeye",
+      short_loin: "filet",
+      plate: "short_ribs",
+      sirloin: "sirloin",
+      chuck: "chuck",
+      brisket: "brisket",
+      picanha: "picanha",
+      round: "picanha"
+    };
 
-  grid.querySelectorAll(".cut-grid-card").forEach((btn) => {
-    const key = btn.dataset.cutId;
+    function getRegionIdForCut(cutId) {
+      return CUT_TO_REGION_MAP[cutId] || cutId;
+    }
 
-    btn.addEventListener("mouseenter", () => {
-      const map = {
-        ribeye: "rib",
-        filet: "short_loin",
-        short_ribs: "plate",
-        flank: "plate"
-      };
+    function getCutIdForRegion(regionId) {
+      return REGION_TO_CUT_MAP[regionId] || regionId;
+    }
 
-      const shapeId = map[key] || key;
-      const shape = document.getElementById(shapeId);
+    function getActiveCutId() {
+      return document.querySelector(".cut-grid-card.active")?.dataset.cutId || null;
+    }
 
-      if (shape && !shape.classList.contains("is-active")) {
-        shape.classList.add("hovered");
-      }
-    });
+    function updateCutSelection(cutId, { allowToggle = false } = {}) {
+      const activeCutId = getActiveCutId();
+      const shouldClear = allowToggle && activeCutId === cutId;
 
-    btn.addEventListener("mouseleave", () => {
-      const map = {
-        ribeye: "rib",
-        filet: "short_loin",
-        short_ribs: "plate",
-        flank: "plate"
-      };
-
-      const shapeId = map[key] || key;
-      const shape = document.getElementById(shapeId);
-
-      if (shape) {
-        shape.classList.remove("hovered");
-      }
-    });
-
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      const isAlreadyActive = btn.classList.contains("active");
-
-      if (isAlreadyActive) {
+      if (shouldClear || !cutId) {
         renderCutsGrid(null);
         hideCutPanel();
         updateBeefHighlight(null);
         return;
       }
 
-      renderCutsGrid(key);
-      showCutPanel(key);
-      updateBeefHighlight(key);
-    });
-  });
-}
+      renderCutsGrid(cutId);
+      showCutPanel(cutId);
+      updateBeefHighlight(cutId);
+    }
+
+    function renderCutsGrid(activeId = null) {
+      const grid = document.getElementById("cutsGrid");
+      if (!grid) return;
+
+      grid.innerHTML = cutCards.map(c => `
+        <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
+          ${c.label}
+        </button>
+      `).join("");
+
+      grid.querySelectorAll(".cut-grid-card").forEach((btn) => {
+        const cutId = btn.dataset.cutId;
+        const regionId = getRegionIdForCut(cutId);
+
+        btn.addEventListener("mouseenter", () => {
+          const shape = document.getElementById(regionId);
+          if (shape && !shape.classList.contains("is-active")) {
+            shape.classList.add("hovered");
+          }
+        });
+
+        btn.addEventListener("mouseleave", () => {
+          const shape = document.getElementById(regionId);
+          shape?.classList.remove("hovered");
+        });
+
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          updateCutSelection(cutId, { allowToggle: true });
+        });
+      });
+    }
 
     function showCutPanel(cutKey) {
       const cut = cutData[cutKey];
@@ -3279,22 +3298,11 @@ function renderHero(data = {}) {
 }
   
 function updateBeefHighlight(cutName) {
-  const cutMap = {
-    chuck: "chuck",
-    ribeye: "rib",
-    sirloin: "sirloin",
-    brisket: "brisket",
-    short_ribs: "plate",
-    picanha: "picanha",
-    filet: "short_loin",
-    flank: "plate"
-  };
-
-  const targetId = cutMap[cutName] || cutName;
+  const targetId = getRegionIdForCut(cutName);
   const allCuts = document.querySelectorAll(".cut-region");
 
   allCuts.forEach((el) => {
-    el.classList.remove("is-active", "is-dimmed");
+    el.classList.remove("is-active", "is-dimmed", "hovered");
 
     if (!targetId) return;
 
@@ -3305,39 +3313,24 @@ function updateBeefHighlight(cutName) {
     }
   });
 }
-document.querySelectorAll(".cut-region").forEach((el) => {
-  const reverseMap = {
-    rib: "ribeye",
-    short_loin: "filet",
-    plate: "short_ribs",
-    sirloin: "sirloin",
-    chuck: "chuck",
-    brisket: "brisket",
-    picanha: "picanha",
-    round: "picanha"
-  };
 
-  el.addEventListener("mouseenter", () => {
-    const mappedCut = reverseMap[el.id] || el.id;
-    updateBeefHighlight(mappedCut);
-  });
+    function attachBeefMapInteractions() {
+      document.querySelectorAll(".cut-region").forEach((region) => {
+        region.addEventListener("mouseenter", () => {
+          const mappedCut = getCutIdForRegion(region.id);
+          updateBeefHighlight(mappedCut);
+        });
 
-  el.addEventListener("mouseleave", () => {
-    const activeBtn = document.querySelector(".cut-grid-card.active");
-    if (activeBtn) {
-      updateBeefHighlight(activeBtn.dataset.cutId);
-    } else {
-      updateBeefHighlight(null);
+        region.addEventListener("mouseleave", () => {
+          updateBeefHighlight(getActiveCutId());
+        });
+
+        region.addEventListener("click", () => {
+          const mappedCut = getCutIdForRegion(region.id);
+          updateCutSelection(mappedCut);
+        });
+      });
     }
-  });
-
-  el.addEventListener("click", () => {
-    const mappedCut = reverseMap[el.id] || el.id;
-    renderCutsGrid(mappedCut);
-    showCutPanel(mappedCut);
-    updateBeefHighlight(mappedCut);
-  });
-});
     async function generateRecipe() {
       const cut = document.getElementById("cutType").value;
       const method = document.getElementById("cookingMethod").value;
@@ -3588,6 +3581,7 @@ const data = isJson ? await res.json() : null;
 document.addEventListener("DOMContentLoaded", () => {
   attachTabs();
   attachPopovers();
+  attachBeefMapInteractions();
   renderCutsGrid(null);
   updateBeefHighlight(null);
   loadData();
