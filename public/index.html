@@ -603,8 +603,8 @@
 .cuts-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
-  max-width: 760px;
+  gap: 24px;
+  max-width: 860px;
   margin: 0 auto;
   align-items: start;
 }
@@ -1184,9 +1184,9 @@
       }
     }
 
- @media (min-width: 860px) {
+@media (min-width: 860px) {
   .cuts-grid {
-    grid-template-columns: minmax(0, 1fr) 420px;
+    grid-template-columns: 1fr;
     align-items: start;
   }
 }
@@ -1642,7 +1642,9 @@
 .zone-cuts {
   background: rgba(255,255,255,0.02);
   border-radius: 20px;
-  padding: 40px;
+  padding: 40px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* ===== TOOLS ===== */
@@ -3182,7 +3184,7 @@ function renderHero(data = {}) {
       });
     }
 
-   function renderCutsGrid(activeId = "ribeye") {
+ function renderCutsGrid(activeId = null) {
   const grid = document.getElementById("cutsGrid");
   if (!grid) return;
 
@@ -3229,6 +3231,16 @@ function renderHero(data = {}) {
 
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
+
+      const isAlreadyActive = btn.classList.contains("active");
+
+      if (isAlreadyActive) {
+        renderCutsGrid(null);
+        hideCutPanel();
+        updateBeefHighlight(null);
+        return;
+      }
+
       renderCutsGrid(key);
       showCutPanel(key);
       updateBeefHighlight(key);
@@ -3258,6 +3270,13 @@ function renderHero(data = {}) {
       `;
       panel.classList.remove("is-hidden");
     }
+  function hideCutPanel() {
+  const panel = document.getElementById("cutInfo");
+  if (!panel) return;
+
+  panel.classList.add("is-hidden");
+  panel.innerHTML = "";
+}
   
 function updateBeefHighlight(cutName) {
   const cutMap = {
@@ -3566,11 +3585,11 @@ const data = isJson ? await res.json() : null;
       }
     }
 
-   document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   attachTabs();
   attachPopovers();
-  renderCutsGrid("ribeye");
-  updateBeefHighlight("ribeye");
+  renderCutsGrid(null);
+  updateBeefHighlight(null);
   loadData();
   window.setTimeout(hideOpeningLoader, 2200);
 });
