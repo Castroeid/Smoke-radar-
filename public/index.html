@@ -823,7 +823,7 @@
       box-shadow: 0 0 18px rgba(255,107,44,0.24);
     }
 
-   .cut-panel {
+.cut-panel {
   margin-top: 0;
   width: 100%;
   min-height: 0;
@@ -835,7 +835,8 @@
   animation: fadeInUp 0.3s ease;
   position: static;
 }
-    .cut-panel.is-hidden {
+
+.cut-panel.is-hidden {
   display: none;
 }
 
@@ -3256,7 +3257,6 @@ function renderHero(data = {}) {
         <p>${escapeHtml(cut.tip)}</p>
       `;
       panel.classList.remove("is-hidden");
-      panel.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   
 function updateBeefHighlight(cutName) {
@@ -3570,7 +3570,6 @@ const data = isJson ? await res.json() : null;
   attachTabs();
   attachPopovers();
   renderCutsGrid("ribeye");
-  showCutPanel("ribeye");
   updateBeefHighlight("ribeye");
   loadData();
   window.setTimeout(hideOpeningLoader, 2200);
