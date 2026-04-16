@@ -446,6 +446,17 @@
       overflow: hidden;
     }
 
+    .signal-card-linkable {
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .signal-card-linkable:hover {
+      border-color: rgba(255,154,104,0.4);
+      box-shadow: 0 0 0 1px rgba(255,154,104,0.06), 0 12px 26px rgba(255,107,44,0.14);
+      transform: translateY(-1px);
+    }
+
     .signal-card::after {
       content: "";
       position: absolute;
@@ -1357,9 +1368,22 @@
   padding: 20px;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(255,107,44,0.12), transparent 35%),
+    radial-gradient(120% 72% at 50% -12%, rgba(255,120,54,0.12), rgba(255,120,54,0.04) 48%, transparent 76%),
     linear-gradient(180deg, var(--panel), var(--panel-2));
   transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.smoke-hero::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: -42px;
+  height: 110px;
+  pointer-events: none;
+  background: radial-gradient(75% 90% at 50% 100%, rgba(255,122,56,0.18), rgba(255,122,56,0.06) 52%, transparent 84%);
+  filter: blur(12px);
+  opacity: 0.58;
 }
 
 .smoke-hero:hover {
@@ -1472,7 +1496,8 @@
   height: 100%;
   width: 0%;
   border-radius: inherit;
-  transition: width 0.4s ease, background 0.25s ease, box-shadow 0.25s ease;
+  background: linear-gradient(90deg, #4f84ff 0%, #6aa7ff 24%, #ffb86a 52%, #ff7a44 76%, #ff3f35 100%);
+  transition: width 0.4s ease, box-shadow 0.25s ease;
 }
 
 .smoke-scale {
@@ -1520,7 +1545,6 @@
 }
 
 .smoke-hero.tier-warming #smokeFill {
-  background: linear-gradient(90deg, #74acff, #ffb264);
   box-shadow: 0 0 16px rgba(158,178,220,0.2);
 }
 
@@ -1535,7 +1559,6 @@
 }
 
 .smoke-hero.tier-smoking #smokeFill {
-  background: linear-gradient(90deg, #ff7f33, #ffab5b);
   box-shadow: 0 0 16px rgba(255,145,60,0.18);
 }
 
@@ -1551,7 +1574,6 @@
 }
 
 .smoke-hero.tier-hot #smokeFill {
-  background: linear-gradient(90deg, #ff5a31, #ff6c3b);
   box-shadow: 0 0 18px rgba(255,93,52,0.26);
 }
 
@@ -1568,7 +1590,6 @@
 }
 
 .smoke-hero.tier-inferno #smokeFill {
-  background: linear-gradient(90deg, #ff3c2b, #ff5b2c);
   box-shadow: 0 0 22px rgba(255,66,43,0.3);
 }
 
@@ -1830,7 +1851,7 @@
         <div class="signal-value">0</div>
         <div class="signal-sub">Current feed size</div>
       </div>
-      <div class="signal-card">
+      <div class="signal-card" id="topChannelSignalCard">
         <div class="signal-label">Top Channel</div>
         <div class="signal-value">—</div>
         <div class="signal-sub">Highest current average</div>
@@ -2944,7 +2965,7 @@ function attachInteractiveCards() {
 
     const openVideo = (event) => {
       if (event?.target?.closest("a, button")) return;
-      const url = card.dataset.videoUrl;
+      const url = card.dataset.videoUrl || card.dataset.channelUrl;
       if (!url) return;
       window.open(url, "_blank", "noopener,noreferrer");
     };
@@ -2957,6 +2978,32 @@ function attachInteractiveCards() {
       }
     });
   });
+
+  const signalStrip = document.getElementById("signalStrip");
+  if (signalStrip && !signalStrip.dataset.linkBound) {
+    signalStrip.dataset.linkBound = "true";
+
+    const openSignalCardLink = (card) => {
+      const url = card?.dataset?.channelUrl;
+      if (!url) return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    };
+
+    signalStrip.addEventListener("click", (event) => {
+      if (event?.target?.closest("a, button")) return;
+      const card = event.target.closest(".signal-card-linkable");
+      if (!card) return;
+      openSignalCardLink(card);
+    });
+
+    signalStrip.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const card = event.target.closest(".signal-card-linkable");
+      if (!card) return;
+      event.preventDefault();
+      openSignalCardLink(card);
+    });
+  }
 }
     function renderSignalStrip(data = {}) {
       const videos = data.videos || [];
@@ -2964,6 +3011,14 @@ function attachInteractiveCards() {
         (data.topChannels && data.topChannels[0])
           ? data.topChannels[0].channelTitle
           : (videos[0]?.channelTitle || videos[0]?.channel || "—");
+      const topChannelVideo = videos.find(v => (v.channelTitle || v.channel) === topChannel) || videos[0] || null;
+      const topChannelUrl = topChannelVideo?.channelId
+        ? `https://youtube.com/channel/${topChannelVideo.channelId}`
+        : getVideoUrl(topChannelVideo);
+      const topChannelCardClass = topChannelUrl ? "signal-card signal-card-linkable" : "signal-card";
+      const topChannelCardAttrs = topChannelUrl
+        ? ` data-channel-url="${escapeHtml(topChannelUrl)}" role="link" tabindex="0"`
+        : "";
 
       const avgSmoke = data?.summary?.avgSmokeScore
         ? Number(data.summary.avgSmokeScore)
@@ -2981,7 +3036,7 @@ function attachInteractiveCards() {
           <div class="signal-value">${formatNum(videos.length)}</div>
           <div class="signal-sub">Current feed size</div>
         </div>
-        <div class="signal-card">
+        <div id="topChannelSignalCard" class="${topChannelCardClass}"${topChannelCardAttrs}>
           <div class="signal-label">Top Channel</div>
           <div class="signal-value">${escapeHtml(String(topChannel).length > 14 ? String(topChannel).slice(0, 14) + "..." : String(topChannel))}</div>
           <div class="signal-sub">Highest current average</div>
