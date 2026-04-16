@@ -490,6 +490,17 @@
       padding: 16px;
     }
 
+    .card-linkable {
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .card-linkable:hover {
+      border-color: rgba(255,154,104,0.52);
+      box-shadow: 0 0 0 1px rgba(255,154,104,0.08), 0 12px 28px rgba(255,107,44,0.17);
+      transform: translateY(-1px);
+    }
+
     .insight-label {
       color: var(--muted);
       font-size: 12px;
@@ -1472,6 +1483,12 @@
   margin-top: 8px;
 }
 
+.smoke-scale span:nth-child(1) { color: #78aeff; }
+.smoke-scale span:nth-child(2) { color: #b7c8df; }
+.smoke-scale span:nth-child(3) { color: #ffb26e; }
+.smoke-scale span:nth-child(4) { color: #ff8456; }
+.smoke-scale span:nth-child(5) { color: #ff5448; }
+
 .smoke-helper {
   margin-top: 14px;
   margin-bottom: 0;
@@ -1488,23 +1505,23 @@
 }
 
 .smoke-hero.tier-cold #smokeFill {
-  background: linear-gradient(90deg, #4d7fff, #78b5ff);
+  background: linear-gradient(90deg, #3f72ff, #67b4ff);
   box-shadow: 0 0 16px rgba(90,160,255,0.18);
 }
 
 .smoke-hero.tier-warming {
-  border-color: rgba(255,196,80,0.26);
+  border-color: rgba(127,174,255,0.26);
 }
 
 .smoke-hero.tier-warming .smoke-tier-badge,
 .smoke-hero.tier-warming .smoke-value,
 .smoke-hero.tier-warming .smoke-delta {
-  color: #ffc85a;
+  color: #ffc081;
 }
 
 .smoke-hero.tier-warming #smokeFill {
-  background: linear-gradient(90deg, #ffb347, #ffd26f);
-  box-shadow: 0 0 16px rgba(255,196,80,0.18);
+  background: linear-gradient(90deg, #74acff, #ffb264);
+  box-shadow: 0 0 16px rgba(158,178,220,0.2);
 }
 
 .smoke-hero.tier-smoking {
@@ -1518,7 +1535,7 @@
 }
 
 .smoke-hero.tier-smoking #smokeFill {
-  background: linear-gradient(90deg, #ff8a3d, #ffb061);
+  background: linear-gradient(90deg, #ff7f33, #ffab5b);
   box-shadow: 0 0 16px rgba(255,145,60,0.18);
 }
 
@@ -1534,8 +1551,8 @@
 }
 
 .smoke-hero.tier-hot #smokeFill {
-  background: linear-gradient(90deg, #ff6738, #ff8b43);
-  box-shadow: 0 0 18px rgba(255,107,44,0.24);
+  background: linear-gradient(90deg, #ff5a31, #ff6c3b);
+  box-shadow: 0 0 18px rgba(255,93,52,0.26);
 }
 
 .smoke-hero.tier-inferno {
@@ -1551,8 +1568,22 @@
 }
 
 .smoke-hero.tier-inferno #smokeFill {
-  background: linear-gradient(90deg, #ff4e2c, #ff7a3a);
-  box-shadow: 0 0 22px rgba(255,72,26,0.28);
+  background: linear-gradient(90deg, #ff3c2b, #ff5b2c);
+  box-shadow: 0 0 22px rgba(255,66,43,0.3);
+}
+
+.smoke-hero.refresh-flash #smokeFill {
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 0 26px rgba(255,130,82,0.34);
+  transition: box-shadow 280ms ease;
+}
+
+.smoke-value.value-refresh {
+  animation: smokeValueRefresh 340ms ease;
+}
+
+@keyframes smokeValueRefresh {
+  0% { opacity: 0.65; transform: translateY(1px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .smoke-hero.delta-up-strong .smoke-value {
@@ -1817,13 +1848,13 @@
     </div>
 
     <div class="insights-grid app-enter app-enter-delay-2">
-      <div class="insight-card">
+      <div class="insight-card" id="fastestBreakoutCard">
         <div class="insight-label">🚀 Fastest Breakout</div>
         <div class="insight-title" id="fastestBreakoutTitle">—</div>
         <div class="insight-meta" id="fastestBreakoutMeta">Waiting for live signal...</div>
       </div>
 
-      <div class="insight-card">
+      <div class="insight-card" id="oldestActiveCard">
         <div class="insight-label">🕰️ Oldest Active</div>
         <div class="insight-title" id="oldestActiveTitle">—</div>
         <div class="insight-meta" id="oldestActiveMeta">Waiting for age signal...</div>
@@ -1843,7 +1874,7 @@
 
     <div class="kpis app-enter app-enter-delay-2" id="kpis"></div>
 
-    <div class="panel app-enter app-enter-delay-2">
+    <div class="panel app-enter app-enter-delay-2" id="momentumTrendCard">
       <div class="panel-heading">
         <h2 id="chartTitle">Momentum Trend</h2>
         <button type="button" class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
@@ -2573,6 +2604,7 @@ function openPopover(title, html, buttonEl = null) {
     }
 
    let previousSmokeScore = null;
+   let smokeRefreshTimer = null;
 
 function getSmokeTier(score) {
   if (score >= 80) {
@@ -2743,7 +2775,7 @@ return {
     topVideoBoost
   };
 }
-function updateSmokeUI(data = {}) {
+function updateSmokeUI(data = {}, options = {}) {
   const card = document.getElementById("smokeIndexCard");
   const fill = document.getElementById("smokeFill");
   const valueEl = document.getElementById("smokeValue");
@@ -2763,6 +2795,7 @@ function updateSmokeUI(data = {}) {
   const breakdown = calculateSmokeBreakdown(data);
   const score = breakdown.score;
   const tier = getSmokeTier(score);
+  const shouldAnimateRefresh = Boolean(options.animateRefresh);
 
   const delta = previousSmokeScore === null ? 0 : score - previousSmokeScore;
 
@@ -2785,6 +2818,20 @@ function updateSmokeUI(data = {}) {
   tierBadge.textContent = tier.label;
   noteEl.textContent = tier.note;
   fill.style.width = `${score}%`;
+
+  if (shouldAnimateRefresh) {
+    card.classList.remove("refresh-flash");
+    valueEl.classList.remove("value-refresh");
+    void card.offsetWidth;
+    card.classList.add("refresh-flash");
+    valueEl.classList.add("value-refresh");
+
+    if (smokeRefreshTimer) window.clearTimeout(smokeRefreshTimer);
+    smokeRefreshTimer = window.setTimeout(() => {
+      card.classList.remove("refresh-flash");
+      valueEl.classList.remove("value-refresh");
+    }, 420);
+  }
 
   if (delta > 0) {
     deltaEl.textContent = `↑ +${Math.round(delta)}`;
@@ -2855,8 +2902,61 @@ A breakout top video can also lift the score.`;
 
 previousSmokeScore = score;
 }
-function renderHero(data = {}) {
-  updateSmokeUI(data);
+function renderHero(data = {}, options = {}) {
+  updateSmokeUI(data, options);
+}
+
+function getVideoUrl(video = {}) {
+  if (!video || typeof video !== "object") return "";
+  if (video.url) return video.url;
+  if (video.videoUrl) return video.videoUrl;
+  if (video.videoId) return `https://youtube.com/watch?v=${video.videoId}`;
+  if (video.id) return `https://youtube.com/watch?v=${video.id}`;
+  return "";
+}
+
+function setCardLinkBehavior(cardEl, url) {
+  if (!cardEl) return;
+
+  if (url) {
+    cardEl.dataset.videoUrl = url;
+    cardEl.classList.add("card-linkable");
+    cardEl.setAttribute("role", "link");
+    cardEl.setAttribute("tabindex", "0");
+  } else {
+    delete cardEl.dataset.videoUrl;
+    cardEl.classList.remove("card-linkable");
+    cardEl.removeAttribute("role");
+    cardEl.removeAttribute("tabindex");
+  }
+}
+
+function updateMomentumTrendLink(videos = []) {
+  const momentumCard = document.getElementById("momentumTrendCard");
+  const topVideo = Array.isArray(videos) ? videos[0] : null;
+  setCardLinkBehavior(momentumCard, getVideoUrl(topVideo));
+}
+
+function attachInteractiveCards() {
+  ["fastestBreakoutCard", "oldestActiveCard", "momentumTrendCard"].forEach((id) => {
+    const card = document.getElementById(id);
+    if (!card) return;
+
+    const openVideo = (event) => {
+      if (event?.target?.closest("a, button")) return;
+      const url = card.dataset.videoUrl;
+      if (!url) return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    };
+
+    card.addEventListener("click", openVideo);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openVideo();
+      }
+    });
+  });
 }
     function renderSignalStrip(data = {}) {
       const videos = data.videos || [];
@@ -2915,6 +3015,9 @@ function renderHero(data = {}) {
 
       document.getElementById("oldestActiveMeta").textContent =
         oldest ? `${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}` : "Waiting for age signal...";
+
+      setCardLinkBehavior(document.getElementById("fastestBreakoutCard"), getVideoUrl(fastest));
+      setCardLinkBehavior(document.getElementById("oldestActiveCard"), getVideoUrl(oldest));
 
       const lead = regions[0]?.region || "—";
       document.getElementById("regionsLead").textContent = lead;
@@ -3168,6 +3271,7 @@ function renderHero(data = {}) {
       const videos = getTabVideos();
       renderVideos(videos);
       renderScoreChart(videos);
+      updateMomentumTrendLink(videos);
 
       document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.tab === currentTab);
@@ -3528,7 +3632,7 @@ const data = isJson ? await res.json() : null;
         visibleVideoCount = 6;
 
         renderMeta(data);
-        renderHero(data);
+        renderHero(data, { animateRefresh: true });
         renderSignalStrip(data);
         renderInsights(data);
         renderKpis(data.summary || {}, data.formatStats || {});
@@ -3549,7 +3653,7 @@ const data = isJson ? await res.json() : null;
         console.error(error);
 
         renderMeta({});
-        renderHero({});
+        renderHero({}, { animateRefresh: false });
         renderSignalStrip({});
         renderInsights({});
         renderKpis({}, {});
@@ -3581,6 +3685,7 @@ const data = isJson ? await res.json() : null;
 document.addEventListener("DOMContentLoaded", () => {
   attachTabs();
   attachPopovers();
+  attachInteractiveCards();
   attachBeefMapInteractions();
   renderCutsGrid(null);
   updateBeefHighlight(null);
