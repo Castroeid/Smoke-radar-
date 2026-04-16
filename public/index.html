@@ -1202,7 +1202,7 @@
 
     @media (min-width: 980px) {
       .insights-grid {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: repeat(4, 1fr);
       }
     }
 
@@ -1885,6 +1885,13 @@
         <div class="insight-label">🌍 Top Regions</div>
         <div class="insight-title" id="regionsLead">—</div>
         <div class="region-chips" id="regionChips"></div>
+      </div>
+
+      <div class="insight-card" id="israelRadarCard">
+        <div class="insight-label">🇮🇱 Israel Radar</div>
+        <div class="insight-title" id="israelRadarTitle">—</div>
+        <div class="insight-meta" id="israelRadarLead">Waiting for local signal...</div>
+        <div class="insight-meta" id="israelRadarMeta">Analyzing Israel trend activity...</div>
       </div>
     </div>
 
@@ -2958,8 +2965,97 @@ function updateMomentumTrendLink(videos = []) {
   setCardLinkBehavior(momentumCard, getVideoUrl(topVideo));
 }
 
+const israelKeywordSignals = [
+  "israel", "israeli", "tel aviv", "jerusalem", "haifa", "jaffa", "נתח", "בשר",
+  "על האש", "על-האש", "מנגל", "מנגלים", "אסאדו", "שווארמה", "שיפוד", "קבב", "פיתה"
+];
+
+function isHebrewText(text = "") {
+  return /[\u0590-\u05FF]/.test(String(text));
+}
+
+function isIsraelRegionSignal(value = "") {
+  const normalized = String(value || "").toLowerCase();
+  if (!normalized) return false;
+  return normalized === "il" || normalized.includes("israel");
+}
+
+function matchesIsraelKeywords(text = "") {
+  const normalized = String(text || "").toLowerCase();
+  return israelKeywordSignals.some((term) => normalized.includes(term));
+}
+
+function scoreIsraelSignal(video = {}) {
+  const textBlob = [
+    video.title,
+    video.channelTitle,
+    video.regionLabel,
+    video.region,
+    video.countryCode,
+    video.description
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  const hasRegionSignal =
+    isIsraelRegionSignal(video.regionLabel) ||
+    isIsraelRegionSignal(video.region) ||
+    isIsraelRegionSignal(video.countryCode);
+
+  const hasKeywordSignal = matchesIsraelKeywords(textBlob);
+  const hasHebrewSignal = isHebrewText(textBlob);
+
+  let score = 0;
+  if (hasRegionSignal) score += 3;
+  if (hasKeywordSignal) score += 2;
+  if (hasHebrewSignal) score += 2;
+
+  return score;
+}
+
+function buildIsraelRadarInsight(data = {}) {
+  const videos = Array.isArray(data.videos) ? data.videos : [];
+  const keywords = Array.isArray(data.topKeywords) ? data.topKeywords : [];
+
+  const israelVideos = videos
+    .map((video) => ({ video, signalScore: scoreIsraelSignal(video) }))
+    .filter((row) => row.signalScore >= 2)
+    .map((row) => row.video);
+
+  if (!israelVideos.length) {
+    return {
+      hasSignal: false,
+      title: "Not enough Israel-specific signal yet",
+      leadLine: "Top Trend in Israel: —",
+      summary: "Waiting for stronger IL/Hebrew/local BBQ cues.",
+      videoUrl: ""
+    };
+  }
+
+  const ranked = [...israelVideos].sort((a, b) => {
+    const aScore = Number(a.smokeScore || 0) * 0.7 + Number(a.viewsPerHour || 0) * 0.3;
+    const bScore = Number(b.smokeScore || 0) * 0.7 + Number(b.viewsPerHour || 0) * 0.3;
+    return bScore - aScore;
+  });
+
+  const leader = ranked[0];
+  const topKeyword = keywords.find((k) => matchesIsraelKeywords(k.keyword));
+  const trendLabel = topKeyword?.keyword
+    ? topKeyword.keyword
+    : "Local grilling momentum";
+  const leaderTitle = leader?.title || "No leading video";
+  const shortLeaderTitle =
+    leaderTitle.length > 54 ? `${leaderTitle.slice(0, 54).trim()}...` : leaderTitle;
+
+  return {
+    hasSignal: true,
+    title: `Top Trend in Israel: ${trendLabel}`,
+    leadLine: `Leading video: ${shortLeaderTitle}`,
+    summary: `${israelVideos.length} Israel-related signals • smoke ${formatNum(leader?.smokeScore || 0)} • ${formatNum(leader?.viewsPerHour || 0)} views/hr`,
+    videoUrl: getVideoUrl(leader)
+  };
+}
+
 function attachInteractiveCards() {
-  ["fastestBreakoutCard", "oldestActiveCard", "momentumTrendCard"].forEach((id) => {
+  ["fastestBreakoutCard", "oldestActiveCard", "momentumTrendCard", "israelRadarCard"].forEach((id) => {
     const card = document.getElementById(id);
     if (!card) return;
 
@@ -3058,6 +3154,7 @@ function attachInteractiveCards() {
       const fastest = data.fastestBreakout;
       const oldest = data.oldestActiveVideo;
       const regions = data.topRegions || [];
+      const israelInsight = buildIsraelRadarInsight(data);
 
       document.getElementById("fastestBreakoutTitle").textContent =
         fastest?.title || "No breakout video";
@@ -3081,6 +3178,20 @@ function attachInteractiveCards() {
       chips.innerHTML = regions.length
         ? regions.map(r => `<span class="region-chip">${escapeHtml(r.region)} · ${r.count}</span>`).join("")
         : `<span class="region-chip">No region signals yet</span>`;
+
+      document.getElementById("israelRadarTitle").textContent = israelInsight.title;
+
+      const leadEl = document.getElementById("israelRadarLead");
+      const leadLabel = "Leading video:";
+      if (israelInsight.hasSignal && israelInsight.videoUrl) {
+        const videoText = israelInsight.leadLine.replace(leadLabel, "").trim();
+        leadEl.innerHTML = `${leadLabel} <a href="${escapeHtml(israelInsight.videoUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(videoText)}</a>`;
+      } else {
+        leadEl.textContent = israelInsight.leadLine;
+      }
+
+      document.getElementById("israelRadarMeta").textContent = israelInsight.summary;
+      setCardLinkBehavior(document.getElementById("israelRadarCard"), israelInsight.videoUrl);
     }
 
     function renderKpis(summary = {}, formatStats = {}) {
