@@ -2966,9 +2966,19 @@ function updateMomentumTrendLink(videos = []) {
 }
 
 const israelKeywordSignals = [
-  "israel", "israeli", "tel aviv", "jerusalem", "haifa", "jaffa", "נתח", "בשר",
-  "על האש", "על-האש", "מנגל", "מנגלים", "אסאדו", "שווארמה", "שיפוד", "קבב", "פיתה"
+  "על האש", "שיפודים", "מנגל", "פיקניה", "אנטריקוט", "קבב", "פרגית", "אסאדו", "קרניבור"
 ];
+const israelHashtagSignals = [
+  "#ישראל", "#israel", "#מנגל", "#על_האש", "#bbqisrael", "#bbq_israel", "#שיפודים", "#קבב"
+];
+const israelSeedChannels = [
+  "קרניבור",
+  "Carnivore IL",
+  "BBQ Israel",
+  "על האש ישראל"
+];
+const ISRAEL_SIGNAL_THRESHOLD = 4;
+const ISRAEL_WEAK_SIGNAL_THRESHOLD = 2;
 
 function isHebrewText(text = "") {
   return /[\u0590-\u05FF]/.test(String(text));
@@ -2980,45 +2990,84 @@ function isIsraelRegionSignal(value = "") {
   return normalized === "il" || normalized.includes("israel");
 }
 
-function matchesIsraelKeywords(text = "") {
+function getIsraelKeywordMatches(text = "") {
   const normalized = String(text || "").toLowerCase();
-  return israelKeywordSignals.some((term) => normalized.includes(term));
+  return israelKeywordSignals.filter((term) => normalized.includes(term.toLowerCase()));
 }
 
-function scoreIsraelSignal(video = {}) {
+function getIsraelHashtagMatches(text = "") {
+  const normalized = String(text || "").toLowerCase();
+  return israelHashtagSignals.filter((tag) => normalized.includes(tag.toLowerCase()));
+}
+
+function isSeedIsraelChannel(channelTitle = "") {
+  const normalized = String(channelTitle || "").toLowerCase();
+  if (!normalized) return false;
+  return israelSeedChannels.some((channel) => normalized.includes(channel.toLowerCase()));
+}
+
+function getIsraelSignal(video = {}) {
   const textBlob = [
     video.title,
     video.channelTitle,
     video.regionLabel,
     video.region,
     video.countryCode,
-    video.description
+    video.description,
+    video.metadata,
+    Array.isArray(video.tags) ? video.tags.join(" ") : video.tags,
+    Array.isArray(video.hashtags) ? video.hashtags.join(" ") : video.hashtags
   ].filter(Boolean).join(" ").toLowerCase();
 
   const hasRegionSignal =
     isIsraelRegionSignal(video.regionLabel) ||
     isIsraelRegionSignal(video.region) ||
     isIsraelRegionSignal(video.countryCode);
-
-  const hasKeywordSignal = matchesIsraelKeywords(textBlob);
+  const keywordMatches = getIsraelKeywordMatches(textBlob);
+  const hashtagMatches = getIsraelHashtagMatches(textBlob);
   const hasHebrewSignal = isHebrewText(textBlob);
+  const seedChannelSignal = isSeedIsraelChannel(video.channelTitle || video.channel);
 
   let score = 0;
   if (hasRegionSignal) score += 3;
-  if (hasKeywordSignal) score += 2;
+  score += keywordMatches.length * 2;
+  score += hashtagMatches.length;
   if (hasHebrewSignal) score += 2;
 
-  return score;
+  return {
+    score,
+    hasRegionSignal,
+    hasHebrewSignal,
+    keywordMatches,
+    hashtagMatches,
+    seedChannelSignal
+  };
 }
 
 function buildIsraelRadarInsight(data = {}) {
   const videos = Array.isArray(data.videos) ? data.videos : [];
-  const keywords = Array.isArray(data.topKeywords) ? data.topKeywords : [];
+  const scoredVideos = videos.map((video) => ({
+    video,
+    signal: getIsraelSignal(video)
+  }));
 
-  const israelVideos = videos
-    .map((video) => ({ video, signalScore: scoreIsraelSignal(video) }))
-    .filter((row) => row.signalScore >= 2)
-    .map((row) => row.video);
+  const israelVideos = scoredVideos
+    .filter((row) => row.signal.score >= ISRAEL_SIGNAL_THRESHOLD)
+    .sort((a, b) => b.signal.score - a.signal.score);
+
+  // Seed-channel fallback is only used when primary Israel signals are weak.
+  if (!israelVideos.length) {
+    const seedFallback = scoredVideos
+      .filter((row) =>
+        row.signal.seedChannelSignal &&
+        row.signal.score >= ISRAEL_WEAK_SIGNAL_THRESHOLD
+      )
+      .sort((a, b) => b.signal.score - a.signal.score);
+
+    if (seedFallback.length) {
+      israelVideos.push(...seedFallback);
+    }
+  }
 
   if (!israelVideos.length) {
     return {
@@ -3031,16 +3080,20 @@ function buildIsraelRadarInsight(data = {}) {
   }
 
   const ranked = [...israelVideos].sort((a, b) => {
-    const aScore = Number(a.smokeScore || 0) * 0.7 + Number(a.viewsPerHour || 0) * 0.3;
-    const bScore = Number(b.smokeScore || 0) * 0.7 + Number(b.viewsPerHour || 0) * 0.3;
+    const aScore = a.signal.score * 10 + Number(a.video.smokeScore || 0) * 0.7 + Number(a.video.viewsPerHour || 0) * 0.3;
+    const bScore = b.signal.score * 10 + Number(b.video.smokeScore || 0) * 0.7 + Number(b.video.viewsPerHour || 0) * 0.3;
     return bScore - aScore;
   });
 
-  const leader = ranked[0];
-  const topKeyword = keywords.find((k) => matchesIsraelKeywords(k.keyword));
-  const trendLabel = topKeyword?.keyword
-    ? topKeyword.keyword
-    : "Local grilling momentum";
+  const leader = ranked[0]?.video;
+  const trendSignals = ranked.flatMap((row) => row.signal.keywordMatches);
+  const trendCounts = trendSignals.reduce((acc, keyword) => {
+    acc[keyword] = (acc[keyword] || 0) + 1;
+    return acc;
+  }, {});
+  const trendLabel =
+    Object.entries(trendCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    "Local grilling momentum";
   const leaderTitle = leader?.title || "No leading video";
   const shortLeaderTitle =
     leaderTitle.length > 54 ? `${leaderTitle.slice(0, 54).trim()}...` : leaderTitle;
@@ -3049,7 +3102,7 @@ function buildIsraelRadarInsight(data = {}) {
     hasSignal: true,
     title: `Top Trend in Israel: ${trendLabel}`,
     leadLine: `Leading video: ${shortLeaderTitle}`,
-    summary: `${israelVideos.length} Israel-related signals • smoke ${formatNum(leader?.smokeScore || 0)} • ${formatNum(leader?.viewsPerHour || 0)} views/hr`,
+    summary: `${israelVideos.length} Israel-related signals (threshold ${ISRAEL_SIGNAL_THRESHOLD}) • smoke ${formatNum(leader?.smokeScore || 0)} • ${formatNum(leader?.viewsPerHour || 0)} views/hr`,
     videoUrl: getVideoUrl(leader)
   };
 }
