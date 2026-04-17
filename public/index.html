@@ -813,6 +813,72 @@
       font-weight: 700;
     }
 
+    .butcher-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .butcher-status {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .butcher-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .butcher-card {
+      border-radius: 18px;
+      padding: 14px;
+      background: linear-gradient(180deg, #111927, #0f1724);
+      border: 1px solid #223045;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28), 0 0 20px rgba(255, 107, 44, 0.09);
+      display: grid;
+      gap: 10px;
+    }
+
+    .butcher-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .butcher-name {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .butcher-rating {
+      color: #ffd8a8;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .butcher-address {
+      margin: 0;
+      color: #c8d6ea;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .butcher-empty {
+      border-radius: 16px;
+      border: 1px dashed #2b3a52;
+      background: rgba(17, 25, 39, 0.6);
+      color: var(--muted);
+      padding: 14px;
+      font-size: 13px;
+    }
+
     .cuts-image-wrap {
       width: 100%;
       border-radius: 18px;
@@ -1238,6 +1304,10 @@
 }
     @media (min-width: 760px) {
       .video-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .butcher-grid {
         grid-template-columns: repeat(2, 1fr);
       }
 
@@ -1807,6 +1877,7 @@
         <a href="#overview"><span>📊</span><span>Overview</span></a>
         <a href="#cuts"><span>🥩</span><span>Cuts</span></a>
         <a href="#recipes"><span>🍳</span><span>Recipes</span></a>
+        <a href="#butchers"><span>📍</span><span>Butchers</span></a>
         <a href="#feed"><span>🎥</span><span>Feed</span></a>
         <a href="#about"><span>👨‍🍳</span><span>About</span></a>
       </div>
@@ -2144,6 +2215,23 @@
         <div class="recipe-placeholder">
           Choose a meat type, cut, cooking method, and flavor profile to generate a recipe.
         </div>
+      </div>
+    </div>
+
+    <div class="panel app-enter app-enter-delay-4" id="butchers">
+      <div class="panel-heading">
+        <h2>Butcher Finder</h2>
+        <button type="button" class="info-btn" data-popover-title="Butcher Finder" data-popover-text="Find nearby butcher shops using your current location and Google Places.">i</button>
+      </div>
+      <div class="subtle">Locate nearby butcher shops and open them directly in Google Maps</div>
+
+      <div class="butcher-toolbar">
+        <button class="pill-btn" id="findButchersBtn" type="button" onclick="findButchersNearMe()">Use My Location</button>
+        <div class="butcher-status" id="butcherStatus">Tap to find butchers near you.</div>
+      </div>
+
+      <div class="butcher-grid" id="butcherResults">
+        <div class="butcher-empty">No search yet.</div>
       </div>
     </div>
 
@@ -3538,6 +3626,96 @@ function updateBeefHighlight(cutName) {
         });
       });
     }
+    function renderButcherResults(results = []) {
+      const mount = document.getElementById("butcherResults");
+      if (!mount) return;
+
+      if (!Array.isArray(results) || results.length === 0) {
+        mount.innerHTML = `<div class="butcher-empty">No butchers found nearby.</div>`;
+        return;
+      }
+
+      mount.innerHTML = results.map((place) => `
+        <article class="butcher-card">
+          <div class="butcher-title-row">
+            <h3 class="butcher-name">${escapeHtml(place.name || "Unknown butcher")}</h3>
+            <div class="butcher-rating">⭐ ${place.rating ? Number(place.rating).toFixed(1) : "N/A"} · ${formatNum(place.userRatingsTotal || 0)}</div>
+          </div>
+          <p class="butcher-address">${escapeHtml(place.address || "Address unavailable")}</p>
+          <div>
+            <a class="small-btn" href="${escapeHtml(place.mapsUrl || "https://maps.google.com")}" target="_blank" rel="noopener noreferrer">Open in Maps</a>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function setButcherState({ loading = false, message = "" } = {}) {
+      const button = document.getElementById("findButchersBtn");
+      const status = document.getElementById("butcherStatus");
+
+      if (button) {
+        button.disabled = loading;
+        button.textContent = loading ? "Locating..." : "Use My Location";
+      }
+
+      if (status && message) {
+        status.textContent = message;
+      }
+    }
+
+    async function findButchersNearMe() {
+      if (!navigator.geolocation) {
+        setButcherState({ loading: false, message: "Geolocation is not supported on this browser." });
+        renderButcherResults([]);
+        return;
+      }
+
+      setButcherState({ loading: true, message: "Finding butchers near you..." });
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          try {
+            const response = await fetch(`/api/butchers-nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`);
+            const contentType = response.headers.get("content-type") || "";
+            const isJson = contentType.includes("application/json");
+            const data = isJson ? await response.json() : [];
+
+            if (!response.ok) {
+              throw new Error(data?.details || data?.error || "Failed to fetch nearby butchers");
+            }
+
+            renderButcherResults(data);
+            setButcherState({
+              loading: false,
+              message: data.length ? `Found ${data.length} butcher shops near your location.` : "No butchers found nearby."
+            });
+          } catch (error) {
+            console.error("Butcher finder UI error:", error);
+            renderButcherResults([]);
+            setButcherState({ loading: false, message: "Could not load butcher shops right now." });
+          }
+        },
+        (error) => {
+          console.warn("Geolocation denied or unavailable:", error);
+          renderButcherResults([]);
+
+          let message = "Location denied. Please allow location access to find nearby butchers.";
+          if (error?.code === 2) message = "Location unavailable right now. Please try again.";
+          if (error?.code === 3) message = "Location request timed out. Please try again.";
+
+          setButcherState({ loading: false, message });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
     async function generateRecipe() {
       const cut = document.getElementById("cutType").value;
       const method = document.getElementById("cookingMethod").value;
