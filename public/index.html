@@ -2965,28 +2965,26 @@ function updateMomentumTrendLink(videos = []) {
   setCardLinkBehavior(momentumCard, getVideoUrl(topVideo));
 }
 
-const israelKeywordSignals = [
+const israelSpecificKeywordSignals = [
   "עישון בשר",
   "על האש",
   "מנגל",
   "שיפודים",
   "קבב",
   "פרגית",
-  "אנטריקוט",
+  "קרניבור",
+  "צלייה",
+  "גריל"
+];
+const israelGenericSupportingKeywords = [
   "פיקניה",
   "פיקנייה",
-  "פיקני",
-  "אסאדו",
-  "קרניבור",
-  "סטייק",
-  "צלייה",
-  "גריל",
   "picanha",
+  "אנטריקוט",
   "entrecote",
+  "אסאדו",
   "asado",
-  "bbq israel",
-  "israeli bbq",
-  "mangal"
+  "סטייק"
 ];
 const israelHashtagSignals = [
   "#ישראל", "#israel", "#מנגל", "#על_האש", "#bbqisrael", "#bbq_israel", "#שיפודים", "#קבב", "#גריל", "#סטייק", "#מנגליסטים"
@@ -2998,9 +2996,6 @@ const israelSeedChannels = [
   "@streetfoodie_il",
   "@meatbalcony"
 ];
-const ISRAEL_SIGNAL_THRESHOLD = 3;
-const ISRAEL_WEAK_SIGNAL_THRESHOLD = 1;
-
 function isHebrewText(text = "") {
   return /[\u0590-\u05FF]/.test(String(text));
 }
@@ -3011,13 +3006,13 @@ function isIsraelRegionSignal(value = "") {
   return normalized === "il" || normalized.includes("israel");
 }
 
-function getIsraelKeywordMatches(text = "") {
+function getIsraelKeywordMatches(text = "", keywords = []) {
   const normalized = String(text || "")
     .toLowerCase()
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  return israelKeywordSignals.filter((term) => {
+  return keywords.filter((term) => {
     const normalizedTerm = String(term || "")
       .toLowerCase()
       .replace(/[_-]+/g, " ")
@@ -3063,24 +3058,38 @@ function getIsraelSignal(video = {}) {
     isIsraelRegionSignal(video.regionLabel) ||
     isIsraelRegionSignal(video.region) ||
     isIsraelRegionSignal(video.countryCode);
-  const keywordMatches = getIsraelKeywordMatches(textBlob);
+  const localKeywordMatches = getIsraelKeywordMatches(textBlob, israelSpecificKeywordSignals);
+  const genericKeywordMatches = getIsraelKeywordMatches(textBlob, israelGenericSupportingKeywords);
   const hashtagMatches = getIsraelHashtagMatches(textBlob);
+  const hebrewHashtagMatches = hashtagMatches.filter((tag) => isHebrewText(tag));
   const hasHebrewSignal = isHebrewText(textBlob);
   const seedChannelSignal = isSeedIsraelChannel(video.channelTitle || video.channel);
+  // True Israel gate: items must have at least one IL/Hebrew/local-specific signal.
+  const hasTrueIsraelSignal =
+    hasHebrewSignal ||
+    hebrewHashtagMatches.length > 0 ||
+    localKeywordMatches.length > 0 ||
+    seedChannelSignal ||
+    hasRegionSignal;
 
   let score = 0;
   if (hasHebrewSignal) score += 3;
-  score += keywordMatches.length * 3;
+  score += localKeywordMatches.length * 3;
   score += hashtagMatches.length;
-  if (hasRegionSignal) score += 1;
-  if (seedChannelSignal) score += 2;
+  if (hasRegionSignal) score += 2;
+  if (seedChannelSignal) score += 4;
+  // Generic meat terms improve ranking only after an item passes the Israel gate.
+  if (hasTrueIsraelSignal) score += genericKeywordMatches.length;
 
   return {
     score,
+    hasTrueIsraelSignal,
     hasRegionSignal,
     hasHebrewSignal,
-    keywordMatches,
+    localKeywordMatches,
+    genericKeywordMatches,
     hashtagMatches,
+    hebrewHashtagMatches,
     seedChannelSignal
   };
 }
@@ -3092,25 +3101,12 @@ function buildIsraelRadarInsight(data = {}) {
     signal: getIsraelSignal(video)
   }));
 
-  const israelVideos = scoredVideos
-    .filter((row) => row.signal.score >= ISRAEL_SIGNAL_THRESHOLD)
+  // Strict subset: only true Israel-signal items can enter Israel Radar.
+  const israelItems = scoredVideos
+    .filter((row) => row.signal.hasTrueIsraelSignal)
     .sort((a, b) => b.signal.score - a.signal.score);
 
-  // Seed-channel fallback is only used when primary Israel signals are weak.
-  if (!israelVideos.length) {
-    const seedFallback = scoredVideos
-      .filter((row) =>
-        row.signal.seedChannelSignal &&
-        row.signal.score >= ISRAEL_WEAK_SIGNAL_THRESHOLD
-      )
-      .sort((a, b) => b.signal.score - a.signal.score);
-
-    if (seedFallback.length) {
-      israelVideos.push(...seedFallback);
-    }
-  }
-
-  if (!israelVideos.length) {
+  if (!israelItems.length) {
     return {
       hasSignal: false,
       title: "Not enough Israel-specific signal yet",
@@ -3120,13 +3116,16 @@ function buildIsraelRadarInsight(data = {}) {
     };
   }
 
-  const ranked = [...israelVideos].sort((a, b) => {
+  const ranked = [...israelItems].sort((a, b) => {
+    if (a.signal.seedChannelSignal !== b.signal.seedChannelSignal) {
+      return Number(b.signal.seedChannelSignal) - Number(a.signal.seedChannelSignal);
+    }
     const aScore = a.signal.score * 10 + Number(a.video.smokeScore || 0) * 0.7 + Number(a.video.viewsPerHour || 0) * 0.3;
     const bScore = b.signal.score * 10 + Number(b.video.smokeScore || 0) * 0.7 + Number(b.video.viewsPerHour || 0) * 0.3;
     return bScore - aScore;
   });
 
-  const leaderRow = ranked.find((row) => row.signal.score >= ISRAEL_SIGNAL_THRESHOLD);
+  const leaderRow = ranked[0];
   if (!leaderRow) {
     return {
       hasSignal: false,
@@ -3138,7 +3137,7 @@ function buildIsraelRadarInsight(data = {}) {
   }
 
   const leader = leaderRow.video;
-  const trendSignals = ranked.flatMap((row) => row.signal.keywordMatches);
+  const trendSignals = ranked.flatMap((row) => row.signal.localKeywordMatches);
   const trendCounts = trendSignals.reduce((acc, keyword) => {
     acc[keyword] = (acc[keyword] || 0) + 1;
     return acc;
@@ -3154,7 +3153,7 @@ function buildIsraelRadarInsight(data = {}) {
     hasSignal: true,
     title: `Top Trend in Israel: ${trendLabel}`,
     leadLine: `Leading video: ${shortLeaderTitle}`,
-    summary: `${israelVideos.length} Israel-related signals (threshold ${ISRAEL_SIGNAL_THRESHOLD}) • smoke ${formatNum(leader?.smokeScore || 0)} • ${formatNum(leader?.viewsPerHour || 0)} views/hr`,
+    summary: `${israelItems.length} Israel-related signals • smoke ${formatNum(leader?.smokeScore || 0)} • ${formatNum(leader?.viewsPerHour || 0)} views/hr`,
     videoUrl: getVideoUrl(leader)
   };
 }
