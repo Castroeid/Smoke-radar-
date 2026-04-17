@@ -3111,16 +3111,6 @@ function buildIsraelRadarInsight(data = {}) {
   }
 
   if (!israelVideos.length) {
-    const bestAvailableSignal = scoredVideos
-      .filter((row) => row.signal.score > 0)
-      .sort((a, b) => b.signal.score - a.signal.score);
-
-    if (bestAvailableSignal.length) {
-      israelVideos.push(bestAvailableSignal[0]);
-    }
-  }
-
-  if (!israelVideos.length) {
     return {
       hasSignal: false,
       title: "Not enough Israel-specific signal yet",
@@ -3136,7 +3126,18 @@ function buildIsraelRadarInsight(data = {}) {
     return bScore - aScore;
   });
 
-  const leader = ranked[0]?.video;
+  const leaderRow = ranked.find((row) => row.signal.score >= ISRAEL_SIGNAL_THRESHOLD);
+  if (!leaderRow) {
+    return {
+      hasSignal: false,
+      title: "Not enough Israel-specific signal yet",
+      leadLine: "Top Trend in Israel: —",
+      summary: "Waiting for stronger IL/Hebrew/local BBQ cues.",
+      videoUrl: ""
+    };
+  }
+
+  const leader = leaderRow.video;
   const trendSignals = ranked.flatMap((row) => row.signal.keywordMatches);
   const trendCounts = trendSignals.reduce((acc, keyword) => {
     acc[keyword] = (acc[keyword] || 0) + 1;
