@@ -439,7 +439,125 @@ function buildRadarResponse({ source, videos, cache, state, fallbackReason = nul
   };
 }
 
+
+function parseCoordinate(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildNearbyPlaceResult(place = {}) {
+  return {
+    name: place.displayName?.text || "Unknown",
+    address: place.formattedAddress || "",
+    rating: Number(place.rating || 0) || null,
+    userRatingsTotal: Number(place.userRatingCount || 0),
+    location: {
+      lat: Number(place.location?.latitude || 0),
+      lng: Number(place.location?.longitude || 0)
+    },
+    mapsUrl: place.googleMapsUri || ""
+  };
+}
+
+async function fetchButchersNearby({ lat, lng, maxResults = 8 }) {
+  const placesApiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+  if (!placesApiKey) {
+    throw new Error("Missing GOOGLE_PLACES_API_KEY");
+  }
+
+  const endpoint = "https://places.googleapis.com/v1/places:searchText";
+  const queries = ["butcher", "butcher shop", "meat shop", "קצביה"];
+
+  const requests = queries.map(async (query) => {
+    const body = {
+      textQuery: query,
+      maxResultCount: maxResults,
+      languageCode: "en",
+      locationBias: {
+        circle: {
+          center: {
+            latitude: lat,
+            longitude: lng
+          },
+          radius: 7000
+        }
+      }
+    };
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": placesApiKey,
+        "X-Goog-FieldMask": [
+          "places.displayName",
+          "places.formattedAddress",
+          "places.rating",
+          "places.userRatingCount",
+          "places.location",
+          "places.googleMapsUri"
+        ].join(",")
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const details = data?.error?.message || `Google Places request failed (${response.status})`;
+      throw new Error(details);
+    }
+
+    return data?.places || [];
+  });
+
+  const listOfLists = await Promise.all(requests);
+  const merged = listOfLists.flat();
+
+  const uniqueMap = new Map();
+  for (const place of merged) {
+    const placeKey = `${place.displayName?.text || ""}_${place.formattedAddress || ""}`;
+    if (!uniqueMap.has(placeKey)) {
+      uniqueMap.set(placeKey, place);
+    }
+  }
+
+  return [...uniqueMap.values()]
+    .sort((a, b) => {
+      const ratingDiff = Number(b.rating || 0) - Number(a.rating || 0);
+      if (ratingDiff !== 0) return ratingDiff;
+      return Number(b.userRatingCount || 0) - Number(a.userRatingCount || 0);
+    })
+    .slice(0, maxResults)
+    .map(buildNearbyPlaceResult);
+}
+
 // ---------------- endpoints ----------------
+
+app.get("/api/butchers-nearby", async (req, res) => {
+  const lat = parseCoordinate(req.query.lat);
+  const lng = parseCoordinate(req.query.lng);
+
+  console.log("[butchers-nearby] incoming request:", { lat: req.query.lat, lng: req.query.lng });
+
+  if (lat === null || lng === null) {
+    console.warn("[butchers-nearby] invalid coordinates", { lat: req.query.lat, lng: req.query.lng });
+    return res.status(400).json({ error: "Invalid or missing lat/lng query parameters" });
+  }
+
+  try {
+    const places = await fetchButchersNearby({ lat, lng, maxResults: 8 });
+    console.log("[butchers-nearby] places found:", places.length);
+    return res.json(places);
+  } catch (error) {
+    console.error("[butchers-nearby] failed:", error.message);
+    return res.status(500).json({
+      error: "Failed to fetch nearby butchers",
+      details: error.message || "Unknown error"
+    });
+  }
+});
 
 app.get("/api/smoke-radar", async (req, res) => {
   const cache = readCache();
