@@ -534,6 +534,30 @@
       line-height: 1.55;
     }
 
+    .insight-link-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .insight-link-item {
+      display: block;
+      color: #dbe5f2;
+      font-size: 13px;
+      line-height: 1.4;
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .insight-link-item:hover {
+      border-color: rgba(255,154,104,0.32);
+      background: rgba(255,149,95,0.08);
+    }
+
     .region-chips {
       display: flex;
       flex-wrap: wrap;
@@ -1888,10 +1912,9 @@
       </div>
 
       <div class="insight-card" id="israelRadarCard">
-        <div class="insight-label">🇮🇱 Israel Radar</div>
-        <div class="insight-title" id="israelRadarTitle">—</div>
-        <div class="insight-meta" id="israelRadarLead">Waiting for local signal...</div>
-        <div class="insight-meta" id="israelRadarMeta">Analyzing Israel trend activity...</div>
+        <div class="insight-label">🇮🇱 Israeli Meat Creators</div>
+        <div class="insight-meta">Curated local BBQ and meat channels</div>
+        <div class="insight-link-list" id="israeliCreatorsList"></div>
       </div>
     </div>
 
@@ -2965,197 +2988,20 @@ function updateMomentumTrendLink(videos = []) {
   setCardLinkBehavior(momentumCard, getVideoUrl(topVideo));
 }
 
-const israelSpecificKeywordSignals = [
-  "עישון בשר",
-  "על האש",
-  "מנגל",
-  "שיפודים",
-  "קבב",
-  "פרגית",
-  "קרניבור",
-  "צלייה",
-  "גריל"
+const israeliMeatCreators = [
+  { name: "Meat Balcony", url: "https://www.youtube.com/@meatbalcony" },
+  { name: "Carnivoress", url: "https://www.youtube.com/@carnivoress" },
+  { name: "StreetFoodie IL", url: "https://www.youtube.com/@StreetFoodie_IL" },
+  { name: "Tomas Arad", url: "https://www.youtube.com/@tomas_arad" },
+  { name: "Foodik", url: "https://www.youtube.com/@foodik" }
 ];
-const israelGenericSupportingKeywords = [
-  "פיקניה",
-  "פיקנייה",
-  "picanha",
-  "אנטריקוט",
-  "entrecote",
-  "אסאדו",
-  "asado",
-  "סטייק"
-];
-const israelHashtagSignals = [
-  "#ישראל", "#israel", "#מנגל", "#על_האש", "#bbqisrael", "#bbq_israel", "#שיפודים", "#קבב", "#גריל", "#סטייק", "#מנגליסטים"
-];
-const israelSeedChannels = [
-  "@carnivoress",
-  "@foodik",
-  "@tomas_arad",
-  "@streetfoodie_il",
-  "@meatbalcony"
-];
-function isHebrewText(text = "") {
-  return /[\u0590-\u05FF]/.test(String(text));
-}
 
-function isIsraelRegionSignal(value = "") {
-  const normalized = String(value || "").toLowerCase();
-  if (!normalized) return false;
-  return normalized === "il" || normalized.includes("israel");
-}
-
-function getIsraelKeywordMatches(text = "", keywords = []) {
-  const normalized = String(text || "")
-    .toLowerCase()
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return keywords.filter((term) => {
-    const normalizedTerm = String(term || "")
-      .toLowerCase()
-      .replace(/[_-]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    return normalized.includes(normalizedTerm);
-  });
-}
-
-function getIsraelHashtagMatches(text = "") {
-  const normalized = String(text || "").toLowerCase();
-  return israelHashtagSignals.filter((tag) => normalized.includes(tag.toLowerCase()));
-}
-
-function isSeedIsraelChannel(channelTitle = "") {
-  const normalized = String(channelTitle || "")
-    .toLowerCase()
-    .replace(/\s+/g, "");
-  if (!normalized) return false;
-  return israelSeedChannels.some((channel) => {
-    const normalizedSeed = String(channel || "")
-      .toLowerCase()
-      .replace("@", "")
-      .replace(/\s+/g, "");
-    return normalized.includes(normalizedSeed);
-  });
-}
-
-function getIsraelSignal(video = {}) {
-  const textBlob = [
-    video.title,
-    video.channelTitle,
-    video.regionLabel,
-    video.region,
-    video.countryCode,
-    video.description,
-    video.metadata,
-    Array.isArray(video.tags) ? video.tags.join(" ") : video.tags,
-    Array.isArray(video.hashtags) ? video.hashtags.join(" ") : video.hashtags
-  ].filter(Boolean).join(" ").toLowerCase();
-
-  const hasRegionSignal =
-    isIsraelRegionSignal(video.regionLabel) ||
-    isIsraelRegionSignal(video.region) ||
-    isIsraelRegionSignal(video.countryCode);
-  const localKeywordMatches = getIsraelKeywordMatches(textBlob, israelSpecificKeywordSignals);
-  const genericKeywordMatches = getIsraelKeywordMatches(textBlob, israelGenericSupportingKeywords);
-  const hashtagMatches = getIsraelHashtagMatches(textBlob);
-  const hebrewHashtagMatches = hashtagMatches.filter((tag) => isHebrewText(tag));
-  const hasHebrewSignal = isHebrewText(textBlob);
-  const seedChannelSignal = isSeedIsraelChannel(video.channelTitle || video.channel);
-  // True Israel gate: items must have at least one IL/Hebrew/local-specific signal.
-  const hasTrueIsraelSignal =
-    hasHebrewSignal ||
-    hebrewHashtagMatches.length > 0 ||
-    localKeywordMatches.length > 0 ||
-    seedChannelSignal ||
-    hasRegionSignal;
-
-  let score = 0;
-  if (hasHebrewSignal) score += 3;
-  score += localKeywordMatches.length * 3;
-  score += hashtagMatches.length;
-  if (hasRegionSignal) score += 2;
-  if (seedChannelSignal) score += 4;
-  // Generic meat terms improve ranking only after an item passes the Israel gate.
-  if (hasTrueIsraelSignal) score += genericKeywordMatches.length;
-
-  return {
-    score,
-    hasTrueIsraelSignal,
-    hasRegionSignal,
-    hasHebrewSignal,
-    localKeywordMatches,
-    genericKeywordMatches,
-    hashtagMatches,
-    hebrewHashtagMatches,
-    seedChannelSignal
-  };
-}
-
-function buildIsraelRadarInsight(data = {}) {
-  const videos = Array.isArray(data.videos) ? data.videos : [];
-  const scoredVideos = videos.map((video) => ({
-    video,
-    signal: getIsraelSignal(video)
-  }));
-
-  // Strict subset: only true Israel-signal items can enter Israel Radar.
-  const israelItems = scoredVideos
-    .filter((row) => row.signal.hasTrueIsraelSignal)
-    .sort((a, b) => b.signal.score - a.signal.score);
-
-  if (!israelItems.length) {
-    return {
-      hasSignal: false,
-      title: "Not enough Israel-specific signal yet",
-      leadLine: "Top Trend in Israel: —",
-      summary: "Waiting for stronger IL/Hebrew/local BBQ cues.",
-      videoUrl: ""
-    };
-  }
-
-  const ranked = [...israelItems].sort((a, b) => {
-    if (a.signal.seedChannelSignal !== b.signal.seedChannelSignal) {
-      return Number(b.signal.seedChannelSignal) - Number(a.signal.seedChannelSignal);
-    }
-    const aScore = a.signal.score * 10 + Number(a.video.smokeScore || 0) * 0.7 + Number(a.video.viewsPerHour || 0) * 0.3;
-    const bScore = b.signal.score * 10 + Number(b.video.smokeScore || 0) * 0.7 + Number(b.video.viewsPerHour || 0) * 0.3;
-    return bScore - aScore;
-  });
-
-  const leaderRow = ranked[0];
-  if (!leaderRow) {
-    return {
-      hasSignal: false,
-      title: "Not enough Israel-specific signal yet",
-      leadLine: "Top Trend in Israel: —",
-      summary: "Waiting for stronger IL/Hebrew/local BBQ cues.",
-      videoUrl: ""
-    };
-  }
-
-  const leader = leaderRow.video;
-  const trendSignals = ranked.flatMap((row) => row.signal.localKeywordMatches);
-  const trendCounts = trendSignals.reduce((acc, keyword) => {
-    acc[keyword] = (acc[keyword] || 0) + 1;
-    return acc;
-  }, {});
-  const trendLabel =
-    Object.entries(trendCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
-    "Local grilling momentum";
-  const leaderTitle = leader?.title || "No leading video";
-  const shortLeaderTitle =
-    leaderTitle.length > 54 ? `${leaderTitle.slice(0, 54).trim()}...` : leaderTitle;
-
-  return {
-    hasSignal: true,
-    title: `Top Trend in Israel: ${trendLabel}`,
-    leadLine: `Leading video: ${shortLeaderTitle}`,
-    summary: `${israelItems.length} Israel-related signals • smoke ${formatNum(leader?.smokeScore || 0)} • ${formatNum(leader?.viewsPerHour || 0)} views/hr`,
-    videoUrl: getVideoUrl(leader)
-  };
+function renderIsraeliCreatorsCard() {
+  const listEl = document.getElementById("israeliCreatorsList");
+  if (!listEl) return;
+  listEl.innerHTML = israeliMeatCreators
+    .map((creator) => `<a class="insight-link-item" href="${escapeHtml(creator.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(creator.name)}</a>`)
+    .join("");
 }
 
 function attachInteractiveCards() {
@@ -3258,7 +3104,6 @@ function attachInteractiveCards() {
       const fastest = data.fastestBreakout;
       const oldest = data.oldestActiveVideo;
       const regions = data.topRegions || [];
-      const israelInsight = buildIsraelRadarInsight(data);
 
       document.getElementById("fastestBreakoutTitle").textContent =
         fastest?.title || "No breakout video";
@@ -3283,19 +3128,7 @@ function attachInteractiveCards() {
         ? regions.map(r => `<span class="region-chip">${escapeHtml(r.region)} · ${r.count}</span>`).join("")
         : `<span class="region-chip">No region signals yet</span>`;
 
-      document.getElementById("israelRadarTitle").textContent = israelInsight.title;
-
-      const leadEl = document.getElementById("israelRadarLead");
-      const leadLabel = "Leading video:";
-      if (israelInsight.hasSignal && israelInsight.videoUrl) {
-        const videoText = israelInsight.leadLine.replace(leadLabel, "").trim();
-        leadEl.innerHTML = `${leadLabel} <a href="${escapeHtml(israelInsight.videoUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(videoText)}</a>`;
-      } else {
-        leadEl.textContent = israelInsight.leadLine;
-      }
-
-      document.getElementById("israelRadarMeta").textContent = israelInsight.summary;
-      setCardLinkBehavior(document.getElementById("israelRadarCard"), israelInsight.videoUrl);
+      setCardLinkBehavior(document.getElementById("israelRadarCard"), "");
     }
 
     function renderKpis(summary = {}, formatStats = {}) {
@@ -3955,6 +3788,7 @@ const data = isJson ? await res.json() : null;
 document.addEventListener("DOMContentLoaded", () => {
   attachTabs();
   attachPopovers();
+  renderIsraeliCreatorsCard();
   attachInteractiveCards();
   attachBeefMapInteractions();
   renderCutsGrid(null);
