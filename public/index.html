@@ -2966,19 +2966,40 @@ function updateMomentumTrendLink(videos = []) {
 }
 
 const israelKeywordSignals = [
-  "על האש", "שיפודים", "מנגל", "פיקניה", "אנטריקוט", "קבב", "פרגית", "אסאדו", "קרניבור"
+  "עישון בשר",
+  "על האש",
+  "מנגל",
+  "שיפודים",
+  "קבב",
+  "פרגית",
+  "אנטריקוט",
+  "פיקניה",
+  "פיקנייה",
+  "פיקני",
+  "אסאדו",
+  "קרניבור",
+  "סטייק",
+  "צלייה",
+  "גריל",
+  "picanha",
+  "entrecote",
+  "asado",
+  "bbq israel",
+  "israeli bbq",
+  "mangal"
 ];
 const israelHashtagSignals = [
-  "#ישראל", "#israel", "#מנגל", "#על_האש", "#bbqisrael", "#bbq_israel", "#שיפודים", "#קבב"
+  "#ישראל", "#israel", "#מנגל", "#על_האש", "#bbqisrael", "#bbq_israel", "#שיפודים", "#קבב", "#גריל", "#סטייק", "#מנגליסטים"
 ];
 const israelSeedChannels = [
-  "קרניבור",
-  "Carnivore IL",
-  "BBQ Israel",
-  "על האש ישראל"
+  "@carnivoress",
+  "@foodik",
+  "@tomas_arad",
+  "@streetfoodie_il",
+  "@meatbalcony"
 ];
-const ISRAEL_SIGNAL_THRESHOLD = 4;
-const ISRAEL_WEAK_SIGNAL_THRESHOLD = 2;
+const ISRAEL_SIGNAL_THRESHOLD = 3;
+const ISRAEL_WEAK_SIGNAL_THRESHOLD = 1;
 
 function isHebrewText(text = "") {
   return /[\u0590-\u05FF]/.test(String(text));
@@ -2991,8 +3012,19 @@ function isIsraelRegionSignal(value = "") {
 }
 
 function getIsraelKeywordMatches(text = "") {
-  const normalized = String(text || "").toLowerCase();
-  return israelKeywordSignals.filter((term) => normalized.includes(term.toLowerCase()));
+  const normalized = String(text || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return israelKeywordSignals.filter((term) => {
+    const normalizedTerm = String(term || "")
+      .toLowerCase()
+      .replace(/[_-]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return normalized.includes(normalizedTerm);
+  });
 }
 
 function getIsraelHashtagMatches(text = "") {
@@ -3001,9 +3033,17 @@ function getIsraelHashtagMatches(text = "") {
 }
 
 function isSeedIsraelChannel(channelTitle = "") {
-  const normalized = String(channelTitle || "").toLowerCase();
+  const normalized = String(channelTitle || "")
+    .toLowerCase()
+    .replace(/\s+/g, "");
   if (!normalized) return false;
-  return israelSeedChannels.some((channel) => normalized.includes(channel.toLowerCase()));
+  return israelSeedChannels.some((channel) => {
+    const normalizedSeed = String(channel || "")
+      .toLowerCase()
+      .replace("@", "")
+      .replace(/\s+/g, "");
+    return normalized.includes(normalizedSeed);
+  });
 }
 
 function getIsraelSignal(video = {}) {
@@ -3029,10 +3069,11 @@ function getIsraelSignal(video = {}) {
   const seedChannelSignal = isSeedIsraelChannel(video.channelTitle || video.channel);
 
   let score = 0;
-  if (hasRegionSignal) score += 3;
-  score += keywordMatches.length * 2;
+  if (hasHebrewSignal) score += 3;
+  score += keywordMatches.length * 3;
   score += hashtagMatches.length;
-  if (hasHebrewSignal) score += 2;
+  if (hasRegionSignal) score += 1;
+  if (seedChannelSignal) score += 2;
 
   return {
     score,
@@ -3066,6 +3107,16 @@ function buildIsraelRadarInsight(data = {}) {
 
     if (seedFallback.length) {
       israelVideos.push(...seedFallback);
+    }
+  }
+
+  if (!israelVideos.length) {
+    const bestAvailableSignal = scoredVideos
+      .filter((row) => row.signal.score > 0)
+      .sort((a, b) => b.signal.score - a.signal.score);
+
+    if (bestAvailableSignal.length) {
+      israelVideos.push(bestAvailableSignal[0]);
     }
   }
 
