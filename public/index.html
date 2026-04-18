@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smoke Radar</title>
+  <meta property="og:title" content="Smoke Radar – Live Meat Trend Dashboard" />
+  <meta property="og:description" content="Discover the hottest BBQ and meat videos, trending cuts, butcher spots, and live smoke signals in one dashboard." />
+  <meta property="og:image" content="https://smoke-radar.onrender.com/og-preview.jpg" />
+  <meta property="og:url" content="https://smoke-radar.onrender.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Smoke Radar" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Smoke Radar – Live Meat Trend Dashboard" />
+  <meta name="twitter:description" content="Discover the hottest BBQ and meat videos, trending cuts, butcher spots, and live smoke signals in one dashboard." />
+  <meta name="twitter:image" content="https://smoke-radar.onrender.com/og-preview.jpg" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -4069,11 +4079,12 @@ const data = isJson ? await res.json() : null;
     function setupShareButton() {
       const shareBtn = document.getElementById("shareBtn");
       const shareToast = document.getElementById("shareToast");
+      const shareCopyText = "Check out Smoke Radar – live meat trend dashboard for BBQ, meat trends, cuts, and butcher discovery 🔥\nhttps://smoke-radar.onrender.com/";
       if (!shareBtn) return;
 
       shareBtn.addEventListener("click", async () => {
         try {
-          await navigator.clipboard.writeText(window.location.href);
+          await navigator.clipboard.writeText(shareCopyText);
           if (shareToast) {
             shareToast.classList.add("show");
             window.setTimeout(() => shareToast.classList.remove("show"), 1200);
