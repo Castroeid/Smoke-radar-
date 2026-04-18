@@ -233,6 +233,64 @@
       transition: 0.18s ease;
     }
 
+    .first-run-hint {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 14px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 149, 95, 0.35);
+      background: rgba(255, 107, 44, 0.08);
+      color: #ffd8c8;
+      font-size: 13px;
+    }
+
+    .first-run-hint.hidden {
+      display: none;
+    }
+
+    .first-run-hint-close {
+      border: 1px solid #2a3648;
+      background: #1a2433;
+      color: #d7dfeb;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .floating-feedback-btn {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 2100;
+      border-radius: 999px;
+    }
+
+    .share-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0f1621;
+      color: #dbe5f2;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 2200;
+    }
+
+    .share-toast.show {
+      opacity: 1;
+    }
+
     .pill-btn:hover,
     .small-btn:hover,
     .quick-nav a:hover {
@@ -1874,6 +1932,7 @@
 
       <div class="top-actions">
         <div class="meta-pill live" id="miniLiveBadge">Live</div>
+        <button class="small-btn" id="shareBtn" type="button">Share</button>
         <button class="pill-btn" id="loadBtn" onclick="loadData()">
           <span class="refresh-loader"></span>
           <span id="refreshLabel">Refresh</span>
@@ -1895,6 +1954,10 @@
     <div class="meta-strip app-enter app-enter-delay-1" id="metaStrip"></div>
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
+    <div class="first-run-hint hidden app-enter app-enter-delay-1" id="firstRunHint">
+      <span>Try starting with Smoke Index or Beef Cuts Explorer 🔥</span>
+      <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
+    </div>
 <section class="zone zone-radar">
 
   <div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
@@ -2348,6 +2411,8 @@
     </div>
     <div class="popover-content" id="popoverText"></div>
   </div>
+  <button class="small-btn floating-feedback-btn" id="floatingFeedbackBtn" type="button">Feedback</button>
+  <div class="share-toast" id="shareToast">Link copied</div>
 <script>
     let scoreChartInstance = null;
     let allData = null;
@@ -3972,9 +4037,63 @@ const data = isJson ? await res.json() : null;
       }
     }
 
+    function setupFirstRunHint() {
+      const hint = document.getElementById("firstRunHint");
+      const closeBtn = document.getElementById("closeFirstRunHint");
+      if (!hint || !closeBtn) return;
+
+      const seen = localStorage.getItem("smoke_hint_seen");
+      if (!seen) {
+        hint.classList.remove("hidden");
+        posthog.capture("first_run_hint_shown");
+      }
+
+      closeBtn.addEventListener("click", () => {
+        hint.classList.add("hidden");
+        localStorage.setItem("smoke_hint_seen", "1");
+        posthog.capture("first_run_hint_closed");
+      });
+    }
+
+    function setupFloatingFeedbackButton() {
+      const feedbackBtn = document.getElementById("floatingFeedbackBtn");
+      const feedbackSection = document.getElementById("feedback");
+      if (!feedbackBtn || !feedbackSection) return;
+
+      feedbackBtn.addEventListener("click", () => {
+        feedbackSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        posthog.capture("feedback_button_clicked");
+      });
+    }
+
+    function setupShareButton() {
+      const shareBtn = document.getElementById("shareBtn");
+      const shareToast = document.getElementById("shareToast");
+      if (!shareBtn) return;
+
+      shareBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          if (shareToast) {
+            shareToast.classList.add("show");
+            window.setTimeout(() => shareToast.classList.remove("show"), 1200);
+          }
+        } catch (error) {
+          console.warn("Copy failed", error);
+        }
+
+        posthog.capture("copy_link_clicked", {
+          page: window.location.pathname
+        });
+      });
+    }
+
 document.addEventListener("DOMContentLoaded", () => {
   attachTabs();
   attachPopovers();
+  setupFirstRunHint();
+  setupFloatingFeedbackButton();
+  setupShareButton();
   renderIsraeliCreatorsCard();
   attachInteractiveCards();
   attachBeefMapInteractions();
