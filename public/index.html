@@ -47,6 +47,7 @@
       color: var(--text);
       font-family: "Inter", Arial, sans-serif;
       scroll-behavior: smooth;
+      overflow-x: hidden;
     }
 
     body {
@@ -255,6 +256,36 @@
       background: rgba(255, 107, 44, 0.08);
       color: #ffd8c8;
       font-size: 13px;
+    }
+
+    .first-run-hint-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .first-run-hint-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .first-run-hint-cta {
+      border: 1px solid rgba(255, 149, 95, 0.5);
+      background: rgba(255, 149, 95, 0.16);
+      color: #ffe6d9;
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .first-run-hint-cta:hover {
+      border-color: rgba(255, 149, 95, 0.75);
+      background: rgba(255, 149, 95, 0.25);
     }
 
     .first-run-hint.hidden {
@@ -1356,6 +1387,42 @@
       font-weight: 600;
     }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      overflow-wrap: anywhere;
+    }
+
+    th {
+      color: #c2d0e4;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .section-spotlight {
+      animation: sectionSpotlight 2.6s ease;
+      border-color: rgba(255, 149, 95, 0.8) !important;
+      box-shadow: 0 0 0 1px rgba(255, 149, 95, 0.25), 0 0 24px rgba(255, 107, 44, 0.28) !important;
+    }
+
+    @keyframes sectionSpotlight {
+      0% {
+        box-shadow: 0 0 0 1px rgba(255, 149, 95, 0.35), 0 0 28px rgba(255, 107, 44, 0.35);
+      }
+      100% {
+        box-shadow: var(--shadow);
+      }
+    }
+
     canvas { max-height: 320px; }
 
     @media (min-width: 980px) {
@@ -1426,6 +1493,29 @@
     }
 
     @media (max-width: 640px) {
+      .container,
+      .zone,
+      .zone-cuts,
+      .zone-tools,
+      .zone-system {
+        max-width: 100%;
+      }
+
+      .topbar {
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .top-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .first-run-hint {
+        align-items: flex-start;
+      }
+
       .signal-strip {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -1965,7 +2055,13 @@
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
     <div class="first-run-hint hidden app-enter app-enter-delay-1" id="firstRunHint">
-      <span>Try starting with Smoke Index or Beef Cuts Explorer 🔥</span>
+      <div class="first-run-hint-content">
+        <span>Try starting with Smoke Index or Beef Cuts Explorer 🔥</span>
+        <div class="first-run-hint-actions">
+          <button class="first-run-hint-cta" id="hintSmokeIndexBtn" type="button">Open Smoke Index</button>
+          <button class="first-run-hint-cta" id="hintBeefCutsBtn" type="button">Open Beef Cuts</button>
+        </div>
+      </div>
       <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
     </div>
 <section class="zone zone-radar">
@@ -4050,7 +4146,24 @@ const data = isJson ? await res.json() : null;
     function setupFirstRunHint() {
       const hint = document.getElementById("firstRunHint");
       const closeBtn = document.getElementById("closeFirstRunHint");
+      const smokeIndexBtn = document.getElementById("hintSmokeIndexBtn");
+      const beefCutsBtn = document.getElementById("hintBeefCutsBtn");
+      const smokeIndexCard = document.getElementById("smokeIndexCard");
+      const cutsCard = document.getElementById("cuts");
       if (!hint || !closeBtn) return;
+
+      const scrollAndHighlight = (targetEl) => {
+        if (!targetEl) return;
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        targetEl.classList.remove("section-spotlight");
+        window.setTimeout(() => targetEl.classList.add("section-spotlight"), 140);
+        window.setTimeout(() => targetEl.classList.remove("section-spotlight"), 2900);
+      };
+
+      const markHintSeen = () => {
+        hint.classList.add("hidden");
+        localStorage.setItem("smoke_hint_seen", "1");
+      };
 
       const seen = localStorage.getItem("smoke_hint_seen");
       if (!seen) {
@@ -4059,10 +4172,25 @@ const data = isJson ? await res.json() : null;
       }
 
       closeBtn.addEventListener("click", () => {
-        hint.classList.add("hidden");
-        localStorage.setItem("smoke_hint_seen", "1");
+        markHintSeen();
         posthog.capture("first_run_hint_closed");
       });
+
+      if (smokeIndexBtn) {
+        smokeIndexBtn.addEventListener("click", () => {
+          scrollAndHighlight(smokeIndexCard);
+          markHintSeen();
+          posthog.capture("first_run_hint_cta_clicked", { target: "smoke_index" });
+        });
+      }
+
+      if (beefCutsBtn) {
+        beefCutsBtn.addEventListener("click", () => {
+          scrollAndHighlight(cutsCard);
+          markHintSeen();
+          posthog.capture("first_run_hint_cta_clicked", { target: "beef_cuts" });
+        });
+      }
     }
 
     function setupFloatingFeedbackButton() {
