@@ -237,6 +237,12 @@
       overflow: hidden;
     }
 
+    .pill-btn.secondary {
+      background: rgba(255,255,255,0.01);
+      color: #c9d6e6;
+      border-color: #2a3648;
+    }
+
     .small-btn {
       padding: 9px 12px;
       font-size: 12px;
@@ -794,7 +800,7 @@
 
     .recipe-output {
       border-radius: 22px;
-      padding: 16px;
+      padding: 18px;
     }
 
     .recipe-output h3 {
@@ -831,7 +837,7 @@
 
     .ai-recipe-wrap {
       display: grid;
-      gap: 14px;
+      gap: 16px;
     }
 
     .ai-recipe-header {
@@ -870,9 +876,9 @@
     .ai-recipe-card {
       border-radius: 18px;
       padding: 15px;
-      background: #101722;
+      background: linear-gradient(180deg, #111927, #101722);
       border: 1px solid #1b2534;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 0 18px rgba(255, 107, 44, 0.08);
     }
 
     .ai-recipe-card h4 {
@@ -910,6 +916,103 @@
       color: #dbe5f2;
       font-size: 12px;
       font-weight: 700;
+    }
+
+    .pairings-section {
+      display: grid;
+      gap: 10px;
+    }
+
+    .pairings-title {
+      margin: 0;
+      font-size: 14px;
+      color: #d8e2ef;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sauce-grid,
+    .sides-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .sauce-card {
+      border-radius: 16px;
+      border: 1px solid #243043;
+      background: #101722;
+      box-shadow: 0 0 16px rgba(255, 107, 44, 0.08);
+      overflow: hidden;
+    }
+
+    .sauce-toggle {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      text-align: left;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .sauce-toggle h5 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      color: #ecf3ff;
+    }
+
+    .sauce-toggle p {
+      margin: 0;
+      color: #b7c6d8;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .sauce-chevron {
+      color: #ff9c73;
+      font-size: 14px;
+      transition: transform 0.25s ease;
+      align-self: center;
+    }
+
+    .sauce-card.expanded .sauce-chevron {
+      transform: rotate(180deg);
+    }
+
+    .sauce-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding: 0 14px;
+    }
+
+    .sauce-card.expanded .sauce-details {
+      max-height: 420px;
+      padding-bottom: 12px;
+    }
+
+    .side-card {
+      border-radius: 14px;
+      background: #101722;
+      border: 1px solid #223045;
+      padding: 10px 12px;
+      box-shadow: 0 0 14px rgba(255, 107, 44, 0.06);
+    }
+
+    .side-card h5 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      color: #ecf3ff;
+    }
+
+    .side-card p {
+      margin: 0;
+      font-size: 13px;
+      color: #b7c6d8;
+      line-height: 1.5;
     }
 
     .butcher-toolbar {
@@ -1472,6 +1575,14 @@
 
       .ai-recipe-card.full {
         grid-column: 1 / -1;
+      }
+
+      .sauce-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .sides-grid {
+        grid-template-columns: 1fr 1fr;
       }
          }
 
@@ -2386,7 +2497,9 @@
       </div>
 
       <div class="recipe-actions">
-        <button class="pill-btn" onclick="generateRecipe()">Generate Recipe</button>
+        <button class="pill-btn" onclick="generateRecipe('all')">Generate Recipe</button>
+        <button class="pill-btn secondary" onclick="generateRecipe('sauces')">Regenerate Sauces Only</button>
+        <button class="pill-btn secondary" onclick="generateRecipe('sides')">Regenerate Sides Only</button>
       </div>
 
       <div class="recipe-output" id="recipeOutput">
@@ -3896,7 +4009,9 @@ function updateBeefHighlight(cutName) {
       );
     }
 
-    async function generateRecipe() {
+    let latestStructuredRecipe = null;
+
+    async function generateRecipe(mode = "all") {
       const cut = document.getElementById("cutType").value;
       const method = document.getElementById("cookingMethod").value;
       const flavor = document.getElementById("flavorProfile").value;
@@ -3912,7 +4027,7 @@ function updateBeefHighlight(cutName) {
 
       try {
        const res = await fetch(
-  `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}`
+  `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}&mode=${encodeURIComponent(mode)}`
 );
 
 const contentType = res.headers.get("content-type") || "";
@@ -3937,8 +4052,12 @@ if (!isJson) {
 }
 
 const data = await res.json();
+const incomingStructured = normalizeStructuredRecipe(data.structuredRecipe);
+const mergedStructured = mergeStructuredRecipe(latestStructuredRecipe, incomingStructured, mode);
+latestStructuredRecipe = mergedStructured;
 
         output.innerHTML = renderAiRecipe(data.recipe, {
+          structuredRecipe: mergedStructured,
           cut,
           method,
           flavor,
@@ -3957,6 +4076,10 @@ const data = await res.json();
     }
 
     function renderAiRecipe(recipeText, meta = {}) {
+      if (meta.structuredRecipe) {
+        return renderSmartRecipe(meta.structuredRecipe, meta);
+      }
+
       const parsed = parseAiRecipe(recipeText);
 
       const ingredientsList = parsed.ingredients.length
@@ -4007,6 +4130,157 @@ const data = await res.json();
           </div>
         </div>
       `;
+    }
+
+    function normalizeStructuredRecipe(recipe) {
+      if (!recipe || typeof recipe !== "object") return null;
+
+      const safeList = (value) =>
+        Array.isArray(value)
+          ? value.map(item => String(item || "").trim()).filter(Boolean)
+          : [];
+
+      const safeSauces = Array.isArray(recipe.sauces)
+        ? recipe.sauces
+            .map((item) => ({
+              name: String(item?.name || "").trim(),
+              description: String(item?.description || "").trim(),
+              ingredients: safeList(item?.ingredients),
+              steps: safeList(item?.steps)
+            }))
+            .filter(item => item.name)
+            .slice(0, 3)
+        : [];
+
+      const safeSides = Array.isArray(recipe.sides)
+        ? recipe.sides
+            .map((item) => ({
+              name: String(item?.name || "").trim(),
+              description: String(item?.description || "").trim()
+            }))
+            .filter(item => item.name)
+            .slice(0, 3)
+        : [];
+
+      return {
+        main: {
+          title: String(recipe?.main?.title || "").trim(),
+          description: String(recipe?.main?.description || "").trim(),
+          ingredients: safeList(recipe?.main?.ingredients),
+          steps: safeList(recipe?.main?.steps)
+        },
+        sauces: safeSauces,
+        sides: safeSides
+      };
+    }
+
+    function mergeStructuredRecipe(currentRecipe, incomingRecipe, mode = "all") {
+      if (!incomingRecipe) return currentRecipe;
+      if (!currentRecipe || mode === "all") return incomingRecipe;
+
+      if (mode === "sauces") {
+        return {
+          ...currentRecipe,
+          sauces: incomingRecipe.sauces.length ? incomingRecipe.sauces : currentRecipe.sauces
+        };
+      }
+
+      if (mode === "sides") {
+        return {
+          ...currentRecipe,
+          sides: incomingRecipe.sides.length ? incomingRecipe.sides : currentRecipe.sides
+        };
+      }
+
+      return incomingRecipe;
+    }
+
+    function renderSmartRecipe(structuredRecipe, meta = {}) {
+      const main = structuredRecipe?.main || {};
+      const mainIngredients = (main.ingredients || []).length
+        ? `<ul>${(main.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+        : `<p>Ingredients not provided.</p>`;
+
+      const mainSteps = (main.steps || []).length
+        ? `<ol>${(main.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+        : `<p>Steps not provided.</p>`;
+
+      const sauceCards = (structuredRecipe.sauces || []).map((sauce, index) => `
+        <article class="sauce-card" id="sauceCard${index}">
+          <button class="sauce-toggle" type="button" onclick="toggleSauceCard(${index})">
+            <div>
+              <h5>${escapeHtml(sauce.name)}</h5>
+              <p>${escapeHtml(sauce.description)}</p>
+            </div>
+            <span class="sauce-chevron">⌄</span>
+          </button>
+          <div class="sauce-details">
+            <h4>Ingredients</h4>
+            <ul>${(sauce.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <h4>Steps</h4>
+            <ol>${(sauce.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
+          </div>
+        </article>
+      `).join("");
+
+      const sidesCards = (structuredRecipe.sides || []).map((side) => `
+        <article class="side-card">
+          <h5>${escapeHtml(side.name)}</h5>
+          <p>${escapeHtml(side.description)}</p>
+        </article>
+      `).join("");
+
+      return `
+        <div class="ai-recipe-wrap">
+          <div class="ai-recipe-header">
+            <h3 class="ai-recipe-title">${escapeHtml(main.title || "Smart Cooking Mode")}</h3>
+            <span class="ai-recipe-badge">${escapeHtml(meta.source || "ai")} powered</span>
+          </div>
+
+          <div class="ai-recipe-meta">
+            <span class="ai-recipe-chip">🥩 ${escapeHtml(meta.cut || "cut")}</span>
+            <span class="ai-recipe-chip">🔥 ${escapeHtml(meta.method || "method")}</span>
+            <span class="ai-recipe-chip">🧂 ${escapeHtml(meta.flavor || "flavor")}</span>
+          </div>
+
+          <div class="ai-recipe-grid">
+            <div class="ai-recipe-card full">
+              <h4>Main Recipe</h4>
+              <p>${escapeHtml(main.description || "No description provided.")}</p>
+            </div>
+
+            <div class="ai-recipe-card">
+              <h4>Ingredients</h4>
+              ${mainIngredients}
+            </div>
+
+            <div class="ai-recipe-card">
+              <h4>Steps</h4>
+              ${mainSteps}
+            </div>
+          </div>
+
+          <section class="pairings-section">
+            <h4 class="pairings-title">🔥 Sauce Pairings</h4>
+            <div class="sauce-grid">
+              ${sauceCards || "<p>No sauce pairings available.</p>"}
+            </div>
+          </section>
+
+          <section class="pairings-section">
+            <h4 class="pairings-title">🍽️ Perfect Sides</h4>
+            <div class="sides-grid">
+              ${sidesCards || "<p>No side suggestions available.</p>"}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    function toggleSauceCard(index) {
+      const card = document.getElementById(`sauceCard${index}`);
+      if (!card) return;
+      card.classList.toggle("expanded");
     }
 
     function parseAiRecipe(recipeText = "") {
