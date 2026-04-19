@@ -2369,49 +2369,49 @@
         id="chuck"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="m 68.705621,81.630615 c 0,0 16.657517,18.07518 16.657517,20.556085 0,2.48091 46.428402,0.70883 46.428402,0.70883 l 1.06325,-59.541757 -35.441532,1.772076 c 0,0 -3.898569,41.112166 -28.707637,36.504766 z"
+        d="M 67 82 C 84 86, 95 88, 112 92 C 124 95, 131 93, 133 85 L 133 45 L 98 45 C 96 62, 90 77, 67 82 Z"
       />
       <path
         id="sirloin"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="m 204.80109,42.999356 8.15155,57.060854 47.13723,0.35442 -8.86038,-60.605012 z"
-      />
-      <path
-        id="round"
-        class="cut-region"
-        style="stroke-width:0.264583"
-        d="m 248.03975,38.746374 14.17661,81.515506 c 0,0 37.21361,18.42959 48.20048,18.78401 10.98687,0.35442 -9.2148,-23.03699 -9.2148,-23.03699 0,0 7.44272,-32.960615 7.44272,-40.403335 0,-7.44272 -9.56921,-38.631269 -30.12529,-37.922437 -20.55609,0.708829 -30.47972,1.063246 -30.47972,1.063246 z"
-      />
-      <path
-        id="plate"
-        class="cut-region"
-        style="stroke-width:0.264583"
-        d="m 131.43713,102.1867 126.52625,-3.898565 7.44272,41.112175 -16.3031,-2.48091 c 0,0 -2.12649,-8.15155 -14.88544,-6.73389 -12.75895,1.41766 -24.45466,9.92362 -24.45466,9.92362 0,0 -44.30191,-6.02506 -51.74463,-5.31622 -7.44272,0.70883 -14.17661,0.35441 -14.17661,0.35441 z"
+        d="M 213 43 L 250 41 L 258 97 L 220 99 Z"
       />
       <path
         id="picanha"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="m 244.4956,39.455204 -0.70883,21.264916 47.49164,-3.189737 -2.12649,-19.847255 z"
+        d="M 246 41 L 289 38 L 292 57 L 243 60 Z"
       />
       <path
-        id="rib"
+        id="ribeye"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="m 130.72829,42.999356 0.35442,59.187344 64.858,-1.06324 -9.56922,-57.769687 z"
+        d="M 133 43 L 188 43 L 197 100 L 133 102 Z"
       />
       <path
-        id="short_loin"
+        id="filet"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="m 185.30825,43.353773 11.6957,59.896177 19.49284,-3.898565 -7.0883,-57.769691 z"
+        d="M 188 43 L 211 42 L 219 99 L 198 103 Z"
       />
       <path
         id="brisket"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="m 83.591062,100.41463 c 1.417661,0 49.618138,2.4809 49.618138,2.4809 l 12.40454,34.02387 -30.83413,3.54415 c 0,0 -18.429598,-5.31623 -18.784014,-10.98687 -0.354415,-5.67065 -9.923627,-28.70764 -12.404534,-29.06205 z"
+        d="M 86 100 L 134 103 L 145 136 L 116 141 C 104 139, 98 135, 96 128 C 93 118, 88 104, 86 100 Z"
+      />
+      <path
+        id="short_ribs"
+        class="cut-region"
+        style="stroke-width:0.264583"
+        d="M 136 102 L 212 100 L 214 132 C 198 133, 169 133, 145 137 Z"
+      />
+      <path
+        id="flank"
+        class="cut-region"
+        style="stroke-width:0.264583"
+        d="M 214 101 L 258 98 L 265 138 L 240 132 C 229 132, 220 135, 209 141 Z"
       />
     </g>
   </svg>
@@ -2639,75 +2639,85 @@
     let openingLoaderHidden = false;
     let visibleVideoCount = 6;
 
-    const cutData = {
-      brisket: {
-        title: "Brisket",
-        location: "Lower chest, toward the front underside of the cow.",
-        description: "Brisket comes from the lower chest and carries a lot of connective tissue.",
-        suitable: ["Smoking", "Long braise", "Low and slow oven cook"],
-        tip: "Brisket rewards patience. Resting is almost as important as the cook itself."
-      },
+    const BEEF_CUTS = {
       chuck: {
-        title: "Chuck",
+        id: "chuck",
+        displayName: "Chuck",
+        regionId: "chuck",
         location: "Shoulder and upper front section of the cow.",
-        description: "Chuck is beefy, flavorful, and ideal for long cooking or grinding.",
-        suitable: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
-        tip: "Chuck shines when given time to break down and soften."
+        description: "Well-worked shoulder meat with strong beef flavor and connective tissue.",
+        cookingMethods: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
+        quickTip: "Chuck shines when given time to break down and soften."
       },
       ribeye: {
-        title: "Ribeye",
+        id: "ribeye",
+        displayName: "Ribeye",
+        regionId: "ribeye",
         location: "Upper rib section, along the center-back of the animal.",
-        description: "Ribeye is one of the most flavorful cuts, with generous marbling.",
-        suitable: ["Cast iron", "Grill", "Reverse sear"],
-        tip: "A strong crust and a short rest usually give ribeye its best result."
-      },
-      short_ribs: {
-        title: "Short Ribs",
-        location: "Lower rib cage and plate section.",
-        description: "Short ribs are deeply beefy and loaded with connective tissue.",
-        suitable: ["Smoking", "Braising", "Long oven cook"],
-        tip: "Short ribs need time, but they pay it back in flavor."
+        description: "High-marbling rib section known for rich flavor and tenderness.",
+        cookingMethods: ["Cast iron", "Grill", "Reverse sear"],
+        quickTip: "A strong crust and a short rest usually give ribeye its best result."
       },
       sirloin: {
-        title: "Sirloin",
+        id: "sirloin",
+        displayName: "Sirloin",
+        regionId: "sirloin",
         location: "Rear upper back, behind the rib section.",
-        description: "Sirloin is leaner than rib cuts but still flavorful and versatile.",
-        suitable: ["Grilling", "Cast iron", "Roasting"],
-        tip: "Do not overcook it. Sirloin is best when sliced properly and rested."
+        description: "Leaner rear-back cut that stays flavorful when cooked with care.",
+        cookingMethods: ["Grilling", "Cast iron", "Roasting"],
+        quickTip: "Do not overcook it. Sirloin is best when sliced properly and rested."
+      },
+      brisket: {
+        id: "brisket",
+        displayName: "Brisket",
+        regionId: "brisket",
+        location: "Lower chest, toward the front underside of the cow.",
+        description: "Chest cut with collagen-rich muscle that excels in low-and-slow cooking.",
+        cookingMethods: ["Smoking", "Long braise", "Low and slow oven cook"],
+        quickTip: "Brisket rewards patience. Resting is almost as important as the cook itself."
+      },
+      short_ribs: {
+        id: "short_ribs",
+        displayName: "Short Ribs",
+        regionId: "short_ribs",
+        location: "Lower rib cage area between brisket and flank.",
+        description: "Bone-in rib section that is deeply beefy and full of connective tissue.",
+        cookingMethods: ["Smoking", "Braising", "Long oven cook"],
+        quickTip: "Short ribs need time, but they pay it back in flavor."
       },
       flank: {
-        title: "Flank",
-        location: "Lower abdominal muscles, behind the plate section.",
-        description: "Flank is a lean, fibrous cut with bold flavor.",
-        suitable: ["High-heat grill", "Cast iron", "Marinated sear"],
-        tip: "Always slice flank against the grain."
+        id: "flank",
+        displayName: "Flank",
+        regionId: "flank",
+        location: "Lower abdominal muscles, behind the short plate.",
+        description: "Lean abdominal cut with long fibers and bold, beef-forward flavor.",
+        cookingMethods: ["High-heat grill", "Cast iron", "Marinated sear"],
+        quickTip: "Always slice flank against the grain."
       },
       filet: {
-        title: "Filet / Tenderloin",
+        id: "filet",
+        displayName: "Filet / Tenderloin",
+        regionId: "filet",
         location: "Inside the rear back, tucked under the spine.",
-        description: "Tenderloin is extremely tender and lean, known more for texture.",
-        suitable: ["Cast iron", "Quick roast", "Gentle grill"],
-        tip: "Because it is lean, avoid overcooking and consider butter-based finishing."
+        description: "Very tender, lean loin muscle prized for texture over fat richness.",
+        cookingMethods: ["Cast iron", "Quick roast", "Gentle grill"],
+        quickTip: "Because it is lean, avoid overcooking and consider butter-based finishing."
       },
       picanha: {
-        title: "Picanha",
+        id: "picanha",
+        displayName: "Picanha",
+        regionId: "picanha",
         location: "Top rear rump cap, near the tail end.",
-        description: "Picanha is prized for its fat cap and big flavor.",
-        suitable: ["BBQ", "Grill", "Reverse sear", "Roast"],
-        tip: "Score the fat cap lightly and render it carefully."
+        description: "Rump cap cut with a defining fat layer and strong beef flavor.",
+        cookingMethods: ["BBQ", "Grill", "Reverse sear", "Roast"],
+        quickTip: "Score the fat cap lightly and render it carefully."
       }
     };
 
-    const cutCards = [
-      { id: "chuck", label: "Chuck" },
-      { id: "ribeye", label: "Ribeye" },
-      { id: "sirloin", label: "Sirloin" },
-      { id: "brisket", label: "Brisket" },
-      { id: "short_ribs", label: "Short Ribs" },
-      { id: "flank", label: "Flank" },
-      { id: "filet", label: "Filet" },
-      { id: "picanha", label: "Picanha" }
-    ];
+    const cutCards = Object.values(BEEF_CUTS).map((cut) => ({
+      id: cut.id,
+      label: cut.displayName
+    }));
  const cutOverlayMap = {
   chuck: {
     top: "28%",
@@ -3772,34 +3782,17 @@ function attachInteractiveCards() {
       });
     }
 
-    const CUT_TO_REGION_MAP = {
-      chuck: "chuck",
-      ribeye: "rib",
-      sirloin: "sirloin",
-      brisket: "brisket",
-      short_ribs: "plate",
-      picanha: "picanha",
-      filet: "short_loin",
-      flank: "plate"
-    };
-
-    const REGION_TO_CUT_MAP = {
-      rib: "ribeye",
-      short_loin: "filet",
-      plate: "short_ribs",
-      sirloin: "sirloin",
-      chuck: "chuck",
-      brisket: "brisket",
-      picanha: "picanha",
-      round: "picanha"
-    };
+    const REGION_TO_CUT_MAP = Object.values(BEEF_CUTS).reduce((map, cut) => {
+      map[cut.regionId] = cut.id;
+      return map;
+    }, {});
 
     function getRegionIdForCut(cutId) {
-      return CUT_TO_REGION_MAP[cutId] || cutId;
+      return BEEF_CUTS[cutId]?.regionId || null;
     }
 
     function getCutIdForRegion(regionId) {
-      return REGION_TO_CUT_MAP[regionId] || regionId;
+      return REGION_TO_CUT_MAP[regionId] || null;
     }
 
     function getActiveCutId() {
@@ -3856,24 +3849,24 @@ function attachInteractiveCards() {
     }
 
     function showCutPanel(cutKey) {
-      const cut = cutData[cutKey];
+      const cut = BEEF_CUTS[cutKey];
       if (!cut) return;
 
       const panel = document.getElementById("cutInfo");
       if (!panel) return;
 
       panel.innerHTML = `
-        <h3>${escapeHtml(cut.title)}</h3>
+        <h3>${escapeHtml(cut.displayName)}</h3>
         <p>${escapeHtml(cut.description)}</p>
 
         <h4>Location on the cow</h4>
         <p>${escapeHtml(cut.location)}</p>
 
         <h4>Best cooking styles</h4>
-        <ul>${cut.suitable.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        <ul>${cut.cookingMethods.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
 
         <h4>Tip</h4>
-        <p>${escapeHtml(cut.tip)}</p>
+        <p>${escapeHtml(cut.quickTip)}</p>
       `;
       panel.classList.remove("is-hidden");
     }
