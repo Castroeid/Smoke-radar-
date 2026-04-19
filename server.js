@@ -662,8 +662,171 @@ app.get("/api/smoke-radar", async (req, res) => {
 });
 
 app.get("/api/ai-recipe", async (req, res) => {
+  const sanitizeStringList = (value, fallback = []) =>
+    Array.isArray(value)
+      ? value
+          .map(item => String(item || "").trim())
+          .filter(Boolean)
+      : fallback;
+
+  const sanitizeObjectList = (value) =>
+    Array.isArray(value) ? value.filter(item => item && typeof item === "object") : [];
+
+  const toSeedNumber = (value) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : Date.now();
+  };
+
+  const buildFallbackSmartRecipe = ({ cut, method, flavor, seed }) => {
+    const sauces = [
+      {
+        name: "Smoky Garlic Butter",
+        description: "Rich and glossy, great for basting and finishing slices.",
+        ingredients: [
+          "3 tbsp unsalted butter",
+          "1 minced garlic clove",
+          "1 tsp smoked paprika",
+          "Pinch of salt",
+          "1 tsp lemon juice"
+        ],
+        steps: [
+          "Melt butter on low heat.",
+          "Stir in garlic and paprika for 30 seconds.",
+          "Add salt and lemon juice, then serve warm."
+        ]
+      },
+      {
+        name: "Pepper Mustard Glaze",
+        description: "Tangy with a little heat, ideal for bark-heavy cuts.",
+        ingredients: [
+          "2 tbsp Dijon mustard",
+          "1 tbsp honey",
+          "1 tsp cracked black pepper",
+          "1 tsp apple cider vinegar"
+        ],
+        steps: [
+          "Whisk all ingredients until smooth.",
+          "Brush lightly in the final minutes of cooking.",
+          "Serve extra on the side."
+        ]
+      },
+      {
+        name: "Herb Chimichurri",
+        description: "Fresh, sharp, and bright to balance rich meat.",
+        ingredients: [
+          "1 cup chopped parsley",
+          "2 tbsp chopped oregano",
+          "2 minced garlic cloves",
+          "3 tbsp red wine vinegar",
+          "1/3 cup olive oil"
+        ],
+        steps: [
+          "Mix herbs and garlic in a bowl.",
+          "Add vinegar and oil, then season with salt.",
+          "Let rest 10 minutes before serving."
+        ]
+      }
+    ];
+
+    const sides = [
+      {
+        name: "Charred Corn with Lime",
+        description: "Sweet smoky kernels with citrus lift."
+      },
+      {
+        name: "Crispy Herb Potatoes",
+        description: "Golden bite-size potatoes with rosemary and sea salt."
+      },
+      {
+        name: "Grilled Asparagus",
+        description: "Quick blistered greens with olive oil and pepper."
+      }
+    ];
+
+    const sauceShift = toSeedNumber(seed) % sauces.length;
+    const sideShift = toSeedNumber(seed) % sides.length;
+
+    return {
+      main: {
+        title: `${flavor || "Bold"} ${cut || "Meat"} (${method || "Cooked"})`,
+        description: `A concise ${flavor || "savory"} main recipe built for ${method || "high-heat cooking"}.`,
+        ingredients: [
+          `${cut || "Main cut"} (about 2 lb)`,
+          "Kosher salt",
+          "Black pepper",
+          "2 tbsp neutral oil",
+          `1 tsp ${flavor || "signature"} seasoning`
+        ],
+        steps: [
+          `Preheat for ${method || "your method"} and season the meat evenly.`,
+          "Cook until crust forms, then manage heat to finish evenly.",
+          "Rest 8-10 minutes, slice, and serve."
+        ]
+      },
+      sauces: [sauces[sauceShift], sauces[(sauceShift + 1) % sauces.length], sauces[(sauceShift + 2) % sauces.length]],
+      sides: [sides[sideShift], sides[(sideShift + 1) % sides.length], sides[(sideShift + 2) % sides.length]]
+    };
+  };
+
+  const normalizeSmartRecipe = (payload, context = {}) => {
+    const fallback = buildFallbackSmartRecipe(context);
+    const normalized = payload && typeof payload === "object" ? payload : {};
+
+    const main = normalized.main && typeof normalized.main === "object" ? normalized.main : {};
+
+    const sauces = sanitizeObjectList(normalized.sauces).map((entry) => {
+      const item = entry && typeof entry === "object" ? entry : {};
+      return {
+        name: String(item.name || "Sauce pairing").trim(),
+        description: String(item.description || "Complements the main recipe.").trim(),
+        ingredients: sanitizeStringList(item.ingredients),
+        steps: sanitizeStringList(item.steps)
+      };
+    }).filter(item => item.name);
+
+    const sides = sanitizeObjectList(normalized.sides).map((entry) => {
+      const item = entry && typeof entry === "object" ? entry : {};
+      return {
+        name: String(item.name || "Side dish").trim(),
+        description: String(item.description || "Quick supporting side.").trim()
+      };
+    }).filter(item => item.name);
+
+    const safeSauces = sauces.length >= 2 ? sauces.slice(0, 3) : fallback.sauces.slice(0, 3);
+    const safeSides = sides.length >= 2 ? sides.slice(0, 3) : fallback.sides.slice(0, 3);
+
+    return {
+      main: {
+        title: String(main.title || fallback.main.title).trim(),
+        description: String(main.description || fallback.main.description).trim(),
+        ingredients: sanitizeStringList(main.ingredients, fallback.main.ingredients).slice(0, 12),
+        steps: sanitizeStringList(main.steps, fallback.main.steps).slice(0, 8)
+      },
+      sauces: safeSauces.map((item, idx) => ({
+        name: item.name || fallback.sauces[idx]?.name || "Sauce pairing",
+        description: item.description || fallback.sauces[idx]?.description || "Complements the main recipe.",
+        ingredients: sanitizeStringList(item.ingredients, fallback.sauces[idx]?.ingredients || []).slice(0, 10),
+        steps: sanitizeStringList(item.steps, fallback.sauces[idx]?.steps || []).slice(0, 6)
+      })),
+      sides: safeSides.map((item, idx) => ({
+        name: item.name || fallback.sides[idx]?.name || "Side dish",
+        description: item.description || fallback.sides[idx]?.description || "Quick supporting side."
+      }))
+    };
+  };
+
+  const structuredToLegacyText = (structuredRecipe) => {
+    const main = structuredRecipe?.main || {};
+    const ingredients = (main.ingredients || []).map(item => `- ${item}`).join("\n");
+    const steps = (main.steps || []).map((item, idx) => `${idx + 1}. ${item}`).join("\n");
+    const sauceTips = (structuredRecipe?.sauces || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
+    const sideTips = (structuredRecipe?.sides || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
+
+    return `Title: ${main.title || "AI Recipe"}\nIngredients:\n${ingredients}\n\nSteps:\n${steps}\n\nTips:\n${sauceTips}\n${sideTips}\n\nTarget doneness:\nUse a thermometer and cook to preference.`;
+  };
+
   try {
-    const { cut, method, flavor, r } = req.query;
+    const { cut, method, flavor, r, mode = "all" } = req.query;
 
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
@@ -672,36 +835,43 @@ app.get("/api/ai-recipe", async (req, res) => {
 const prompt = `
 You are a creative professional chef specializing in beef and meat dishes.
 
-Create a UNIQUE meat recipe every time.
+Create a concise Smart Cooking Mode response.
 
 Cut: ${cut}
 Cooking method: ${method}
 Flavor profile: ${flavor}
 Variation seed: ${r}
+Refresh mode: ${mode}
 
-Make it slightly different each time:
-- Change ingredients a bit
-- Change technique a bit
-- Change wording
-- Keep it practical and realistic
+Rules:
+- Keep copy concise and practical (no long paragraphs)
+- Return exactly 2-3 sauces
+- Return exactly 2-3 sides
+- Always return valid JSON only, no markdown
 
-Return the recipe in this exact structure:
-
-Title:
-Ingredients:
-- item
-- item
-
-Steps:
-1. step
-2. step
-
-Tips:
-- tip
-- tip
-
-Target doneness:
-...
+JSON shape:
+{
+  "main": {
+    "title": "string",
+    "description": "string",
+    "ingredients": ["string"],
+    "steps": ["string"]
+  },
+  "sauces": [
+    {
+      "name": "string",
+      "description": "string",
+      "ingredients": ["string"],
+      "steps": ["string"]
+    }
+  ],
+  "sides": [
+    {
+      "name": "string",
+      "description": "string"
+    }
+  ]
+}
 `;
 
     const completion = await openai.chat.completions.create({
@@ -715,11 +885,29 @@ Target doneness:
       temperature: 0.8
     });
 
-    const recipe = completion.choices?.[0]?.message?.content || "";
+    const recipeText = completion.choices?.[0]?.message?.content || "";
+    const normalizedRaw = recipeText.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "");
+    let parsedPayload = null;
+
+    try {
+      parsedPayload = JSON.parse(normalizedRaw);
+    } catch (parseError) {
+      parsedPayload = null;
+      console.warn("AI recipe JSON parse failed, using fallback shape.");
+    }
+
+    const structuredRecipe = normalizeSmartRecipe(parsedPayload, {
+      cut,
+      method,
+      flavor,
+      seed: r
+    });
+    const recipe = structuredToLegacyText(structuredRecipe);
 
     return res.json({
       recipe,
-      source: "ai"
+      structuredRecipe,
+      source: parsedPayload ? "ai" : "fallback"
     });
   } catch (err) {
     console.error("AI RECIPE ERROR:", err);
