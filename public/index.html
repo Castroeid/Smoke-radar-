@@ -2121,7 +2121,28 @@
         defaults: '2026-01-30',
         person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
         capture_pageview: true
-    })
+    });
+
+    if (localStorage.getItem('smoke_radar_internal_tester') === 'true') {
+      if (typeof posthog.setInternalOrTestUser === 'function') {
+        posthog.setInternalOrTestUser(true);
+      }
+      posthog.register({
+        tester: true,
+        internal_user: true,
+        test_source: 'manual_local_flag'
+      });
+    }
+
+    window.enableSmokeRadarTestUser = function() {
+      localStorage.setItem('smoke_radar_internal_tester', 'true');
+      console.log('Smoke Radar: Test user ENABLED. Refresh page.');
+    };
+
+    window.disableSmokeRadarTestUser = function() {
+      localStorage.removeItem('smoke_radar_internal_tester');
+      console.log('Smoke Radar: Test user DISABLED. Refresh page.');
+    };
 </script> 
 </head>
 <body>
