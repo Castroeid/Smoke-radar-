@@ -731,15 +731,30 @@ app.get("/api/ai-recipe", async (req, res) => {
     const sides = [
       {
         name: "Charred Corn with Lime",
-        description: "Sweet smoky kernels with citrus lift."
+        description: "Sweet smoky kernels with citrus lift.",
+        steps: [
+          "Char corn in a hot pan or grill until blistered.",
+          "Toss with butter, lime juice, and sea salt.",
+          "Finish with chopped cilantro."
+        ]
       },
       {
         name: "Crispy Herb Potatoes",
-        description: "Golden bite-size potatoes with rosemary and sea salt."
+        description: "Golden bite-size potatoes with rosemary and sea salt.",
+        steps: [
+          "Parboil potato chunks until just tender.",
+          "Roast with oil, rosemary, and salt until crisp.",
+          "Serve with black pepper and lemon zest."
+        ]
       },
       {
         name: "Grilled Asparagus",
-        description: "Quick blistered greens with olive oil and pepper."
+        description: "Quick blistered greens with olive oil and pepper.",
+        steps: [
+          "Coat asparagus with olive oil, salt, and pepper.",
+          "Grill 3-4 minutes until lightly charred.",
+          "Finish with lemon and shaved parmesan."
+        ]
       }
     ];
 
@@ -788,7 +803,8 @@ app.get("/api/ai-recipe", async (req, res) => {
       const item = entry && typeof entry === "object" ? entry : {};
       return {
         name: String(item.name || "Side dish").trim(),
-        description: String(item.description || "Quick supporting side.").trim()
+        description: String(item.description || "Quick supporting side.").trim(),
+        steps: sanitizeStringList(item.steps)
       };
     }).filter(item => item.name);
 
@@ -810,7 +826,8 @@ app.get("/api/ai-recipe", async (req, res) => {
       })),
       sides: safeSides.map((item, idx) => ({
         name: item.name || fallback.sides[idx]?.name || "Side dish",
-        description: item.description || fallback.sides[idx]?.description || "Quick supporting side."
+        description: item.description || fallback.sides[idx]?.description || "Quick supporting side.",
+        steps: sanitizeStringList(item.steps, fallback.sides[idx]?.steps || []).slice(0, 4)
       }))
     };
   };
@@ -868,7 +885,8 @@ JSON shape:
   "sides": [
     {
       "name": "string",
-      "description": "string"
+      "description": "string",
+      "steps": ["string"]
     }
   ]
 }
