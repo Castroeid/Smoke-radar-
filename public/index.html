@@ -1695,8 +1695,8 @@
 }
 
 .cut-region {
-  fill: rgba(255,255,255,0.035);
-  stroke: rgba(255,140,60,0.35);
+  fill: transparent;
+  stroke: rgba(255,120,0,0.3);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
   cursor: pointer;
@@ -1710,17 +1710,17 @@
 
 .cut-region:hover,
 .cut-region.hovered {
-  fill: rgba(255,140,60,0.18);
-  stroke: rgba(255,166,92,0.95);
-  filter: drop-shadow(0 0 10px rgba(255,140,60,0.22));
+  fill: rgba(255,120,0,0.08);
+  stroke: rgba(255,140,60,0.58);
+  filter: drop-shadow(0 0 10px rgba(255,120,0,0.22));
 }
 
 .cut-region.is-active {
-  fill: rgba(255,140,60,0.28);
-  stroke: rgba(255,176,110,1);
+  fill: rgba(255,120,0,0.16);
+  stroke: rgba(255,156,74,0.88);
   filter:
-    drop-shadow(0 0 10px rgba(255,140,60,0.28))
-    drop-shadow(0 0 24px rgba(255,140,60,0.16));
+    drop-shadow(0 0 10px rgba(255,120,0,0.3))
+    drop-shadow(0 0 24px rgba(255,120,0,0.16));
 }
 
 .cut-region.is-dimmed {
@@ -2390,49 +2390,49 @@
         id="chuck"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="M 63 81 C 72 76, 83 69, 92 60 C 99 53, 103 48, 106 44 L 133 44 L 133 88 C 127 93, 119 95, 109 94 C 94 91, 80 87, 69 84 C 66 83, 64 82, 63 81 Z"
+        d="M 86 66 C 95 58, 103 49, 108 44 L 133 44 L 133 100 C 124 102, 115 101, 107 97 C 100 93, 92 88, 85 83 L 80 77 Z"
+      />
+      <path
+        id="rib"
+        class="cut-region"
+        style="stroke-width:0.264583"
+        d="M 133 44 L 176 43 C 182 46, 188 52, 192 59 C 196 68, 198 78, 199 89 L 198 101 L 136 103 L 133 94 Z"
+      />
+      <path
+        id="short_loin"
+        class="cut-region"
+        style="stroke-width:0.264583"
+        d="M 176 43 L 210 42 C 215 45, 220 52, 223 60 C 227 71, 228 84, 227 97 L 224 100 L 198 101 L 199 89 C 198 78, 196 68, 192 59 C 188 52, 182 46, 176 43 Z"
       />
       <path
         id="sirloin"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="M 211 43 L 245 41 L 252 51 L 256 66 L 258 82 L 258 95 L 226 99 L 221 90 L 217 76 L 214 60 Z"
+        d="M 210 42 L 245 41 L 252 50 L 256 62 L 258 77 L 258 95 L 227 97 C 228 84, 227 71, 223 60 C 220 52, 215 45, 210 42 Z"
       />
       <path
-        id="picanha"
+        id="round"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="M 245 41 L 287 38 L 295 47 L 296 57 L 288 63 L 273 64 L 256 62 L 249 54 Z"
-      />
-      <path
-        id="ribeye"
-        class="cut-region"
-        style="stroke-width:0.264583"
-        d="M 133 44 L 188 43 L 197 52 L 202 66 L 204 81 L 202 96 L 198 101 L 136 103 L 134 92 L 133 78 Z"
-      />
-      <path
-        id="filet"
-        class="cut-region"
-        style="stroke-width:0.264583"
-        d="M 188 43 L 211 43 L 214 57 L 218 73 L 222 89 L 224 100 L 202 104 L 198 96 L 194 82 L 191 66 Z"
+        d="M 245 41 L 287 38 L 295 47 L 296 61 L 292 78 L 286 92 L 279 104 L 267 111 L 258 95 L 258 77 L 256 62 L 252 50 Z"
       />
       <path
         id="brisket"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="M 85 99 L 136 103 L 148 116 L 150 129 L 141 139 L 122 144 C 110 143, 101 139, 95 131 C 91 122, 88 110, 85 99 Z"
+        d="M 93 98 L 136 103 L 139 120 L 139 137 L 122 144 C 112 142, 104 137, 97 129 C 94 119, 93 109, 93 98 Z"
       />
       <path
-        id="short_ribs"
+        id="plate"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="M 136 103 L 198 101 L 224 100 L 225 113 L 223 126 L 220 133 C 202 136, 179 138, 160 138 C 151 138, 144 138, 139 137 Z"
+        d="M 136 103 L 224 100 L 225 113 L 222 130 L 210 142 L 160 141 L 139 137 L 139 120 Z"
       />
       <path
         id="flank"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="M 224 100 L 258 97 L 268 107 L 272 122 L 269 136 L 248 136 C 238 136, 229 138, 221 142 L 210 142 L 218 132 L 223 118 Z"
+        d="M 224 100 L 258 95 L 267 111 L 269 124 L 264 136 L 248 137 L 235 141 L 210 142 L 222 130 L 225 113 Z"
       />
     </g>
   </svg>
@@ -2665,28 +2665,46 @@
         id: "chuck",
         displayName: "Chuck",
         regionId: "chuck",
-        location: "Shoulder and upper front section of the cow.",
-        description: "Well-worked shoulder meat with strong beef flavor and connective tissue.",
+        location: "Front shoulder and neck transition above the foreleg.",
+        description: "Heavily used shoulder group with dense connective tissue and deep beef character.",
         cookingMethods: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
         quickTip: "Chuck shines when given time to break down and soften."
       },
-      ribeye: {
-        id: "ribeye",
-        displayName: "Ribeye",
-        regionId: "ribeye",
-        location: "Upper rib section, along the center-back of the animal.",
-        description: "High-marbling rib section known for rich flavor and tenderness.",
-        cookingMethods: ["Cast iron", "Grill", "Reverse sear"],
-        quickTip: "A strong crust and a short rest usually give ribeye its best result."
+      rib: {
+        id: "rib",
+        displayName: "Rib",
+        regionId: "rib",
+        location: "Upper middle front, directly behind the chuck along the thoracic ribs.",
+        description: "Classic prime rib zone with strong marbling, rich fat cover, and tender muscle bundles.",
+        cookingMethods: ["Roasting", "Grill", "Reverse sear"],
+        quickTip: "Keep rib cuts medium-rare to medium so the marbling renders without drying."
+      },
+      short_loin: {
+        id: "short_loin",
+        displayName: "Short Loin",
+        regionId: "short_loin",
+        location: "Upper middle back between rib and sirloin.",
+        description: "Transition section that yields strip and T-bone style steaks with balanced tenderness.",
+        cookingMethods: ["High-heat grill", "Cast iron", "Roasting"],
+        quickTip: "Use dry heat and avoid overcooking to preserve fine loin texture."
       },
       sirloin: {
         id: "sirloin",
         displayName: "Sirloin",
         regionId: "sirloin",
-        location: "Rear upper back, behind the rib section.",
-        description: "Leaner rear-back cut that stays flavorful when cooked with care.",
+        location: "Upper rear before the hip and round.",
+        description: "Rear loin group with moderate marbling and a robust beef-forward profile.",
         cookingMethods: ["Grilling", "Cast iron", "Roasting"],
         quickTip: "Do not overcook it. Sirloin is best when sliced properly and rested."
+      },
+      round: {
+        id: "round",
+        displayName: "Round",
+        regionId: "round",
+        location: "Hindquarter and upper back leg around the rump and thigh.",
+        description: "Large rear-leg muscle group that is lean, dense, and excellent for roasts or slicing.",
+        cookingMethods: ["Roasting", "Braising", "Sous vide then sear"],
+        quickTip: "Round stays juicier when cooked gently and sliced thin against the grain."
       },
       brisket: {
         id: "brisket",
@@ -2697,14 +2715,14 @@
         cookingMethods: ["Smoking", "Long braise", "Low and slow oven cook"],
         quickTip: "Brisket rewards patience. Resting is almost as important as the cook itself."
       },
-      short_ribs: {
-        id: "short_ribs",
-        displayName: "Short Ribs",
-        regionId: "short_ribs",
-        location: "Lower rib cage area between brisket and flank.",
-        description: "Bone-in rib section that is deeply beefy and full of connective tissue.",
-        cookingMethods: ["Smoking", "Braising", "Long oven cook"],
-        quickTip: "Short ribs need time, but they pay it back in flavor."
+      plate: {
+        id: "plate",
+        displayName: "Plate",
+        regionId: "plate",
+        location: "Lower middle belly under rib and short loin.",
+        description: "Belly section that includes short plate muscles with rich flavor and loose grain.",
+        cookingMethods: ["Smoking", "Braising", "Hot grill after marinade"],
+        quickTip: "Plate cuts benefit from either low-and-slow rendering or hot-and-fast slicing."
       },
       flank: {
         id: "flank",
@@ -2714,24 +2732,6 @@
         description: "Lean abdominal cut with long fibers and bold, beef-forward flavor.",
         cookingMethods: ["High-heat grill", "Cast iron", "Marinated sear"],
         quickTip: "Always slice flank against the grain."
-      },
-      filet: {
-        id: "filet",
-        displayName: "Filet / Tenderloin",
-        regionId: "filet",
-        location: "Inside the rear back, tucked under the spine.",
-        description: "Very tender, lean loin muscle prized for texture over fat richness.",
-        cookingMethods: ["Cast iron", "Quick roast", "Gentle grill"],
-        quickTip: "Because it is lean, avoid overcooking and consider butter-based finishing."
-      },
-      picanha: {
-        id: "picanha",
-        displayName: "Picanha",
-        regionId: "picanha",
-        location: "Top rear rump cap, near the tail end.",
-        description: "Rump cap cut with a defining fat layer and strong beef flavor.",
-        cookingMethods: ["BBQ", "Grill", "Reverse sear", "Roast"],
-        quickTip: "Score the fat cap lightly and render it carefully."
       }
     };
 
@@ -2739,75 +2739,7 @@
       id: cut.id,
       label: cut.displayName
     }));
- const cutOverlayMap = {
-  chuck: {
-    top: "28%",
-    left: "24%",
-    width: "16%",
-    height: "26%",
-    rotate: "-18deg",
-    radius: "42%"
-  },
-  ribeye: {
-    top: "27%",
-    left: "45%",
-    width: "13%",
-    height: "18%",
-    rotate: "-4deg",
-    radius: "50%"
-  },
-  sirloin: {
-    top: "27%",
-    left: "63%",
-    width: "15%",
-    height: "18%",
-    rotate: "-6deg",
-    radius: "44%"
-  },
- brisket: {
-  top: "46%",
-  left: "35%",
-  width: "15%",
-  height: "18%",
-  rotate: "-16deg",
-  radius: "0%",
-  clipPath: "polygon(10% 0%, 90% 10%, 100% 80%, 40% 100%, 0% 70%)"
-},
- short_ribs: {
-  top: "40%",
-  left: "49%",
-  width: "24%",
-  height: "16%",
-  rotate: "8deg",
-  radius: "0%",
-  clipPath: "polygon(0% 30%, 100% 0%, 100% 70%, 0% 100%)"
-},
- flank: {
-  top: "54%",
-  left: "56%",
-  width: "24%",
-  height: "14%",
-  rotate: "10deg",
-  radius: "0%",
-  clipPath: "polygon(5% 30%, 95% 10%, 100% 60%, 70% 100%, 0% 80%)"
-},
-  filet: {
-    top: "34%",
-    left: "58%",
-    width: "8%",
-    height: "13%",
-    rotate: "0deg",
-    radius: "50%"
-  },
-  picanha: {
-    top: "34%",
-    left: "77%",
-    width: "11%",
-    height: "15%",
-    rotate: "-10deg",
-    radius: "44%"
-  }
-};
+
     function hideOpeningLoader() {
       if (openingLoaderHidden) return;
       openingLoaderHidden = true;
