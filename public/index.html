@@ -2045,6 +2045,20 @@
   opacity: 0.92;
 }
 
+.smoke-trend-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.smoke-trend-message {
+  font-size: 12px;
+  color: #bfc9d9;
+  opacity: 0.9;
+}
+
 .smoke-top-source strong {
   color: #ffd8c8;
   font-weight: 800;
@@ -2308,6 +2322,10 @@
     Live trend signal for the current radar state.
   </div>
   <div class="smoke-top-source" id="smokeTopSource">Top Heat Source: —</div>
+  <div class="smoke-trend-actions">
+    <button class="small-btn" id="cookTrendBtn" type="button">🔥 Cook This</button>
+    <span class="smoke-trend-message" id="cookTrendMessage"></span>
+  </div>
 </div>
 
     <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
@@ -2719,6 +2737,7 @@
     let currentTab = "hot";
     let openingLoaderHidden = false;
     let visibleVideoCount = 6;
+    let latestTopHeatTitle = "";
 
     const CUT_DEFINITIONS = [
       {
@@ -3497,6 +3516,8 @@ if (topSourceEl) {
   } else {
     topSourceEl.innerHTML = `Top Heat Source: <strong>${shortTitle}</strong>`;
   }
+
+  latestTopHeatTitle = cleanTitle;
 }
 
 const infoBtn = document.getElementById("smokeInfoBtn");
@@ -3517,6 +3538,71 @@ A breakout top video can also lift the score.`;
 
 previousSmokeScore = score;
 }
+
+    function detectTrendingCut(title = "") {
+      const normalized = String(title || "").toLowerCase();
+
+      const hasAny = (keywords = []) => keywords.some((keyword) => normalized.includes(keyword));
+
+      if (hasAny(["picanha", "rump cap"])) {
+        return { cutId: "picanha", method: "bbq", matched: true };
+      }
+
+      if (hasAny(["brisket"])) {
+        return { cutId: "brisket", method: "smoking", matched: true };
+      }
+
+      if (hasAny(["asado", "short ribs", "short rib", "plate ribs", "ribs", "rib"])) {
+        return { cutId: "short_ribs", method: "long_cook", matched: true };
+      }
+
+      if (hasAny(["ribeye", "steak", "entrecote"])) {
+        return { cutId: "ribeye", method: "cast_iron", matched: true };
+      }
+
+      return { cutId: "ribeye", method: "cast_iron", matched: false };
+    }
+
+    function setupCookThisTrend() {
+      const cookBtn = document.getElementById("cookTrendBtn");
+      const messageEl = document.getElementById("cookTrendMessage");
+      const recipePanel = document.getElementById("recipes");
+      const meatTypeEl = document.getElementById("meatType");
+      const cutTypeEl = document.getElementById("cutType");
+      const methodEl = document.getElementById("cookingMethod");
+      const flavorEl = document.getElementById("flavorProfile");
+      if (!cookBtn || !recipePanel || !meatTypeEl || !cutTypeEl || !methodEl || !flavorEl) return;
+
+      cookBtn.addEventListener("click", async () => {
+        const detection = detectTrendingCut(latestTopHeatTitle);
+
+        meatTypeEl.value = "beef";
+
+        if (CUTS_BY_ID[detection.cutId]) {
+          cutTypeEl.value = detection.cutId;
+        } else {
+          cutTypeEl.value = "ribeye";
+        }
+
+        if ([...methodEl.options].some((option) => option.value === detection.method)) {
+          methodEl.value = detection.method;
+        } else {
+          methodEl.value = "cast_iron";
+        }
+
+        flavorEl.value = "classic";
+
+        if (messageEl) {
+          messageEl.textContent = detection.matched
+            ? ""
+            : "Could not detect exact cut, using default";
+        }
+
+        recipePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        await generateRecipe("all");
+      });
+    }
+
 function renderHero(data = {}, options = {}) {
   updateSmokeUI(data, options);
 }
@@ -4707,6 +4793,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderIsraeliCreatorsCard();
   attachInteractiveCards();
   attachBeefMapInteractions();
+  setupCookThisTrend();
   renderCutsGrid(null);
   updateBeefHighlight(null);
   loadData();
