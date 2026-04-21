@@ -762,18 +762,19 @@
   
     .recipe-generator-panel {
       position: relative;
-      padding: 24px;
+      padding: 28px;
       background:
         radial-gradient(120% 72% at 50% -12%, rgba(255,120,54,0.10), rgba(255,120,54,0.03) 48%, transparent 76%),
         linear-gradient(180deg, var(--panel), var(--panel-2));
-      border: 1px solid rgba(255, 149, 95, 0.22);
-      box-shadow: 0 0 0 1px rgba(255, 149, 95, 0.16), 0 0 24px rgba(255, 107, 44, 0.14);
+      border: 1px solid rgba(255, 149, 95, 0.26);
+      box-shadow: 0 0 0 1px rgba(255, 149, 95, 0.18), 0 0 28px rgba(255, 107, 44, 0.18);
     }
 
     .recipe-generator-title {
-      font-size: 22px;
-      color: #f1f6ff;
+      font-size: 24px;
+      color: #f8fbff;
       letter-spacing: -0.02em;
+      text-shadow: 0 0 14px rgba(255, 136, 76, 0.18);
     }
 
     .recipe-grid {
@@ -811,7 +812,7 @@
     .recipe-actions {
       display: flex;
       gap: 10px;
-      margin: 18px 0;
+      margin: 22px 0 20px;
       flex-wrap: wrap;
     }
 
@@ -822,9 +823,10 @@
 
     .recipe-output {
       border-radius: 22px;
-      padding: 20px;
+      padding: 22px;
       border: 1px solid #223045;
       background: rgba(12, 18, 28, 0.72);
+      margin-top: 4px;
     }
 
     .recipe-output h3 {
@@ -2323,7 +2325,7 @@
   </div>
   <div class="smoke-top-source" id="smokeTopSource">Top Heat Source: —</div>
   <div class="smoke-trend-actions">
-    <button class="small-btn" id="cookTrendBtn" type="button">🔥 Cook This</button>
+    <button class="small-btn" id="cookTrendBtn" type="button">🔥 Cook This Trend</button>
     <span class="smoke-trend-message" id="cookTrendMessage"></span>
   </div>
 </div>
@@ -2603,7 +2605,7 @@
 
       <div class="recipe-output" id="recipeOutput">
         <div class="recipe-placeholder">
-          Choose your cut, cooking method, and flavor profile to build a full cooking experience — including sauces and sides.
+          Choose your cut, cooking method, and flavor profile — or cook directly from the current trend.
         </div>
       </div>
     </div>
@@ -3595,7 +3597,7 @@ previousSmokeScore = score;
         if (messageEl) {
           messageEl.textContent = detection.matched
             ? ""
-            : "Could not detect exact cut, using default";
+            : "Using default cut";
         }
 
         recipePanel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -4521,7 +4523,7 @@ updateRecipeActionLabels();
           </div>
 
           <section class="smart-section">
-            <h4 class="smart-section-title">🔥 Main Recipe</h4>
+            <h4 class="smart-section-title">🔥 MAIN RECIPE</h4>
             <div class="ai-recipe-grid">
               <div class="ai-recipe-card full">
                 <h4>${escapeHtml(main.title || "Smart Cooking Mode")}</h4>
@@ -4541,14 +4543,14 @@ updateRecipeActionLabels();
           </section>
 
           <section class="pairings-section smart-section">
-            <h4 class="pairings-title">🥣 Sauces</h4>
+            <h4 class="pairings-title">🥣 SAUCES</h4>
             <div class="sauce-grid">
               ${sauceCards || "<p>No sauce pairings available.</p>"}
             </div>
           </section>
 
           <section class="pairings-section smart-section">
-            <h4 class="pairings-title">🍽️ Sides</h4>
+            <h4 class="pairings-title">🍽️ SIDES</h4>
             <div class="sides-grid">
               ${sidesCards || "<p>No side suggestions available.</p>"}
             </div>
