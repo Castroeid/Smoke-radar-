@@ -1212,6 +1212,14 @@
       color: #fff;
     }
 
+    .cut-panel .cut-name-local {
+      display: block;
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
     .cut-panel p {
       color: #cbd5e1;
       font-size: 14px;
@@ -2543,13 +2551,7 @@
 
         <div class="recipe-field">
           <label for="cutType">Cut</label>
-          <select id="cutType">
-            <option value="brisket">Brisket</option>
-            <option value="ribeye" selected>Ribeye</option>
-            <option value="short_ribs">Short Ribs</option>
-            <option value="tomahawk">Tomahawk</option>
-            <option value="picanha">Picanha</option>
-          </select>
+          <select id="cutType"></select>
         </div>
 
         <div class="recipe-field">
@@ -2718,94 +2720,237 @@
     let openingLoaderHidden = false;
     let visibleVideoCount = 6;
 
-    const BEEF_CUTS = {
-      chuck: {
+    const CUT_DEFINITIONS = [
+      {
         id: "chuck",
         displayName: "Chuck",
+        localName: null,
+        aliases: ["shoulder"],
         regionId: "chuck",
         location: "Front shoulder and neck transition above the foreleg.",
         description: "Heavily used shoulder group with dense connective tissue and deep beef character.",
         cookingMethods: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
-        quickTip: "Chuck shines when given time to break down and soften."
+        quickTip: "Chuck shines when given time to break down and soften.",
+        inExplorer: true,
+        inRecipeGenerator: false
       },
-      rib: {
+      {
         id: "rib",
-        displayName: "Rib",
+        displayName: "Rib / Ribeye",
+        localName: "אנטריקוט",
+        aliases: ["ribeye", "entrecote"],
         regionId: "rib",
         location: "Upper middle front, directly behind the chuck along the thoracic ribs.",
         description: "Classic prime rib zone with strong marbling, rich fat cover, and tender muscle bundles.",
         cookingMethods: ["Roasting", "Grill", "Reverse sear"],
-        quickTip: "Keep rib cuts medium-rare to medium so the marbling renders without drying."
+        quickTip: "Keep rib cuts medium-rare to medium so the marbling renders without drying.",
+        inExplorer: true,
+        inRecipeGenerator: false
       },
-      short_loin: {
+      {
         id: "short_loin",
-        displayName: "Short Loin",
+        displayName: "Short Loin / Tenderloin",
+        localName: "פילה",
+        aliases: ["tenderloin", "filet"],
         regionId: "short_loin",
         location: "Upper middle back between rib and sirloin.",
         description: "Transition section that yields strip and T-bone style steaks with balanced tenderness.",
         cookingMethods: ["High-heat grill", "Cast iron", "Roasting"],
-        quickTip: "Use dry heat and avoid overcooking to preserve fine loin texture."
+        quickTip: "Use dry heat and avoid overcooking to preserve fine loin texture.",
+        inExplorer: true,
+        inRecipeGenerator: false
       },
-      sirloin: {
+      {
         id: "sirloin",
         displayName: "Sirloin",
+        localName: null,
+        aliases: ["top sirloin"],
         regionId: "sirloin",
         location: "Upper rear before the hip and round.",
         description: "Rear loin group with moderate marbling and a robust beef-forward profile.",
         cookingMethods: ["Grilling", "Cast iron", "Roasting"],
-        quickTip: "Do not overcook it. Sirloin is best when sliced properly and rested."
+        quickTip: "Do not overcook it. Sirloin is best when sliced properly and rested.",
+        inExplorer: true,
+        inRecipeGenerator: false
       },
-      picanha: {
+      {
         id: "picanha",
         displayName: "Picanha",
+        localName: null,
+        aliases: ["rump cap"],
         regionId: "picanha",
         location: "Top rear rump cap above the sirloin near the tail end.",
         description: "Distinct rump-cap cut known for a thick fat cap and concentrated beef flavor.",
         cookingMethods: ["Grill", "Reverse sear", "Roast", "Skewer over coals"],
-        quickTip: "Keep the fat cap on, score lightly, and render it slowly before the final sear."
+        quickTip: "Keep the fat cap on, score lightly, and render it slowly before the final sear.",
+        inExplorer: true,
+        inRecipeGenerator: true
       },
-      round: {
+      {
         id: "round",
-        displayName: "Round",
+        displayName: "Round / Rump",
+        localName: "שייטל",
+        aliases: ["rump", "shaitel"],
         regionId: "round",
         location: "Hindquarter and upper back leg around the rump and thigh.",
         description: "Large rear-leg muscle group that is lean, dense, and excellent for roasts or slicing.",
         cookingMethods: ["Roasting", "Braising", "Sous vide then sear"],
-        quickTip: "Round stays juicier when cooked gently and sliced thin against the grain."
+        quickTip: "Round stays juicier when cooked gently and sliced thin against the grain.",
+        inExplorer: true,
+        inRecipeGenerator: false
       },
-      brisket: {
+      {
         id: "brisket",
         displayName: "Brisket",
+        localName: null,
+        aliases: [],
         regionId: "brisket",
         location: "Lower chest, toward the front underside of the cow.",
         description: "Chest cut with collagen-rich muscle that excels in low-and-slow cooking.",
         cookingMethods: ["Smoking", "Long braise", "Low and slow oven cook"],
-        quickTip: "Brisket rewards patience. Resting is almost as important as the cook itself."
+        quickTip: "Brisket rewards patience. Resting is almost as important as the cook itself.",
+        inExplorer: true,
+        inRecipeGenerator: true
       },
-      plate: {
+      {
         id: "plate",
-        displayName: "Plate",
+        displayName: "Plate / Short Ribs",
+        localName: "אסאדו",
+        aliases: ["short ribs", "plate ribs", "asado"],
         regionId: "plate",
         location: "Lower middle belly under rib and short loin.",
         description: "Belly section that includes short plate muscles with rich flavor and loose grain.",
         cookingMethods: ["Smoking", "Braising", "Hot grill after marinade"],
-        quickTip: "Plate cuts benefit from either low-and-slow rendering or hot-and-fast slicing."
+        quickTip: "Plate cuts benefit from either low-and-slow rendering or hot-and-fast slicing.",
+        inExplorer: true,
+        inRecipeGenerator: false
       },
-      flank: {
+      {
         id: "flank",
         displayName: "Flank",
+        localName: null,
+        aliases: [],
         regionId: "flank",
         location: "Lower abdominal muscles, behind the short plate.",
         description: "Lean abdominal cut with long fibers and bold, beef-forward flavor.",
         cookingMethods: ["High-heat grill", "Cast iron", "Marinated sear"],
-        quickTip: "Always slice flank against the grain."
+        quickTip: "Always slice flank against the grain.",
+        inExplorer: true,
+        inRecipeGenerator: false
+      },
+      {
+        id: "ribeye",
+        displayName: "Ribeye",
+        localName: "אנטריקוט",
+        aliases: ["entrecote"],
+        description: "Well-marbled steak from the rib family with rich flavor and tenderness.",
+        cookingMethods: ["Cast iron", "Grill", "Reverse sear"],
+        familyId: "rib",
+        inExplorer: false,
+        inRecipeGenerator: true
+      },
+      {
+        id: "short_ribs",
+        displayName: "Short Ribs",
+        localName: "אסאדו",
+        aliases: ["plate ribs", "asado"],
+        description: "Collagen-rich rib section that performs best low and slow.",
+        cookingMethods: ["Smoking", "Braising", "Long cook"],
+        familyId: "plate",
+        inExplorer: false,
+        inRecipeGenerator: true
+      },
+      {
+        id: "tomahawk",
+        displayName: "Tomahawk",
+        localName: null,
+        aliases: [],
+        description: "Long-bone rib steak with dramatic presentation and heavy marbling.",
+        cookingMethods: ["Reverse sear", "Grill"],
+        familyId: "rib",
+        inExplorer: false,
+        inRecipeGenerator: true
+      },
+      {
+        id: "entrecote",
+        displayName: "Entrecote",
+        localName: "אנטריקוט",
+        aliases: ["ribeye"],
+        description: "Local-style naming for ribeye steak, prized for marbling and juiciness.",
+        cookingMethods: ["Cast iron", "Grill", "Reverse sear"],
+        familyId: "rib",
+        inExplorer: false,
+        inRecipeGenerator: true
+      },
+      {
+        id: "filet",
+        displayName: "Filet / Tenderloin",
+        localName: "פילה",
+        aliases: ["tenderloin"],
+        description: "Ultra-tender center cut with mild flavor and very little connective tissue.",
+        cookingMethods: ["Cast iron", "High-heat grill", "Roasting"],
+        familyId: "short_loin",
+        inExplorer: false,
+        inRecipeGenerator: true
+      },
+      {
+        id: "shaitel",
+        displayName: "Shaitel",
+        localName: "שייטל",
+        aliases: ["round", "rump"],
+        description: "Lean rear-leg cut used for roasts, schnitzel slicing, and gentle cooking.",
+        cookingMethods: ["Roasting", "Braising", "Sous vide then sear"],
+        familyId: "round",
+        inExplorer: false,
+        inRecipeGenerator: true
+      },
+      {
+        id: "asado",
+        displayName: "Asado",
+        localName: "אסאדו",
+        aliases: ["short ribs", "plate ribs"],
+        description: "Bone-in cross-cut rib style, ideal for long, slow cooks with deep flavor.",
+        cookingMethods: ["Smoking", "Long cook", "Braising"],
+        familyId: "plate",
+        inExplorer: false,
+        inRecipeGenerator: true
       }
-    };
+    ];
+
+    const CUTS_BY_ID = Object.fromEntries(CUT_DEFINITIONS.map((cut) => [cut.id, cut]));
+    const BEEF_CUTS = CUT_DEFINITIONS
+      .filter((cut) => cut.inExplorer)
+      .reduce((acc, cut) => {
+        acc[cut.id] = cut;
+        return acc;
+      }, {});
+
+    function formatCutLabel(cut, { includeLocal = true } = {}) {
+      if (!cut) return "";
+      if (includeLocal && cut.localName) {
+        return `${cut.displayName} (${cut.localName})`;
+      }
+      return cut.displayName;
+    }
 
     const cutCards = Object.values(BEEF_CUTS).map((cut) => ({
       id: cut.id,
-      label: cut.displayName
+      label: formatCutLabel(cut)
     }));
+
+    function populateRecipeCutOptions() {
+      const cutSelect = document.getElementById("cutType");
+      if (!cutSelect) return;
+
+      const options = CUT_DEFINITIONS.filter((cut) => cut.inRecipeGenerator);
+      cutSelect.innerHTML = options
+        .map((cut) => `<option value="${escapeHtml(cut.id)}">${escapeHtml(formatCutLabel(cut))}</option>`)
+        .join("");
+
+      if (options.some((cut) => cut.id === "ribeye")) {
+        cutSelect.value = "ribeye";
+      }
+    }
 
     function hideOpeningLoader() {
       if (openingLoaderHidden) return;
@@ -2976,7 +3121,12 @@ function openPopover(title, html, buttonEl = null) {
       const map = [
         ["brisket", "Brisket"],
         ["ribeye", "Ribeye"],
+        ["entrecote", "Entrecote"],
+        ["אנטריקוט", "Entrecote"],
         ["short ribs", "Short Ribs"],
+        ["plate ribs", "Asado"],
+        ["asado", "Asado"],
+        ["אסאדו", "Asado"],
         ["beef ribs", "Beef Ribs"],
         ["tomahawk", "Tomahawk"],
         ["picanha", "Picanha"],
@@ -2984,6 +3134,9 @@ function openPopover(title, html, buttonEl = null) {
         ["flank", "Flank"],
         ["tenderloin", "Tenderloin"],
         ["filet", "Filet"],
+        ["פילה", "Filet"],
+        ["shaitel", "Shaitel"],
+        ["שייטל", "Shaitel"],
         ["wagyu", "Wagyu"],
         ["burger", "Burger"],
         ["steak", "Steak"],
@@ -3876,7 +4029,7 @@ function attachInteractiveCards() {
       if (!panel) return;
 
       panel.innerHTML = `
-        <h3>${escapeHtml(cut.displayName)}</h3>
+        <h3>${escapeHtml(cut.displayName)}${cut.localName ? `<span class="cut-name-local">${escapeHtml(cut.localName)}</span>` : ""}</h3>
         <p>${escapeHtml(cut.description)}</p>
 
         <h4>Location on the cow</h4>
@@ -4041,6 +4194,8 @@ function updateBeefHighlight(cutName) {
 
     async function generateRecipe(mode = "all") {
       const cut = document.getElementById("cutType").value;
+      const cutDefinition = CUTS_BY_ID[cut];
+      const cutLabel = formatCutLabel(cutDefinition) || cut;
       const method = document.getElementById("cookingMethod").value;
       const flavor = document.getElementById("flavorProfile").value;
       const output = document.getElementById("recipeOutput");
@@ -4055,7 +4210,7 @@ function updateBeefHighlight(cutName) {
 
       try {
        const res = await fetch(
-  `/api/ai-recipe?cut=${encodeURIComponent(cut)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}&mode=${encodeURIComponent(mode)}`
+  `/api/ai-recipe?cut=${encodeURIComponent(cutLabel)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}&mode=${encodeURIComponent(mode)}`
 );
 
 const contentType = res.headers.get("content-type") || "";
@@ -4087,7 +4242,7 @@ updateRecipeActionLabels();
 
         output.innerHTML = renderAiRecipe(data.recipe, {
           structuredRecipe: mergedStructured,
-          cut,
+          cut: cutLabel,
           method,
           flavor,
           source: data.source || "ai"
@@ -4543,6 +4698,7 @@ const data = isJson ? await res.json() : null;
     }
 
 document.addEventListener("DOMContentLoaded", () => {
+  populateRecipeCutOptions();
   attachTabs();
   attachPopovers();
   setupFirstRunHint();
