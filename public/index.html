@@ -1135,6 +1135,55 @@
       font-size: 13px;
     }
 
+    .recipe-butcher-cta {
+      border-radius: 16px;
+      border: 1px solid #2a374d;
+      background: rgba(12, 18, 28, 0.75);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .recipe-butcher-cta h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .recipe-butcher-cta p {
+      margin: 0;
+      color: #c8d6ea;
+      font-size: 13px;
+    }
+
+    .recipe-butcher-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .butcher-highlights {
+      border-radius: 12px;
+      border: 1px solid #25354b;
+      background: rgba(9, 14, 22, 0.7);
+      padding: 10px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .butcher-highlights strong {
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #f7caa7;
+    }
+
+    .butcher-highlights p {
+      margin: 0;
+      font-size: 12px;
+      color: #b7c6d8;
+      line-height: 1.45;
+    }
+
     .cuts-image-wrap {
       width: 100%;
       border-radius: 18px;
@@ -4173,6 +4222,41 @@ function updateBeefHighlight(cutName) {
         });
       });
     }
+    function buildReviewHighlights(place = {}) {
+      const rating = Number(place.rating || 0);
+      const totalReviews = Number(place.userRatingsTotal || 0);
+      let summary = "Local butcher shop";
+
+      if (rating >= 4.7) {
+        summary = "Highly rated";
+      } else if (totalReviews >= 120) {
+        summary = "Popular local spot";
+      }
+
+      const reviewText = [
+        place.reviewText,
+        ...(Array.isArray(place.reviews) ? place.reviews.map((entry) => entry?.text || "") : [])
+      ].join(" ").toLowerCase();
+
+      const keywordChecks = [
+        { token: "quality", label: "quality" },
+        { token: "fresh", label: "fresh" },
+        { token: "service", label: "good service" },
+        { token: "meat", label: "quality meat" }
+      ];
+
+      const foundKeywords = keywordChecks
+        .filter((entry) => reviewText.includes(entry.token))
+        .map((entry) => entry.label)
+        .slice(0, 2);
+
+      const mentionText = foundKeywords.length
+        ? `Reviews mention ${foundKeywords.join(" and ")}.`
+        : "Signals are based on rating and review volume only.";
+
+      return { summary, mentionText };
+    }
+
     function renderButcherResults(results = []) {
       const mount = document.getElementById("butcherResults");
       if (!mount) return;
@@ -4182,18 +4266,26 @@ function updateBeefHighlight(cutName) {
         return;
       }
 
-      mount.innerHTML = results.map((place) => `
+      mount.innerHTML = results.map((place) => {
+        const highlights = buildReviewHighlights(place);
+        return `
         <article class="butcher-card">
           <div class="butcher-title-row">
             <h3 class="butcher-name">${escapeHtml(place.name || "Unknown butcher")}</h3>
             <div class="butcher-rating">⭐ ${place.rating ? Number(place.rating).toFixed(1) : "N/A"} · ${formatNum(place.userRatingsTotal || 0)}</div>
           </div>
           <p class="butcher-address">${escapeHtml(place.address || "Address unavailable")}</p>
+          <div class="butcher-highlights">
+            <strong>Review highlights</strong>
+            <p>${escapeHtml(highlights.summary)}</p>
+            <p>${escapeHtml(highlights.mentionText)}</p>
+          </div>
           <div>
             <a class="small-btn" href="${escapeHtml(place.mapsUrl || "https://maps.google.com")}" target="_blank" rel="noopener noreferrer">Open in Maps</a>
           </div>
         </article>
-      `).join("");
+      `;
+      }).join("");
     }
 
     function setButcherState({ loading = false, message = "" } = {}) {
@@ -4261,6 +4353,24 @@ function updateBeefHighlight(cutName) {
           maximumAge: 0
         }
       );
+    }
+
+    function getRecipeCutLabel(rawCut = "") {
+      const normalized = String(rawCut || "").trim().toLowerCase();
+      if (!normalized) return "this cut";
+      if (["beef short ribs", "short ribs"].includes(normalized)) return "short ribs";
+      return normalized;
+    }
+
+    function jumpToButcherFinder({ useLocation = false } = {}) {
+      const butcherPanel = document.getElementById("butchers");
+      if (butcherPanel) {
+        butcherPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      if (useLocation) {
+        findButchersNearMe();
+      }
     }
 
     let latestStructuredRecipe = null;
@@ -4353,55 +4463,42 @@ updateRecipeActionLabels();
       }
 
       const parsed = parseAiRecipe(recipeText);
+      const parsedStructured = normalizeStructuredRecipe({
+        main: {
+          title: parsed.title || "Smart Cooking Mode",
+          description: parsed.tips[0] || "Quick and balanced cook plan.",
+          ingredients: parsed.ingredients.slice(0, 10),
+          steps: parsed.steps.slice(0, 8)
+        },
+        sauces: [
+          {
+            name: "Classic Pan Sauce",
+            description: "Simple finishing drizzle for the main cut.",
+            ingredients: ["Butter", "Garlic", "Pan drippings"],
+            steps: ["Melt butter", "Add garlic", "Whisk drippings and serve warm"]
+          },
+          {
+            name: "Herb Bright Sauce",
+            description: "Fresh contrast for rich beef flavors.",
+            ingredients: ["Parsley", "Olive oil", "Lemon"],
+            steps: ["Chop herbs", "Mix with oil", "Finish with lemon and salt"]
+          }
+        ],
+        sides: [
+          {
+            name: "Charred Veg Mix",
+            description: "Fast grilled side with color and crunch.",
+            steps: ["Season vegetables", "Grill until charred", "Serve hot"]
+          },
+          {
+            name: "Warm Potato Bowl",
+            description: "Comfort side that pairs well with smoke.",
+            steps: ["Boil potatoes", "Dress with olive oil", "Season and serve"]
+          }
+        ]
+      });
 
-      const ingredientsList = parsed.ingredients.length
-        ? `<ul>${parsed.ingredients.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-        : `<p>${escapeHtml(parsed.ingredientsRaw || "Not provided.")}</p>`;
-
-      const stepsList = parsed.steps.length
-        ? `<ol>${parsed.steps.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
-        : `<p>${escapeHtml(parsed.stepsRaw || "Not provided.")}</p>`;
-
-      const tipsList = parsed.tips.length
-        ? `<ul>${parsed.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-        : `<p>${escapeHtml(parsed.tipsRaw || "Not provided.")}</p>`;
-
-      return `
-        <div class="ai-recipe-wrap">
-          <div class="ai-recipe-header">
-            <h3 class="ai-recipe-title">${escapeHtml(parsed.title || "AI Recipe")}</h3>
-            <span class="ai-recipe-badge">${escapeHtml(meta.source || "ai")} powered</span>
-          </div>
-
-          <div class="ai-recipe-meta">
-            <span class="ai-recipe-chip">🥩 ${escapeHtml(meta.cut || "cut")}</span>
-            <span class="ai-recipe-chip">🔥 ${escapeHtml(meta.method || "method")}</span>
-            <span class="ai-recipe-chip">🧂 ${escapeHtml(meta.flavor || "flavor")}</span>
-          </div>
-
-          <div class="ai-recipe-grid">
-            <div class="ai-recipe-card">
-              <h4>Ingredients</h4>
-              ${ingredientsList}
-            </div>
-
-            <div class="ai-recipe-card">
-              <h4>🌡️ Target Doneness</h4>
-              <p>${escapeHtml(parsed.targetDoneness || "Use a thermometer and cook to preference.")}</p>
-            </div>
-
-            <div class="ai-recipe-card full">
-              <h4>Steps</h4>
-              ${stepsList}
-            </div>
-
-            <div class="ai-recipe-card full">
-              <h4>Tips</h4>
-              ${tipsList}
-            </div>
-          </div>
-        </div>
-      `;
+      return renderSmartRecipe(parsedStructured, meta);
     }
 
     function normalizeStructuredRecipe(recipe) {
@@ -4470,6 +4567,7 @@ updateRecipeActionLabels();
 
     function renderSmartRecipe(structuredRecipe, meta = {}) {
       const main = structuredRecipe?.main || {};
+      const cutLabel = getRecipeCutLabel(meta.cut);
       const mainIngredients = (main.ingredients || []).length
         ? `<ul>${(main.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
         : `<p>Ingredients not provided.</p>`;
@@ -4553,6 +4651,18 @@ updateRecipeActionLabels();
             <h4 class="pairings-title">🍽️ SIDES</h4>
             <div class="sides-grid">
               ${sidesCards || "<p>No side suggestions available.</p>"}
+            </div>
+          </section>
+
+          <section class="smart-section">
+            <div class="recipe-butcher-cta">
+              <h4>🥩 Ready to cook this?</h4>
+              <p>Find butcher shops near you for this recipe.</p>
+              <p>Looking for ${escapeHtml(cutLabel)} nearby?</p>
+              <div class="recipe-butcher-actions">
+                <button class="small-btn" type="button" onclick="jumpToButcherFinder()">Find Butchers Near Me</button>
+                <button class="small-btn" type="button" onclick="jumpToButcherFinder({ useLocation: true })">Use My Location</button>
+              </div>
             </div>
           </section>
         </div>
