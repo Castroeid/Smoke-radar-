@@ -38,6 +38,39 @@
       --glow: 0 0 24px rgba(255,107,44,0.18);
     }
 
+
+    body[data-theme="light"] {
+      --bg: #f2f5fa;
+      --panel: #ffffff;
+      --panel-2: #f5f8fd;
+      --border: #d7e1ef;
+      --text: #102033;
+      --muted: #58708f;
+      --shadow: 0 10px 24px rgba(11, 34, 58, 0.08);
+      --glow: 0 0 20px rgba(255,107,44,0.12);
+    }
+
+    body[data-theme="light"] {
+      background: radial-gradient(circle at top, #ffffff 0%, #eef3fb 60%);
+    }
+
+    body.smoke-effect::before {
+      content: "";
+      position: fixed;
+      inset: -20% 0 0;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(circle at 20% 100%, rgba(255,255,255,0.06), transparent 48%), radial-gradient(circle at 80% 100%, rgba(255,120,54,0.08), transparent 45%);
+      animation: smokeDrift 18s ease-in-out infinite alternate;
+    }
+
+    .container { position: relative; z-index: 1; }
+
+    @keyframes smokeDrift {
+      0% { transform: translateY(8px) scale(1); opacity: 0.22; }
+      100% { transform: translateY(-12px) scale(1.04); opacity: 0.35; }
+    }
+
     * { box-sizing: border-box; }
 
     html, body {
@@ -661,6 +694,41 @@
     .insight-link-item:hover {
       border-color: rgba(255,154,104,0.32);
       background: rgba(255,149,95,0.08);
+    }
+
+    .source-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: rgba(255,255,255,0.03);
+      margin-bottom: 10px;
+    }
+
+    .section-illustration {
+      width: 100%;
+      max-height: 84px;
+      object-fit: cover;
+      border-radius: 14px;
+      opacity: 0.5;
+      border: 1px solid var(--border);
+      margin: 8px 0 16px;
+      pointer-events: none;
+    }
+
+    .video-card-linkable {
+      cursor: pointer;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .video-card-linkable:hover {
+      border-color: rgba(255,154,104,0.52);
+      box-shadow: 0 0 0 1px rgba(255,154,104,0.09), 0 12px 26px rgba(255,107,44,0.17);
+      transform: translateY(-1px);
     }
 
     .region-chips {
@@ -2235,7 +2303,7 @@
   padding: 60px 0;
   position: relative;
 
-  /* זה החלק החדש */
+  /* layout scope */
   grid-column: 1 / -1;
 }
   </style>
@@ -2289,6 +2357,8 @@
 
       <div class="top-actions">
         <div class="meta-pill live" id="miniLiveBadge">Live</div>
+        <button class="small-btn" id="themeToggleBtn" type="button">☀️ Light</button>
+        <button class="small-btn" id="smokeFxToggleBtn" type="button">💨 Smoke FX</button>
         <button class="small-btn" id="shareBtn" type="button">Share</button>
         <button class="pill-btn" id="loadBtn" onclick="loadData()">
           <span class="refresh-loader"></span>
@@ -2322,6 +2392,7 @@
       <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
     </div>
 <section class="zone zone-radar">
+  <img src="/images/smoke_radar_preview.png" alt="Subtle smoke grill illustration" class="section-illustration" loading="lazy" decoding="async" />
 
   <div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
   <div class="smoke-index-top">
@@ -2370,9 +2441,10 @@
   </div>
 
   <div class="subtle smoke-helper" id="smokeHelper">
-    Live trend signal for the current radar state.
+    🔥 This is the current leading trend based on YouTube meat content.
   </div>
-  <div class="smoke-top-source" id="smokeTopSource">Top Heat Source: —</div>
+  <div class="source-label">🎥 Based on YouTube videos</div>
+  <div class="smoke-top-source" id="smokeTopSource">🎥 Top Heat Source: —</div>
   <div class="smoke-trend-actions">
     <button class="small-btn" id="cookTrendBtn" type="button">🔥 Cook This Trend</button>
     <span class="smoke-trend-message" id="cookTrendMessage"></span>
@@ -2388,7 +2460,7 @@
       <div class="signal-card" id="topChannelSignalCard">
         <div class="signal-label">Top Channel</div>
         <div class="signal-value">—</div>
-        <div class="signal-sub">Highest current average</div>
+        <div class="signal-sub">🎥 Top performing channel now — click to open</div>
       </div>
       <div class="signal-card">
         <div class="signal-label">Avg Smoke</div>
@@ -2406,13 +2478,13 @@
       <div class="insight-card" id="fastestBreakoutCard">
         <div class="insight-label">🚀 Fastest Breakout</div>
         <div class="insight-title" id="fastestBreakoutTitle">—</div>
-        <div class="insight-meta" id="fastestBreakoutMeta">Waiting for live signal...</div>
+        <div class="insight-meta" id="fastestBreakoutMeta">⚡ Fastest growing video based on recent momentum.</div>
       </div>
 
       <div class="insight-card" id="oldestActiveCard">
         <div class="insight-label">🕰️ Oldest Active</div>
         <div class="insight-title" id="oldestActiveTitle">—</div>
-        <div class="insight-meta" id="oldestActiveMeta">Waiting for age signal...</div>
+        <div class="insight-meta" id="oldestActiveMeta">📅 Oldest video still actively gaining traction.</div>
       </div>
 
       <div class="insight-card">
@@ -2437,7 +2509,7 @@
 
     <div class="panel app-enter app-enter-delay-2" id="momentumTrendCard">
       <div class="panel-heading">
-        <h2 id="chartTitle">Momentum Trend</h2>
+        <h2 id="chartTitle">📈 Momentum Trend</h2>
         <button type="button" class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
       </div>
       <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
@@ -2447,7 +2519,7 @@
     <div class="two-col app-enter app-enter-delay-3">
       <div class="panel">
         <div class="panel-heading">
-          <h2>Top Channels</h2>
+          <h2>🎥 Top Channels</h2>
           <button type="button" class="info-btn" data-popover-title="Top Channels" data-popover-text="Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.">i</button>
         </div>
         <div class="subtle">Best-performing creators in the current dataset</div>
@@ -2466,7 +2538,7 @@
 
       <div class="panel">
         <div class="panel-heading">
-          <h2>Hot Keywords</h2>
+          <h2>🔥 Hot Keywords</h2>
           <button type="button" class="info-btn" data-popover-title="Hot Keywords" data-popover-text="Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.">i</button>
         </div>
         <div class="subtle">Recurring terms extracted from current titles</div>
@@ -2484,7 +2556,7 @@
 
     <div class="panel app-enter app-enter-delay-3" id="cuts">
       <div class="panel-heading">
-        <h2>Beef Cuts Explorer</h2>
+        <h2>🥩 Beef Cuts Explorer</h2>
         <button type="button" class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
       </div>
       <div class="subtle">Tap a cut to open a quick guide</div>
@@ -2549,7 +2621,7 @@
         id="round"
         class="cut-region"
         style="stroke-width:0.264583"
-        d="M 268 81 L 279 80 C 286 86, 289 96, 289 108 C 288 120, 284 132, 277 142 C 271 149, 264 153, 257 153 L 253 142 L 255 128 L 258 116 L 260 101 L 260 88 Z"
+        d="M 264 84 L 274 84 C 280 90, 283 98, 283 108 C 282 118, 279 127, 273 136 C 268 142, 262 145, 256 145 L 253 138 L 255 125 L 258 114 L 260 101 L 260 89 Z"
       />
       <path
         id="brisket"
@@ -2600,10 +2672,11 @@
  <span>TOOLS & GENERATORS</span>
     </div>
 <section class="zone zone-tools">
+  <img src="/images/beef-map-premium.png" alt="Subtle meat preparation illustration" class="section-illustration" loading="lazy" decoding="async" />
 
     <div class="panel app-enter app-enter-delay-4 recipe-generator-panel" id="recipes">
       <div class="panel-heading">
-        <h2 class="recipe-generator-title">Recipe Generator</h2>
+        <h2 class="recipe-generator-title">🥘 Recipe Generator</h2>
         <button type="button" class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
       </div>
       <div class="subtle">Build a premium Smart Cooking Mode plan by cut, method, and flavor profile</div>
@@ -2661,7 +2734,7 @@
 
     <div class="panel app-enter app-enter-delay-4" id="butchers">
       <div class="panel-heading">
-        <h2>Butcher Finder</h2>
+        <h2>📍 Butcher Finder</h2>
         <button type="button" class="info-btn" data-popover-title="Butcher Finder" data-popover-text="Find nearby butcher shops using your current location and Google Places.">i</button>
       </div>
       <div class="subtle">Locate nearby butcher shops and open them directly in Google Maps</div>
@@ -2678,9 +2751,10 @@
 
     <div class="panel app-enter app-enter-delay-4" id="feed">
       <div class="panel-heading">
-        <h2 id="feedTitle">Radar Feed</h2>
+        <h2 id="feedTitle">🎥 Radar Feed</h2>
         <button type="button" class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
       </div>
+      <div class="source-label">🎥 Based on YouTube videos</div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
       <div class="panel-actions">
@@ -2807,7 +2881,7 @@
       {
         id: "rib",
         displayName: "Rib / Ribeye",
-        localName: "אנטריקוט",
+        localName: null,
         aliases: ["ribeye", "entrecote"],
         regionId: "rib",
         location: "Upper middle front, directly behind the chuck along the thoracic ribs.",
@@ -2820,7 +2894,7 @@
       {
         id: "short_loin",
         displayName: "Short Loin / Tenderloin",
-        localName: "פילה",
+        localName: null,
         aliases: ["tenderloin", "filet"],
         regionId: "short_loin",
         location: "Upper middle back between rib and sirloin.",
@@ -2859,7 +2933,7 @@
       {
         id: "round",
         displayName: "Round / Rump",
-        localName: "שייטל",
+        localName: null,
         aliases: ["rump", "shaitel"],
         regionId: "round",
         location: "Hindquarter and upper back leg around the rump and thigh.",
@@ -2885,7 +2959,7 @@
       {
         id: "plate",
         displayName: "Plate / Short Ribs",
-        localName: "אסאדו",
+        localName: null,
         aliases: ["short ribs", "plate ribs", "asado"],
         regionId: "plate",
         location: "Lower middle belly under rib and short loin.",
@@ -2911,7 +2985,7 @@
       {
         id: "ribeye",
         displayName: "Ribeye",
-        localName: "אנטריקוט",
+        localName: null,
         aliases: ["entrecote"],
         description: "Well-marbled steak from the rib family with rich flavor and tenderness.",
         cookingMethods: ["Cast iron", "Grill", "Reverse sear"],
@@ -2922,7 +2996,7 @@
       {
         id: "short_ribs",
         displayName: "Short Ribs",
-        localName: "אסאדו",
+        localName: null,
         aliases: ["plate ribs", "asado"],
         description: "Collagen-rich rib section that performs best low and slow.",
         cookingMethods: ["Smoking", "Braising", "Long cook"],
@@ -2944,7 +3018,7 @@
       {
         id: "entrecote",
         displayName: "Entrecote",
-        localName: "אנטריקוט",
+        localName: null,
         aliases: ["ribeye"],
         description: "Local-style naming for ribeye steak, prized for marbling and juiciness.",
         cookingMethods: ["Cast iron", "Grill", "Reverse sear"],
@@ -2955,7 +3029,7 @@
       {
         id: "filet",
         displayName: "Filet / Tenderloin",
-        localName: "פילה",
+        localName: null,
         aliases: ["tenderloin"],
         description: "Ultra-tender center cut with mild flavor and very little connective tissue.",
         cookingMethods: ["Cast iron", "High-heat grill", "Roasting"],
@@ -2966,7 +3040,7 @@
       {
         id: "shaitel",
         displayName: "Shaitel",
-        localName: "שייטל",
+        localName: null,
         aliases: ["round", "rump"],
         description: "Lean rear-leg cut used for roasts, schnitzel slicing, and gentle cooking.",
         cookingMethods: ["Roasting", "Braising", "Sous vide then sear"],
@@ -2977,7 +3051,7 @@
       {
         id: "asado",
         displayName: "Asado",
-        localName: "אסאדו",
+        localName: null,
         aliases: ["short ribs", "plate ribs"],
         description: "Bone-in cross-cut rib style, ideal for long, slow cooks with deep flavor.",
         cookingMethods: ["Smoking", "Long cook", "Braising"],
@@ -2995,7 +3069,7 @@
         return acc;
       }, {});
 
-    function formatCutLabel(cut, { includeLocal = true } = {}) {
+    function formatCutLabel(cut, { includeLocal = false } = {}) {
       if (!cut) return "";
       if (includeLocal && cut.localName) {
         return `${cut.displayName} (${cut.localName})`;
@@ -3192,11 +3266,9 @@ function openPopover(title, html, buttonEl = null) {
         ["brisket", "Brisket"],
         ["ribeye", "Ribeye"],
         ["entrecote", "Entrecote"],
-        ["אנטריקוט", "Entrecote"],
         ["short ribs", "Short Ribs"],
         ["plate ribs", "Asado"],
         ["asado", "Asado"],
-        ["אסאדו", "Asado"],
         ["beef ribs", "Beef Ribs"],
         ["tomahawk", "Tomahawk"],
         ["picanha", "Picanha"],
@@ -3204,9 +3276,7 @@ function openPopover(title, html, buttonEl = null) {
         ["flank", "Flank"],
         ["tenderloin", "Tenderloin"],
         ["filet", "Filet"],
-        ["פילה", "Filet"],
         ["shaitel", "Shaitel"],
-        ["שייטל", "Shaitel"],
         ["wagyu", "Wagyu"],
         ["burger", "Burger"],
         ["steak", "Steak"],
@@ -3533,19 +3603,19 @@ function updateSmokeUI(data = {}, options = {}) {
 
 if (helperEl) {
   if (data.source === "cache") {
-    helperEl.textContent = "Cached radar state with live-style heat analysis.";
+    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
   } else if (data.source === "seed" || data.source === "no-key") {
-    helperEl.textContent = "Offline snapshot analyzed through Smoke Index logic.";
+    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
   } else if (tier.key === "inferno") {
-    helperEl.textContent = "Breakout heat driven by strong momentum across the current radar.";
+    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
   } else if (tier.key === "hot") {
-    helperEl.textContent = "Strong live heat with multiple signals pointing up.";
+    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
   } else if (tier.key === "smoking") {
-    helperEl.textContent = "Momentum is building and the radar is starting to heat up.";
+    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
   } else if (tier.key === "warming") {
-    helperEl.textContent = "Early positive signals are starting to appear.";
+    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
   } else {
-    helperEl.textContent = "No major heat cluster detected in the current radar state.";
+    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
   }
 }
 
@@ -3563,9 +3633,9 @@ if (topSourceEl) {
       : cleanTitle;
 
   if (breakdown.topVideoUrl) {
-    topSourceEl.innerHTML = `Top Heat Source: <strong><a href="${breakdown.topVideoUrl}" target="_blank" rel="noopener noreferrer">${shortTitle}</a></strong>`;
+    topSourceEl.innerHTML = `🎥 Top Heat Source: <strong><a href="${breakdown.topVideoUrl}" target="_blank" rel="noopener noreferrer">${shortTitle}</a></strong> <span class="subtle">This is the top performing video right now — click to watch.</span>`;
   } else {
-    topSourceEl.innerHTML = `Top Heat Source: <strong>${shortTitle}</strong>`;
+    topSourceEl.innerHTML = `🎥 Top Heat Source: <strong>${shortTitle}</strong>`;
   }
 
   latestTopHeatTitle = cleanTitle;
@@ -3786,7 +3856,7 @@ function attachInteractiveCards() {
         <div id="topChannelSignalCard" class="${topChannelCardClass}"${topChannelCardAttrs}>
           <div class="signal-label">Top Channel</div>
           <div class="signal-value">${escapeHtml(String(topChannel).length > 14 ? String(topChannel).slice(0, 14) + "..." : String(topChannel))}</div>
-          <div class="signal-sub">Highest current average</div>
+          <div class="signal-sub">🎥 Top performing channel now — click to open</div>
         </div>
         <div class="signal-card">
           <div class="signal-label">Avg Smoke</div>
@@ -3810,13 +3880,17 @@ function attachInteractiveCards() {
         fastest?.title || "No breakout video";
 
       document.getElementById("fastestBreakoutMeta").textContent =
-        fastest ? `${formatNum(fastest.viewsPerHour)} views/hr • ${fastest.channelTitle}` : "Waiting for live signal...";
+        fastest
+          ? `⚡ Fastest growing video based on recent momentum. ${formatNum(fastest.viewsPerHour)} views/hr • ${fastest.channelTitle}`
+          : "⚡ Fastest growing video based on recent momentum.";
 
       document.getElementById("oldestActiveTitle").textContent =
         oldest?.title || "No active video";
 
       document.getElementById("oldestActiveMeta").textContent =
-        oldest ? `${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}` : "Waiting for age signal...";
+        oldest
+          ? `📅 Oldest video still actively gaining traction. ${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}`
+          : "📅 Oldest video still actively gaining traction.";
 
       setCardLinkBehavior(document.getElementById("fastestBreakoutCard"), getVideoUrl(fastest));
       setCardLinkBehavior(document.getElementById("oldestActiveCard"), getVideoUrl(oldest));
@@ -3872,14 +3946,18 @@ function attachInteractiveCards() {
         return;
       }
 
-      el.innerHTML = channels.map(ch => `
+      el.innerHTML = channels.map(ch => {
+        const matchingVideo = (allData?.videos || []).find(v => (v.channelTitle || v.channel) === ch.channelTitle);
+        const channelId = ch.channelId || matchingVideo?.channelId || "";
+        return `
         <tr>
-          <td>${escapeHtml(ch.channelTitle)}</td>
+          <td>${channelId ? `<a href="https://youtube.com/channel/${escapeHtml(channelId)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ch.channelTitle)}</a>` : escapeHtml(ch.channelTitle)}</td>
           <td>${formatNum(ch.videos)}</td>
           <td>${formatNum(ch.totalViews)}</td>
           <td>${formatNum(ch.avgSmokeScore)}</td>
         </tr>
-      `).join("");
+      `;
+      }).join("");
     }
 
     function getTabVideos() {
@@ -3960,7 +4038,7 @@ function attachInteractiveCards() {
         const watchLink = v.url ? v.url : (v.id ? `https://youtube.com/watch?v=${v.id}` : "https://youtube.com");
 
         return `
-          <div class="card">
+          <div class="card video-card-linkable" data-video-url="${watchLink}" role="link" tabindex="0">
              <div class="thumb">
                 ${index === 0 ? `<div class="heat-driver-badge">🔥 Driving the Heat</div>` : ""}
                 <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
@@ -4002,6 +4080,23 @@ function attachInteractiveCards() {
           e.stopPropagation();
           const index = Number(btn.dataset.videoIndex);
           renderVideoInfo(visible[index]);
+        });
+      });
+
+      el.querySelectorAll(".video-card-linkable").forEach((cardEl) => {
+        const openVideo = (event) => {
+          if (event?.target?.closest("a, button")) return;
+          const url = cardEl.dataset.videoUrl;
+          if (!url) return;
+          window.open(url, "_blank", "noopener,noreferrer");
+        };
+
+        cardEl.addEventListener("click", openVideo);
+        cardEl.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openVideo();
+          }
         });
       });
 
@@ -4060,12 +4155,12 @@ function attachInteractiveCards() {
         }
       });
 
-      document.getElementById("chartTitle").textContent = isRising ? "Rising Momentum" : "Momentum Trend";
+      document.getElementById("chartTitle").textContent = isRising ? "📈 Rising Momentum" : "📈 Momentum Trend";
       document.getElementById("chartSubtitle").textContent = isRising
         ? "Fastest current movers by views per hour"
         : "Highest-ranking videos across the current feed";
 
-      document.getElementById("feedTitle").textContent = isRising ? "Rising Feed" : "Radar Feed";
+      document.getElementById("feedTitle").textContent = isRising ? "🎥 Rising Feed" : "🎥 Radar Feed";
       document.getElementById("feedSubtitle").textContent = isRising
         ? "Videos currently accelerating fastest"
         : "Live-discovered videos ranked by momentum";
@@ -4166,7 +4261,7 @@ function attachInteractiveCards() {
       if (!panel) return;
 
       panel.innerHTML = `
-        <h3>${escapeHtml(cut.displayName)}${cut.localName ? `<span class="cut-name-local">${escapeHtml(cut.localName)}</span>` : ""}</h3>
+        <h3>${escapeHtml(cut.displayName)}</h3>
         <p>${escapeHtml(cut.description)}</p>
 
         <h4>Location on the cow</h4>
@@ -4895,7 +4990,42 @@ const data = isJson ? await res.json() : null;
       });
     }
 
+
+    function applyTheme(theme = "dark") {
+      document.body.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+      const btn = document.getElementById("themeToggleBtn");
+      if (btn) btn.textContent = theme === "light" ? "🌙 Dark" : "☀️ Light";
+      localStorage.setItem("smoke_theme", theme);
+    }
+
+    function applySmokeEffect(enabled = false) {
+      document.body.classList.toggle("smoke-effect", Boolean(enabled));
+      const btn = document.getElementById("smokeFxToggleBtn");
+      if (btn) btn.textContent = enabled ? "💨 Smoke FX On" : "💨 Smoke FX Off";
+      localStorage.setItem("smoke_fx", enabled ? "1" : "0");
+    }
+
+    function setupThemeControls() {
+      const savedTheme = localStorage.getItem("smoke_theme") || "dark";
+      const savedFx = localStorage.getItem("smoke_fx") === "1";
+      applyTheme(savedTheme);
+      applySmokeEffect(savedFx);
+
+      const themeBtn = document.getElementById("themeToggleBtn");
+      const smokeBtn = document.getElementById("smokeFxToggleBtn");
+
+      themeBtn?.addEventListener("click", () => {
+        const next = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
+        applyTheme(next);
+      });
+
+      smokeBtn?.addEventListener("click", () => {
+        applySmokeEffect(!document.body.classList.contains("smoke-effect"));
+      });
+    }
+
 document.addEventListener("DOMContentLoaded", () => {
+  setupThemeControls();
   populateRecipeCutOptions();
   attachTabs();
   attachPopovers();
