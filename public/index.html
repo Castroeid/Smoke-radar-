@@ -41,37 +41,40 @@
 
 
     body[data-theme="light"] {
-      --bg: #f5f7fa;
-      --panel: #ffffff;
-      --panel-2: #f7faff;
-      --border: #d7e0eb;
-      --text: #1f2b3a;
-      --muted: #5a6e87;
-      --shadow: 0 8px 22px rgba(21, 39, 63, 0.10);
-      --glow: 0 0 20px rgba(255,107,44,0.12);
-      --card-hover-shadow: 0 14px 28px rgba(21, 39, 63, 0.14);
+      --bg: #f1eee8;
+      --panel: #fdfbf8;
+      --panel-2: #f6f2ec;
+      --border: #d9d1c7;
+      --text: #1f2a35;
+      --muted: #5d6b7b;
+      --shadow: 0 10px 24px rgba(35, 44, 56, 0.10);
+      --glow: 0 0 20px rgba(255,107,44,0.14);
+      --card-hover-shadow: 0 16px 30px rgba(35, 44, 56, 0.14);
     }
 
     body[data-theme="light"] {
-      background: radial-gradient(circle at top, #ffffff 0%, #f5f7fa 64%);
+      background: radial-gradient(circle at top, #f9f6f1 0%, #f1eee8 68%);
     }
 
     body.smoke-effect::before {
       content: "";
       position: fixed;
-      inset: -20% 0 0;
+      inset: -18% -12% -12%;
       pointer-events: none;
       z-index: 1;
-      background: radial-gradient(circle at 20% 100%, rgba(255,255,255,0.06), transparent 48%), radial-gradient(circle at 80% 100%, rgba(255,120,54,0.08), transparent 45%);
-      opacity: 0.1;
-      animation: smokeDrift 30s ease-in-out infinite alternate;
+      background:
+        radial-gradient(40% 45% at 15% 85%, rgba(255,255,255,0.14), transparent 62%),
+        radial-gradient(34% 40% at 78% 90%, rgba(255,120,54,0.12), transparent 64%),
+        radial-gradient(30% 34% at 45% 100%, rgba(205,219,236,0.13), transparent 68%);
+      opacity: 0.2;
+      animation: smokeDrift 44s ease-in-out infinite alternate;
     }
 
     .container { position: relative; z-index: 2; }
 
     @keyframes smokeDrift {
-      0% { transform: translateY(10px) scale(1); opacity: 0.05; }
-      100% { transform: translateY(-10px) scale(1.03); opacity: 0.12; }
+      0% { transform: translate3d(0, 20px, 0) scale(1); opacity: 0.12; }
+      100% { transform: translate3d(0, -18px, 0) scale(1.035); opacity: 0.24; }
     }
 
     * { box-sizing: border-box; }
@@ -462,7 +465,7 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     .meta-pill {
@@ -497,7 +500,7 @@
 
     .status {
       min-height: 22px;
-      margin: 0 0 16px;
+      margin: 0 0 12px;
       color: #ffd7c8;
       font-size: 14px;
     }
@@ -570,7 +573,8 @@
 
     .subtle {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.55;
       margin-bottom: 14px;
     }
 
@@ -717,32 +721,89 @@
     }
 
     .hero-banner {
+      position: relative;
       width: 100%;
-      min-height: 200px;
-      height: clamp(180px, 24vw, 240px);
+      min-height: 220px;
+      height: clamp(220px, 28vw, 280px);
       border-radius: 24px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 149, 95, 0.22);
+      margin: 6px 0 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      padding: clamp(18px, 2.2vw, 28px);
+      background-image:
+        linear-gradient(118deg, rgba(8, 10, 14, 0.8) 2%, rgba(8, 10, 14, 0.48) 56%, rgba(8, 10, 14, 0.66) 100%),
+        linear-gradient(155deg, rgba(255,107,44,0.2), rgba(12,18,27,0.86)),
+        url('/assets/banner-hero.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-image: none;
-      opacity: 0.2;
-      margin: 4px 0 20px;
-      pointer-events: none;
-      box-shadow: var(--shadow);
+      isolation: isolate;
     }
 
-    .section-divider-image {
-      width: 100%;
-      height: clamp(80px, 11vw, 120px);
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background-image: none;
-      background-size: cover;
-      background-position: center;
-      opacity: 0.16;
-      margin-top: 20px;
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.22) 100%);
       pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero-banner-content {
+      position: relative;
+      z-index: 1;
+      max-width: min(620px, 100%);
+      display: grid;
+      gap: 10px;
+      color: #f7fafc;
+    }
+
+    .hero-banner-title {
+      margin: 0;
+      font-size: clamp(28px, 3.4vw, 46px);
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+      text-transform: uppercase;
+      text-wrap: balance;
+    }
+
+    .hero-banner-subtitle {
+      margin: 0;
+      font-size: clamp(15px, 1.35vw, 19px);
+      color: rgba(245, 250, 255, 0.92);
+      font-weight: 500;
+    }
+
+    .hero-banner-support {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255, 176, 133, 0.95);
+      font-weight: 700;
+    }
+
+    .hero-banner-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .hero-highlight-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.23);
+      background: rgba(12, 20, 31, 0.45);
+      color: #f4f7fc;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .panel:hover,
@@ -1875,6 +1936,20 @@
       .smoke-value {
         font-size: 36px;
       }
+
+      .hero-banner {
+        min-height: 220px;
+        height: auto;
+        padding: 16px;
+      }
+
+      .hero-banner-title {
+        font-size: 30px;
+      }
+
+      .hero-banner-subtitle {
+        font-size: 14px;
+      }
     }
     /* =========================
    Beef SVG Map
@@ -2279,30 +2354,33 @@
 
 /* ===== RADAR ===== */
 .zone-radar {
-  background: radial-gradient(circle at top, rgba(255,120,0,0.08), transparent 60%);
+  background: radial-gradient(circle at top, rgba(255,120,0,0.06), transparent 64%);
 }
 
 /* ===== CUTS ===== */
 .zone-cuts {
-  background: rgba(255,255,255,0.02);
+  background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.012));
   border-radius: 20px;
   padding: 40px 48px;
   max-width: 1200px;
   margin: 0 auto;
+  border: 1px solid rgba(255,255,255,0.04);
 }
 
 /* ===== TOOLS ===== */
 .zone-tools {
-  background: rgba(255,255,255,0.015);
+  background: rgba(255,255,255,0.012);
   border-radius: 20px;
   padding: 40px;
+  border: 1px solid rgba(255,255,255,0.035);
 }
 
 /* ===== SYSTEM ===== */
 .zone-system {
-  background: rgba(0,0,0,0.4);
+  background: linear-gradient(180deg, rgba(0,0,0,0.34), rgba(0,0,0,0.24));
   border-radius: 20px;
   padding: 40px;
+  border: 1px solid rgba(255,255,255,0.04);
 }
 .zone-divider {
   margin: 68px 0 24px;
@@ -2344,8 +2422,16 @@
 }
 
 body[data-theme="light"] .quick-nav {
-  background: rgba(255,255,255,0.88);
-  border-color: #d6deea;
+  background: rgba(253, 250, 245, 0.92);
+  border-color: #d8d0c6;
+}
+
+body[data-theme="light"] .zone-radar,
+body[data-theme="light"] .zone-cuts,
+body[data-theme="light"] .zone-tools,
+body[data-theme="light"] .zone-system {
+  background: transparent;
+  border-color: transparent;
 }
 
 body[data-theme="light"] .meta-pill,
@@ -2353,44 +2439,69 @@ body[data-theme="light"] .source-label,
 body[data-theme="light"] .quick-nav a,
 body[data-theme="light"] .small-btn,
 body[data-theme="light"] .tab-btn {
-  background: #ffffff;
-  color: #233245;
+  background: #fcfaf7;
+  color: #24313f;
+  border-color: #d5ccc1;
 }
 
 body[data-theme="light"] .signal-sub,
 body[data-theme="light"] .insight-meta,
 body[data-theme="light"] .insight-link-item,
-body[data-theme="light"] .error-banner p {
-  color: #455a73;
+body[data-theme="light"] .error-banner p,
+body[data-theme="light"] .subtle {
+  color: #4f5f70;
+}
+
+body[data-theme="light"] .signal-label,
+body[data-theme="light"] .insight-label {
+  color: #637284;
 }
 
 body[data-theme="light"] .first-run-hint {
-  color: #7a3d1f;
-  background: rgba(255, 137, 76, 0.14);
-  border-color: rgba(255, 126, 61, 0.42);
+  color: #613014;
+  background: linear-gradient(135deg, rgba(255, 145, 82, 0.18), rgba(255, 201, 165, 0.12));
+  border-color: rgba(255, 126, 61, 0.46);
 }
 
 body[data-theme="light"] .first-run-hint-cta {
-  color: #713519;
-  background: rgba(255, 146, 87, 0.22);
+  color: #5d2b10;
+  background: rgba(255, 151, 96, 0.2);
+  border-color: rgba(234, 114, 53, 0.4);
 }
 
 body[data-theme="light"] .first-run-hint-close {
   color: #33475f;
-  background: #edf2f9;
-  border-color: #cfd9e8;
+  background: #ece4d9;
+  border-color: #cfc4b8;
 }
 
 body[data-theme="light"] .pill-btn {
-  background: linear-gradient(180deg, #ff7c3a, #ff6b2c);
-  border-color: #ff6b2c;
-  color: #fff4ed;
+  background: linear-gradient(180deg, #ff7d3d, #ff6b2c);
+  border-color: #e56022;
+  color: #fff8f3;
 }
 
 body[data-theme="light"] .pill-btn.secondary {
-  background: #fff6f1;
-  color: #b14e20;
-  border-color: #f3c2a8;
+  background: #f8ece4;
+  color: #9a4419;
+  border-color: #e6bca3;
+}
+
+body[data-theme="light"] .panel,
+body[data-theme="light"] .signal-card,
+body[data-theme="light"] .card,
+body[data-theme="light"] .kpi,
+body[data-theme="light"] .recipe-output,
+body[data-theme="light"] .cuts-image-wrap,
+body[data-theme="light"] .cut-grid-card,
+body[data-theme="light"] .insight-card,
+body[data-theme="light"] .about-card {
+  border-color: #d8d0c7;
+  box-shadow: 0 10px 22px rgba(53, 62, 74, 0.08);
+}
+
+body[data-theme="light"] .status {
+  color: #9b4c25;
 }
   </style>
 <script>
@@ -2478,7 +2589,19 @@ body[data-theme="light"] .pill-btn.secondary {
       <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
     </div>
 <section class="zone zone-radar">
-  <div class="hero-banner" aria-hidden="true"></div>
+  <div class="hero-banner app-enter app-enter-delay-2">
+    <div class="hero-banner-content">
+      <h2 class="hero-banner-title">TRACK. ANALYZE.<br>COOK BETTER.</h2>
+      <p class="hero-banner-subtitle">Real-time intelligence from the world of meat.</p>
+      <p class="hero-banner-support">Powered by YouTube.</p>
+      <div class="hero-banner-highlights" aria-label="Feature highlights">
+        <span class="hero-highlight-pill">Trends</span>
+        <span class="hero-highlight-pill">Analytics</span>
+        <span class="hero-highlight-pill">Recipes</span>
+        <span class="hero-highlight-pill">Butchers</span>
+      </div>
+    </div>
+  </div>
 
   <div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
   <div class="smoke-index-top">
@@ -2636,7 +2759,6 @@ body[data-theme="light"] .pill-btn.secondary {
     
 <div class="zone-divider">
   <span>EXPLORE CUTS</span>
-  <div class="section-divider-image" aria-hidden="true"></div>
 </div>
 
     <section class="zone zone-cuts">
