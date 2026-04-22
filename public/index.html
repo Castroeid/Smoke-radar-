@@ -36,22 +36,24 @@
       --red: #ff5f57;
       --shadow: 0 10px 30px rgba(0,0,0,0.28);
       --glow: 0 0 24px rgba(255,107,44,0.18);
+      --card-hover-shadow: 0 14px 32px rgba(0,0,0,0.30);
     }
 
 
     body[data-theme="light"] {
-      --bg: #f2f5fa;
+      --bg: #f5f7fa;
       --panel: #ffffff;
-      --panel-2: #f5f8fd;
-      --border: #d7e1ef;
-      --text: #102033;
-      --muted: #58708f;
-      --shadow: 0 10px 24px rgba(11, 34, 58, 0.08);
+      --panel-2: #f7faff;
+      --border: #d7e0eb;
+      --text: #1f2b3a;
+      --muted: #5a6e87;
+      --shadow: 0 8px 22px rgba(21, 39, 63, 0.10);
       --glow: 0 0 20px rgba(255,107,44,0.12);
+      --card-hover-shadow: 0 14px 28px rgba(21, 39, 63, 0.14);
     }
 
     body[data-theme="light"] {
-      background: radial-gradient(circle at top, #ffffff 0%, #eef3fb 60%);
+      background: radial-gradient(circle at top, #ffffff 0%, #f5f7fa 64%);
     }
 
     body.smoke-effect::before {
@@ -59,16 +61,17 @@
       position: fixed;
       inset: -20% 0 0;
       pointer-events: none;
-      z-index: 0;
+      z-index: 1;
       background: radial-gradient(circle at 20% 100%, rgba(255,255,255,0.06), transparent 48%), radial-gradient(circle at 80% 100%, rgba(255,120,54,0.08), transparent 45%);
-      animation: smokeDrift 18s ease-in-out infinite alternate;
+      opacity: 0.1;
+      animation: smokeDrift 30s ease-in-out infinite alternate;
     }
 
-    .container { position: relative; z-index: 1; }
+    .container { position: relative; z-index: 2; }
 
     @keyframes smokeDrift {
-      0% { transform: translateY(8px) scale(1); opacity: 0.22; }
-      100% { transform: translateY(-12px) scale(1.04); opacity: 0.35; }
+      0% { transform: translateY(10px) scale(1); opacity: 0.05; }
+      100% { transform: translateY(-10px) scale(1.03); opacity: 0.12; }
     }
 
     * { box-sizing: border-box; }
@@ -281,6 +284,7 @@
       font-size: 12px;
       cursor: pointer;
       transition: 0.18s ease;
+      background: rgba(255,255,255,0.035);
     }
 
     .first-run-hint {
@@ -295,6 +299,7 @@
       background: rgba(255, 107, 44, 0.08);
       color: #ffd8c8;
       font-size: 13px;
+      flex-wrap: wrap;
     }
 
     .first-run-hint-content {
@@ -340,6 +345,7 @@
       font-size: 12px;
       cursor: pointer;
       flex-shrink: 0;
+      margin-left: auto;
     }
 
     .floating-feedback-btn {
@@ -530,12 +536,13 @@
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
     }
 
     .panel {
       border-radius: 24px;
       padding: 18px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .panel h2 {
@@ -572,8 +579,8 @@
     .signal-strip {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 18px;
+      gap: 14px;
+      margin-bottom: 20px;
     }
 
     .signal-card {
@@ -709,15 +716,44 @@
       margin-bottom: 10px;
     }
 
-    .section-illustration {
+    .hero-banner {
       width: 100%;
-      max-height: 84px;
-      object-fit: cover;
-      border-radius: 14px;
-      opacity: 0.5;
+      min-height: 200px;
+      height: clamp(180px, 24vw, 240px);
+      border-radius: 24px;
       border: 1px solid var(--border);
-      margin: 8px 0 16px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-image: none;
+      opacity: 0.2;
+      margin: 4px 0 20px;
       pointer-events: none;
+      box-shadow: var(--shadow);
+    }
+
+    .section-divider-image {
+      width: 100%;
+      height: clamp(80px, 11vw, 120px);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background-image: none;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.16;
+      margin-top: 20px;
+      pointer-events: none;
+    }
+
+    .panel:hover,
+    .signal-card:hover,
+    .kpi:hover,
+    .cut-grid-card:hover,
+    .insight-card:hover,
+    .about-card:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--card-hover-shadow);
+      border-color: rgba(255,149,95,0.42);
     }
 
     .video-card-linkable {
@@ -2236,8 +2272,8 @@
 }
     /* ===== ZONES BASE ===== */
 .zone {
-  margin-top: 100px;
-  padding: 60px 0;
+  margin-top: 68px;
+  padding: 48px 0;
   position: relative;
 }
 
@@ -2268,8 +2304,8 @@
   border-radius: 20px;
   padding: 40px;
 }
-    .zone-divider {
-  margin: 100px 0 40px;
+.zone-divider {
+  margin: 68px 0 24px;
   text-align: center;
   position: relative;
 }
@@ -2298,13 +2334,63 @@
     transparent
   );
 }
-    .zone {
-  margin-top: 100px;
-  padding: 60px 0;
+.zone {
+  margin-top: 68px;
+  padding: 48px 0;
   position: relative;
 
   /* layout scope */
   grid-column: 1 / -1;
+}
+
+body[data-theme="light"] .quick-nav {
+  background: rgba(255,255,255,0.88);
+  border-color: #d6deea;
+}
+
+body[data-theme="light"] .meta-pill,
+body[data-theme="light"] .source-label,
+body[data-theme="light"] .quick-nav a,
+body[data-theme="light"] .small-btn,
+body[data-theme="light"] .tab-btn {
+  background: #ffffff;
+  color: #233245;
+}
+
+body[data-theme="light"] .signal-sub,
+body[data-theme="light"] .insight-meta,
+body[data-theme="light"] .insight-link-item,
+body[data-theme="light"] .error-banner p {
+  color: #455a73;
+}
+
+body[data-theme="light"] .first-run-hint {
+  color: #7a3d1f;
+  background: rgba(255, 137, 76, 0.14);
+  border-color: rgba(255, 126, 61, 0.42);
+}
+
+body[data-theme="light"] .first-run-hint-cta {
+  color: #713519;
+  background: rgba(255, 146, 87, 0.22);
+}
+
+body[data-theme="light"] .first-run-hint-close {
+  color: #33475f;
+  background: #edf2f9;
+  border-color: #cfd9e8;
+}
+
+body[data-theme="light"] .pill-btn {
+  background: linear-gradient(180deg, #ff7c3a, #ff6b2c);
+  border-color: #ff6b2c;
+  color: #fff4ed;
+}
+
+body[data-theme="light"] .pill-btn.secondary {
+  background: #fff6f1;
+  color: #b14e20;
+  border-color: #f3c2a8;
 }
   </style>
 <script>
@@ -2392,7 +2478,7 @@
       <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
     </div>
 <section class="zone zone-radar">
-  <img src="/images/smoke_radar_preview.png" alt="Subtle smoke grill illustration" class="section-illustration" loading="lazy" decoding="async" />
+  <div class="hero-banner" aria-hidden="true"></div>
 
   <div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
   <div class="smoke-index-top">
@@ -2550,6 +2636,7 @@
     
 <div class="zone-divider">
   <span>EXPLORE CUTS</span>
+  <div class="section-divider-image" aria-hidden="true"></div>
 </div>
 
     <section class="zone zone-cuts">
@@ -2672,7 +2759,6 @@
  <span>TOOLS & GENERATORS</span>
     </div>
 <section class="zone zone-tools">
-  <img src="/images/beef-map-premium.png" alt="Subtle meat preparation illustration" class="section-illustration" loading="lazy" decoding="async" />
 
     <div class="panel app-enter app-enter-delay-4 recipe-generator-panel" id="recipes">
       <div class="panel-heading">
