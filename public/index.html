@@ -2672,8 +2672,8 @@
         type="button"
         class="info-btn"
         id="smokeInfoBtn"
-        data-popover-title="Smoke Index"
-        data-popover-text="Smoke Index is your live heat signal. It blends momentum, engagement, freshness, and acceleration to show how hot the current radar really is."
+        data-popover-title="מדד עשן"
+        data-popover-text="סרטונים חמים בזמן אמת לפי ביצועים"
       >i</button>
     </div>
 
@@ -2706,7 +2706,7 @@
     <span data-i18n="smoke.scaleInferno">Inferno</span>
   </div>
 
-  <div class="subtle smoke-helper" id="smokeHelper">
+  <div class="subtle smoke-helper" id="smokeHelper" data-i18n="smoke.helper">
     🔥 This is the current leading trend based on YouTube meat content.
   </div>
   <div class="source-label" data-i18n="smoke.sourceLabel">🎥 Based on YouTube videos</div>
@@ -2719,49 +2719,49 @@
 
     <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
       <div class="signal-card">
-        <div class="signal-label">Tracked Videos</div>
+        <div class="signal-label">סרטונים במעקב</div>
         <div class="signal-value">0</div>
-        <div class="signal-sub">Current feed size</div>
+        <div class="signal-sub">גודל הפיד הנוכחי</div>
       </div>
       <div class="signal-card" id="topChannelSignalCard">
-        <div class="signal-label">Top Channel</div>
+        <div class="signal-label">ערוץ מוביל</div>
         <div class="signal-value">—</div>
-        <div class="signal-sub">🎥 Top performing channel now — click to open</div>
+        <div class="signal-sub">🎥 הערוץ החזק כרגע — לחיצה לפתיחה</div>
       </div>
       <div class="signal-card">
-        <div class="signal-label">Avg Smoke</div>
+        <div class="signal-label">סמואקיות ממוצעת</div>
         <div class="signal-value">0</div>
-        <div class="signal-sub">Across current scan</div>
+        <div class="signal-sub">בכל הסריקה הנוכחית</div>
       </div>
       <div class="signal-card">
-        <div class="signal-label">Total Views</div>
+        <div class="signal-label">צפיות</div>
         <div class="signal-value">0</div>
-        <div class="signal-sub">Visible radar sample</div>
+        <div class="signal-sub">מדגם רדאר מוצג</div>
       </div>
     </div>
 
     <div class="insights-grid app-enter app-enter-delay-2">
       <div class="insight-card" id="fastestBreakoutCard">
-        <div class="insight-label">🚀 Fastest Breakout</div>
+        <div class="insight-label">🚀 פריצה מהירה</div>
         <div class="insight-title" id="fastestBreakoutTitle">—</div>
-        <div class="insight-meta" id="fastestBreakoutMeta">⚡ Fastest growing video based on recent momentum.</div>
+        <div class="insight-meta" id="fastestBreakoutMeta">⚡ הסרטון שצומח הכי מהר לפי מומנטום.</div>
       </div>
 
       <div class="insight-card" id="oldestActiveCard">
-        <div class="insight-label">🕰️ Oldest Active</div>
+        <div class="insight-label">🕰️ הוותיק הפעיל</div>
         <div class="insight-title" id="oldestActiveTitle">—</div>
-        <div class="insight-meta" id="oldestActiveMeta">📅 Oldest video still actively gaining traction.</div>
+        <div class="insight-meta" id="oldestActiveMeta">📅 הסרטון הוותיק שעדיין צובר תאוצה.</div>
       </div>
 
       <div class="insight-card">
-        <div class="insight-label">🌍 Top Regions</div>
+        <div class="insight-label">🌍 אזורים מובילים</div>
         <div class="insight-title" id="regionsLead">—</div>
         <div class="region-chips" id="regionChips"></div>
       </div>
 
       <div class="insight-card" id="israelRadarCard">
-        <div class="insight-label">🇮🇱 Israeli Meat Creators</div>
-        <div class="insight-meta">Curated local BBQ and meat channels</div>
+        <div class="insight-label">🇮🇱 יוצרי בשר ישראלים</div>
+        <div class="insight-meta">ערוצי בשר וברביקיו נבחרים</div>
         <div class="insight-link-list" id="israeliCreatorsList"></div>
       </div>
     </div>
@@ -2776,7 +2776,7 @@
     <div class="panel app-enter app-enter-delay-2" id="momentumTrendCard">
       <div class="panel-heading">
         <h2 id="chartTitle">📈 Momentum Trend</h2>
-        <button type="button" class="info-btn" data-popover-title="Momentum Trend" data-popover-text="A visual comparison of the strongest videos in the current dataset. In Hot mode it reflects Smoke Score. In Rising mode it reflects Views Per Hour.">i</button>
+        <button type="button" class="info-btn" data-popover-title="מומנטום" data-popover-text="השוואת הסרטונים החזקים כרגע בפיד.">i</button>
       </div>
       <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
       <canvas id="scoreChart"></canvas>
@@ -2786,16 +2786,16 @@
       <div class="panel">
         <div class="panel-heading">
           <h2 data-i18n="sections.topChannels">🎥 Top Channels</h2>
-          <button type="button" class="info-btn" data-popover-title="Top Channels" data-popover-text="Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.">i</button>
+          <button type="button" class="info-btn" data-popover-title="ערוצים מובילים" data-popover-text="דירוג ערוצים לפי ביצועים בפיד הנוכחי.">i</button>
         </div>
-        <div class="subtle">Best-performing creators in the current dataset</div>
+        <div class="subtle">יוצרים מובילים בדאטה הנוכחי</div>
         <table>
           <thead>
             <tr>
-              <th>Channel</th>
-              <th>Videos</th>
-              <th>Views</th>
-              <th>Smoke</th>
+              <th>ערוץ</th>
+              <th>סרטונים</th>
+              <th>צפיות</th>
+              <th>סמואקיות</th>
             </tr>
           </thead>
           <tbody id="channelTable"></tbody>
@@ -2805,9 +2805,9 @@
       <div class="panel">
         <div class="panel-heading">
           <h2 data-i18n="sections.hotKeywords">🔥 Hot Keywords</h2>
-          <button type="button" class="info-btn" data-popover-title="Hot Keywords" data-popover-text="Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.">i</button>
+          <button type="button" class="info-btn" data-popover-title="מילות מפתח חמות" data-popover-text="מונחים שחוזרים בכותרות הסרטונים עכשיו.">i</button>
         </div>
-        <div class="subtle">Recurring terms extracted from current titles</div>
+        <div class="subtle">מונחים שחוזרים בכותרות כרגע</div>
         <div class="keywords" id="keywords"></div>
       </div>
     </div>
@@ -2823,7 +2823,7 @@
     <div class="panel app-enter app-enter-delay-3" id="cuts">
       <div class="panel-heading">
         <h2 data-i18n="sections.beefCutsExplorer">🥩 Beef Cuts Explorer</h2>
-        <button type="button" class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
+        <button type="button" class="info-btn" data-popover-title="סייר נתחי בקר" data-popover-text="הקש על נתח כדי לראות מיקום והכוונת בישול.">i</button>
       </div>
       <div class="subtle" data-i18n="cuts.tapGuide">Tap a cut to open a quick guide</div>
 
@@ -2942,7 +2942,7 @@
     <div class="panel app-enter app-enter-delay-4 recipe-generator-panel" id="recipes">
       <div class="panel-heading">
         <h2 class="recipe-generator-title" data-i18n="sections.recipeGenerator">🥘 Recipe Generator</h2>
-        <button type="button" class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
+        <button type="button" class="info-btn" data-popover-title="מחולל מתכונים" data-popover-text="יוצר מתכונים מובנים לפי נתח, שיטה וטעמים.">i</button>
       </div>
       <div class="subtle" data-i18n="recipe.helper">Build a premium Smart Cooking Mode plan by cut, method, and flavor profile</div>
 
@@ -3000,7 +3000,7 @@
     <div class="panel app-enter app-enter-delay-4" id="butchers">
       <div class="panel-heading">
         <h2 data-i18n="sections.butcherFinder">📍 Butcher Finder</h2>
-        <button type="button" class="info-btn" data-popover-title="Butcher Finder" data-popover-text="Find nearby butcher shops using your current location and Google Places.">i</button>
+        <button type="button" class="info-btn" data-popover-title="איתור קצבים" data-popover-text="מאתר קצביות קרובות לפי המיקום שלך.">i</button>
       </div>
       <div class="subtle" data-i18n="butchers.helper">Locate nearby butcher shops and open them directly in Google Maps</div>
 
@@ -3017,7 +3017,7 @@
     <div class="panel app-enter app-enter-delay-4" id="feed">
       <div class="panel-heading">
         <h2 id="feedTitle">🎥 Radar Feed</h2>
-        <button type="button" class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
+        <button type="button" class="info-btn" data-popover-title="רדאר הסרטונים" data-popover-text="פיד קומפקטי של סרטונים חמים בזמן אמת.">i</button>
       </div>
       <div class="source-label" data-i18n="smoke.sourceLabel">🎥 Based on YouTube videos</div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
@@ -3216,7 +3216,44 @@
         "smoke.engagement": "💬 Engagement",
         "smoke.freshness": "🕒 Freshness",
         "smoke.velocity": "⚡ Velocity",
-        "smoke.usingDefaultCut": "Using default cut"
+        "smoke.usingDefaultCut": "Using default cut",
+        "signals.trackedVideos": "Tracked Videos",
+        "signals.currentFeedSize": "Current feed size",
+        "signals.topChannel": "Top Channel",
+        "signals.topChannelHint": "🎥 Top performing channel now — click to open",
+        "signals.avgSmoke": "Avg Smoke",
+        "signals.acrossScan": "Across current scan",
+        "signals.totalViews": "Total Views",
+        "signals.visibleSample": "Visible radar sample",
+        "insights.noBreakout": "No breakout video",
+        "insights.fastestMeta": "⚡ Fastest growing video based on recent momentum.",
+        "insights.noActiveVideo": "No active video",
+        "insights.oldestMeta": "📅 Oldest video still actively gaining traction.",
+        "insights.noRegionSignals": "No region signals yet",
+        "kpi.totalViews": "Total Views",
+        "kpi.avgViews": "Average Views",
+        "kpi.avgLikes": "Average Likes",
+        "kpi.formatSplit": "Format Split",
+        "videoInfo.title": "Video Info",
+        "videoInfo.summary": "Video Summary",
+        "videoInfo.detectedCut": "Detected cut / dish",
+        "videoInfo.detectedTheme": "Detected theme",
+        "videoInfo.stats": "Video stats",
+        "videoInfo.duration": "Duration",
+        "videoInfo.format": "Format",
+        "videoInfo.views": "Views",
+        "videoInfo.likes": "Likes",
+        "videoInfo.vph": "Views per hour",
+        "videoInfo.age": "Age",
+        "videoInfo.context": "Context",
+        "videoInfo.channel": "Channel",
+        "videoInfo.region": "Region",
+        "videoInfo.keywordSource": "Main keyword source: title analysis",
+        "videoInfo.unknownChannel": "Unknown Channel",
+        "videoInfo.global": "Global",
+        "videoInfo.video": "Video",
+        "feed.drivingHeat": "🔥 Driving the Heat",
+        "feed.smokeLabel": "Smoke"
       },
       he: {
         "loader.subtitle": "מאתחל את לוח הבקרה של Smoke Radar...",
@@ -3260,7 +3297,7 @@
         "sections.hotKeywords": "🔥 מילות מפתח חמות",
         "tabs.hotFeed": "פיד חם",
         "tabs.rising": "בעלייה",
-        "feed.radarTitle": "🎥 רדאר",
+        "feed.radarTitle": "🎥 רדאר הסרטונים",
         "feed.risingTitle": "🎥 פיד בעלייה",
         "feed.radarSubtitle": "סרטונים חמים בזמן אמת, מדורגים לפי מומנטום",
         "feed.risingSubtitle": "סרטונים שמאיצים הכי מהר כרגע",
@@ -3315,7 +3352,44 @@
         "smoke.engagement": "💬 מעורבות",
         "smoke.freshness": "🕒 עדכניות",
         "smoke.velocity": "⚡ מהירות",
-        "smoke.usingDefaultCut": "משתמש בנתח ברירת מחדל"
+        "smoke.usingDefaultCut": "משתמש בנתח ברירת מחדל",
+        "signals.trackedVideos": "סרטונים במעקב",
+        "signals.currentFeedSize": "גודל הפיד הנוכחי",
+        "signals.topChannel": "ערוץ מוביל",
+        "signals.topChannelHint": "🎥 הערוץ החזק כרגע — לחיצה לפתיחה",
+        "signals.avgSmoke": "סמואקיות ממוצעת",
+        "signals.acrossScan": "בכל הסריקה הנוכחית",
+        "signals.totalViews": "צפיות",
+        "signals.visibleSample": "מדגם רדאר מוצג",
+        "insights.noBreakout": "אין סרטון פריצה",
+        "insights.fastestMeta": "⚡ הסרטון שצומח הכי מהר לפי מומנטום.",
+        "insights.noActiveVideo": "אין סרטון פעיל",
+        "insights.oldestMeta": "📅 הסרטון הוותיק ביותר שעדיין צובר תאוצה.",
+        "insights.noRegionSignals": "עדיין אין סיגנלים אזוריים",
+        "kpi.totalViews": "צפיות",
+        "kpi.avgViews": "צפיות ממוצעות",
+        "kpi.avgLikes": "לייקים ממוצעים",
+        "kpi.formatSplit": "חלוקת פורמט",
+        "videoInfo.title": "מידע",
+        "videoInfo.summary": "תקציר סרטון",
+        "videoInfo.detectedCut": "נתח / מנה שזוהו",
+        "videoInfo.detectedTheme": "תמה שזוהתה",
+        "videoInfo.stats": "נתוני סרטון",
+        "videoInfo.duration": "משך",
+        "videoInfo.format": "פורמט",
+        "videoInfo.views": "צפיות",
+        "videoInfo.likes": "לייקים",
+        "videoInfo.vph": "צפיות לשעה",
+        "videoInfo.age": "גיל",
+        "videoInfo.context": "הקשר",
+        "videoInfo.channel": "ערוץ",
+        "videoInfo.region": "אזור",
+        "videoInfo.keywordSource": "מקור מילות מפתח: ניתוח כותרת",
+        "videoInfo.unknownChannel": "ערוץ לא ידוע",
+        "videoInfo.global": "גלובלי",
+        "videoInfo.video": "וידאו",
+        "feed.drivingHeat": "🔥 מוביל את הטרנד",
+        "feed.smokeLabel": "סמואקיות"
       }
     };
 
@@ -4192,16 +4266,9 @@ if (topSourceEl) {
 
 const infoBtn = document.getElementById("smokeInfoBtn");
 if (infoBtn) {
-  const tooltipText = `Smoke Index is a live heat score for the current radar.
-
-Built from:
-• Momentum
-• Engagement
-• Freshness
-• Velocity
-
-Higher scores reflect stronger trend activity.
-A breakout top video can also lift the score.`;
+  const tooltipText = currentLanguage === "he"
+  ? "מדד עשן בזמן אמת לפי ביצועים"
+  : "Live heat score for the current radar feed.";
 
   infoBtn.setAttribute("data-popover-text", tooltipText);
 }
@@ -4398,24 +4465,24 @@ function attachInteractiveCards() {
 
       document.getElementById("signalStrip").innerHTML = `
         <div class="signal-card">
-          <div class="signal-label">Tracked Videos</div>
+          <div class="signal-label">${t("signals.trackedVideos")}</div>
           <div class="signal-value">${formatNum(videos.length)}</div>
-          <div class="signal-sub">Current feed size</div>
+          <div class="signal-sub">${t("signals.currentFeedSize")}</div>
         </div>
         <div id="topChannelSignalCard" class="${topChannelCardClass}"${topChannelCardAttrs}>
-          <div class="signal-label">Top Channel</div>
+          <div class="signal-label">${t("signals.topChannel")}</div>
           <div class="signal-value">${escapeHtml(String(topChannel).length > 14 ? String(topChannel).slice(0, 14) + "..." : String(topChannel))}</div>
-          <div class="signal-sub">🎥 Top performing channel now — click to open</div>
+          <div class="signal-sub">${t("signals.topChannelHint")}</div>
         </div>
         <div class="signal-card">
-          <div class="signal-label">Avg Smoke</div>
+          <div class="signal-label">${t("signals.avgSmoke")}</div>
           <div class="signal-value">${formatNum(avgSmoke)}</div>
-          <div class="signal-sub">Across current scan</div>
+          <div class="signal-sub">${t("signals.acrossScan")}</div>
         </div>
         <div class="signal-card">
-          <div class="signal-label">Total Views</div>
+          <div class="signal-label">${t("signals.totalViews")}</div>
           <div class="signal-value">${formatNum(totalViews)}</div>
-          <div class="signal-sub">Visible radar sample</div>
+          <div class="signal-sub">${t("signals.visibleSample")}</div>
         </div>
       `;
     }
@@ -4426,20 +4493,20 @@ function attachInteractiveCards() {
       const regions = data.topRegions || [];
 
       document.getElementById("fastestBreakoutTitle").textContent =
-        fastest?.title || "No breakout video";
+        fastest?.title || t("insights.noBreakout");
 
       document.getElementById("fastestBreakoutMeta").textContent =
         fastest
           ? `⚡ Fastest growing video based on recent momentum. ${formatNum(fastest.viewsPerHour)} views/hr • ${fastest.channelTitle}`
-          : "⚡ Fastest growing video based on recent momentum.";
+          : t("insights.fastestMeta");
 
       document.getElementById("oldestActiveTitle").textContent =
-        oldest?.title || "No active video";
+        oldest?.title || t("insights.noActiveVideo");
 
       document.getElementById("oldestActiveMeta").textContent =
         oldest
           ? `📅 Oldest video still actively gaining traction. ${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}`
-          : "📅 Oldest video still actively gaining traction.";
+          : t("insights.oldestMeta");
 
       setCardLinkBehavior(document.getElementById("fastestBreakoutCard"), getVideoUrl(fastest));
       setCardLinkBehavior(document.getElementById("oldestActiveCard"), getVideoUrl(oldest));
@@ -4450,7 +4517,7 @@ function attachInteractiveCards() {
       const chips = document.getElementById("regionChips");
       chips.innerHTML = regions.length
         ? regions.map(r => `<span class="region-chip">${escapeHtml(r.region)} · ${r.count}</span>`).join("")
-        : `<span class="region-chip">No region signals yet</span>`;
+        : `<span class="region-chip">${t("insights.noRegionSignals")}</span>`;
 
       setCardLinkBehavior(document.getElementById("israelRadarCard"), "");
     }
@@ -4458,19 +4525,19 @@ function attachInteractiveCards() {
     function renderKpis(summary = {}, formatStats = {}) {
       document.getElementById("kpis").innerHTML = `
         <div class="kpi">
-          <div class="kpi-label">Total Views</div>
+          <div class="kpi-label">${t("kpi.totalViews")}</div>
           <div class="kpi-value">${formatNum(summary.totalViews)}</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Average Views</div>
+          <div class="kpi-label">${t("kpi.avgViews")}</div>
           <div class="kpi-value">${formatNum(summary.avgViews)}</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Average Likes</div>
+          <div class="kpi-label">${t("kpi.avgLikes")}</div>
           <div class="kpi-value">${formatNum(summary.avgLikes)}</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Format Split</div>
+          <div class="kpi-label">${t("kpi.formatSplit")}</div>
           <div class="kpi-value">${formatNum(formatStats.shortCount || 0)} / ${formatNum(formatStats.longCount || 0)}</div>
         </div>
       `;
@@ -4519,39 +4586,42 @@ function attachInteractiveCards() {
       return [...videos].sort((a, b) => Number(b.smokeScore || 0) - Number(a.smokeScore || 0));
     }
 
-    function renderVideoInfo(v) {
+function renderVideoInfo(v) {
       const detectedDish = detectDishFromTitle(v.title || "");
       const detectedTheme = detectTheme(v.title || "");
+      const formatLabel = currentLanguage === "he" && String(v.formatLabel || "").toLowerCase() === "short"
+        ? "Short"
+        : (v.formatLabel || t("videoInfo.video"));
 
       const html = `
-        <h4>Video Summary</h4>
+        <h4>${t("videoInfo.summary")}</h4>
         <p>${escapeHtml(v.title || "")}</p>
 
-        <h4>Detected cut / dish</h4>
+        <h4>${t("videoInfo.detectedCut")}</h4>
         <p>${escapeHtml(detectedDish)}</p>
 
-        <h4>Detected theme</h4>
+        <h4>${t("videoInfo.detectedTheme")}</h4>
         <p>${escapeHtml(detectedTheme)}</p>
 
-        <h4>Video stats</h4>
+        <h4>${t("videoInfo.stats")}</h4>
         <ul>
-          <li>Duration: ${escapeHtml(v.durationLabel || "0:00")}</li>
-          <li>Format: ${escapeHtml(v.formatLabel || "Video")}</li>
-          <li>Views: ${formatNum(v.viewCount || 0)}</li>
-          <li>Likes: ${formatNum(v.likeCount || 0)}</li>
-          <li>Views per hour: ${formatNum(v.viewsPerHour || 0)}</li>
-          <li>Age: ${escapeHtml(formatHours(v.hoursSincePublished || 0))}</li>
+          <li>${t("videoInfo.duration")}: ${escapeHtml(v.durationLabel || "0:00")}</li>
+          <li>${t("videoInfo.format")}: ${escapeHtml(formatLabel)}</li>
+          <li>${t("videoInfo.views")}: ${formatNum(v.viewCount || 0)}</li>
+          <li>${t("videoInfo.likes")}: ${formatNum(v.likeCount || 0)}</li>
+          <li>${t("videoInfo.vph")}: ${formatNum(v.viewsPerHour || 0)}</li>
+          <li>${t("videoInfo.age")}: ${escapeHtml(formatHours(v.hoursSincePublished || 0))}</li>
         </ul>
 
-        <h4>Context</h4>
+        <h4>${t("videoInfo.context")}</h4>
         <ul>
-          <li>Channel: ${escapeHtml(v.channelTitle || "Unknown Channel")}</li>
-          <li>Region: ${escapeHtml(v.regionLabel || "Global")}</li>
-          <li>Main keyword source: title analysis</li>
+          <li>${t("videoInfo.channel")}: ${escapeHtml(v.channelTitle || t("videoInfo.unknownChannel"))}</li>
+          <li>${t("videoInfo.region")}: ${escapeHtml(v.regionLabel || t("videoInfo.global"))}</li>
+          <li>${t("videoInfo.keywordSource")}</li>
         </ul>
       `;
 
-      openPopover("Video Info", html);
+      openPopover(t("videoInfo.title"), html);
     }
 
     function updateLoadMoreButton(totalVideos) {
@@ -4580,6 +4650,9 @@ function attachInteractiveCards() {
       el.innerHTML = visible.map((v, index) => {
         const viewCount = v.viewCount ?? v.views ?? 0;
         const likeCount = v.likeCount ?? v.likes ?? 0;
+        const formatLabel = currentLanguage === "he" && String(v.formatLabel || "").toLowerCase() === "short"
+          ? "Short"
+          : (v.formatLabel || t("videoInfo.video"));
         const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
         const channelLink = v.channelId
           ? `https://youtube.com/channel/${v.channelId}`
@@ -4589,9 +4662,9 @@ function attachInteractiveCards() {
         return `
           <div class="card video-card-linkable" data-video-url="${watchLink}" role="link" tabindex="0">
              <div class="thumb">
-                ${index === 0 ? `<div class="heat-driver-badge">🔥 Driving the Heat</div>` : ""}
+                ${index === 0 ? `<div class="heat-driver-badge">${t("feed.drivingHeat")}</div>` : ""}
                 <img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">
-              <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour || 0)}` : `Smoke ${formatNum(v.smokeScore || 0)}`}</div>
+              <div class="badge">${currentTab === "rising" ? `VPH ${formatNum(v.viewsPerHour || 0)}` : `${t("feed.smokeLabel")} ${formatNum(v.smokeScore || 0)}`}</div>
               <div class="duration-badge">${escapeHtml(v.durationLabel || "0:00")}</div>
             </div>
 
@@ -4599,10 +4672,10 @@ function attachInteractiveCards() {
               <div>
                 <div class="title-row">
                   <div class="title">${escapeHtml(v.title)}</div>
-                  <div class="format-pill">${escapeHtml(v.formatLabel || "Video")}</div>
+                  <div class="format-pill">${escapeHtml(formatLabel)}</div>
                 </div>
 
-                <p class="channel">${escapeHtml(channelTitle)} · ${escapeHtml(v.regionLabel || "Global")}</p>
+                <p class="channel">${escapeHtml(channelTitle)} · ${escapeHtml(v.regionLabel || t("videoInfo.global"))}</p>
 
                 <div class="mini-stats">
                   <span class="mini-stat">👁 ${formatNum(viewCount)}</span>
