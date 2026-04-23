@@ -141,6 +141,21 @@
       overflow-x: hidden;
     }
 
+    html[dir="rtl"] body {
+      text-align: right;
+    }
+
+    html[dir="rtl"] .topbar,
+    html[dir="rtl"] .top-actions,
+    html[dir="rtl"] .brand-wrap,
+    html[dir="rtl"] .quick-nav,
+    html[dir="rtl"] .panel-heading,
+    html[dir="rtl"] .first-run-hint-actions,
+    html[dir="rtl"] .links,
+    html[dir="rtl"] .smoke-index-top {
+      direction: rtl;
+    }
+
     .opening-loader {
       position: fixed;
       inset: 0;
@@ -294,6 +309,26 @@
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
+    }
+
+    .lang-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg-overlay-soft);
+    }
+
+    .lang-toggle .small-btn {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      min-width: 74px;
+    }
+
+    .lang-toggle .small-btn.active {
+      background: rgba(255,107,44,0.18);
+      color: var(--text-on-accent);
     }
 
     .meta-pill,
@@ -1988,6 +2023,10 @@
         flex-wrap: wrap;
       }
 
+      .lang-toggle {
+        order: -1;
+      }
+
       .first-run-hint {
         align-items: flex-start;
       }
@@ -2550,15 +2589,19 @@
         <div class="brand-icon">🥩</div>
         <div class="brand">
           <h1>Smoke Radar</h1>
-          <p>Live meat content intelligence dashboard</p>
+          <p data-i18n="brand.tagline">Live meat content intelligence dashboard</p>
         </div>
       </div>
 
       <div class="top-actions">
         <div class="meta-pill live" id="miniLiveBadge">Live</div>
+        <div class="lang-toggle" aria-label="Language toggle">
+          <button class="small-btn" id="langHeBtn" type="button">עברית</button>
+          <button class="small-btn" id="langEnBtn" type="button">English</button>
+        </div>
         <button class="small-btn" id="themeToggleBtn" type="button">☀️ Light</button>
         <button class="small-btn" id="smokeFxToggleBtn" type="button">💨 Smoke FX</button>
-        <button class="small-btn" id="shareBtn" type="button">Share</button>
+        <button class="small-btn" id="shareBtn" type="button" data-i18n="actions.share">Share</button>
         <button class="pill-btn" id="loadBtn" onclick="loadData()">
           <span class="refresh-loader"></span>
           <span id="refreshLabel">Refresh</span>
@@ -2568,12 +2611,12 @@
 
     <div class="quick-nav-wrap app-enter app-enter-delay-1">
       <div class="quick-nav">
-        <a href="#overview"><span>📊</span><span>Overview</span></a>
-        <a href="#cuts"><span>🥩</span><span>Cuts</span></a>
-        <a href="#recipes"><span>🍳</span><span>Recipes</span></a>
-        <a href="#butchers"><span>📍</span><span>Butchers</span></a>
-        <a href="#feed"><span>🎥</span><span>Feed</span></a>
-        <a href="#about"><span>👨‍🍳</span><span>About</span></a>
+        <a href="#overview"><span>📊</span><span data-i18n="nav.overview">Overview</span></a>
+        <a href="#cuts"><span>🥩</span><span data-i18n="nav.cuts">Cuts</span></a>
+        <a href="#recipes"><span>🍳</span><span data-i18n="nav.recipes">Recipes</span></a>
+        <a href="#butchers"><span>📍</span><span data-i18n="nav.butchers">Butchers</span></a>
+        <a href="#feed"><span>🎥</span><span data-i18n="nav.feed">Feed</span></a>
+        <a href="#about"><span>👨‍🍳</span><span data-i18n="nav.about">About</span></a>
       </div>
     </div>
 
@@ -2582,13 +2625,13 @@
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
     <div class="first-run-hint hidden app-enter app-enter-delay-1" id="firstRunHint">
       <div class="first-run-hint-content">
-        <span>Try starting with Smoke Index or Beef Cuts Explorer 🔥</span>
+        <span data-i18n="hint.tryStart">Try starting with Smoke Index or Beef Cuts Explorer 🔥</span>
         <div class="first-run-hint-actions">
-          <button class="first-run-hint-cta" id="hintSmokeIndexBtn" type="button">Open Smoke Index</button>
-          <button class="first-run-hint-cta" id="hintBeefCutsBtn" type="button">Open Beef Cuts</button>
+          <button class="first-run-hint-cta" id="hintSmokeIndexBtn" type="button" data-i18n="hint.openSmokeIndex">Open Smoke Index</button>
+          <button class="first-run-hint-cta" id="hintBeefCutsBtn" type="button" data-i18n="hint.openBeefCuts">Open Beef Cuts</button>
         </div>
       </div>
-      <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
+      <button class="first-run-hint-close" id="closeFirstRunHint" type="button" data-i18n="common.close">Close</button>
     </div>
 <section class="zone zone-radar">
   <div class="hero-banner-shell app-enter app-enter-delay-2">
@@ -2599,7 +2642,7 @@
   <div class="smoke-index-top">
     <div class="smoke-title-wrap">
       <div class="smoke-index-heading-row">
-        <span class="smoke-title">🔥 Smoke Index</span>
+        <span class="smoke-title" data-i18n="sections.smokeIndex">🔥 Smoke Index</span>
         <span class="smoke-tier-badge" id="smokeTierBadge">🔥 WARMING</span>
       </div>
 
@@ -2647,7 +2690,7 @@
   <div class="source-label">🎥 Based on YouTube videos</div>
   <div class="smoke-top-source" id="smokeTopSource">🎥 Top Heat Source: —</div>
   <div class="smoke-trend-actions">
-    <button class="small-btn" id="cookTrendBtn" type="button">🔥 Cook This Trend</button>
+    <button class="small-btn" id="cookTrendBtn" type="button" data-i18n="actions.cookTrend">🔥 Cook This Trend</button>
     <span class="smoke-trend-message" id="cookTrendMessage"></span>
   </div>
 </div>
@@ -2702,8 +2745,8 @@
     </div>
 
     <div class="tabs app-enter app-enter-delay-2">
-      <button class="tab-btn active" data-tab="hot">Hot Feed</button>
-      <button class="tab-btn" data-tab="rising">Rising</button>
+      <button class="tab-btn active" data-tab="hot" data-i18n="tabs.hotFeed">Hot Feed</button>
+      <button class="tab-btn" data-tab="rising" data-i18n="tabs.rising">Rising</button>
     </div>
 
     <div class="kpis app-enter app-enter-delay-2" id="kpis"></div>
@@ -2720,7 +2763,7 @@
     <div class="two-col app-enter app-enter-delay-3">
       <div class="panel">
         <div class="panel-heading">
-          <h2>🎥 Top Channels</h2>
+          <h2 data-i18n="sections.topChannels">🎥 Top Channels</h2>
           <button type="button" class="info-btn" data-popover-title="Top Channels" data-popover-text="Channels ranked by performance across the currently loaded videos. Ranking is based on average Smoke Score and overall visibility inside the active dataset.">i</button>
         </div>
         <div class="subtle">Best-performing creators in the current dataset</div>
@@ -2739,7 +2782,7 @@
 
       <div class="panel">
         <div class="panel-heading">
-          <h2>🔥 Hot Keywords</h2>
+          <h2 data-i18n="sections.hotKeywords">🔥 Hot Keywords</h2>
           <button type="button" class="info-btn" data-popover-title="Hot Keywords" data-popover-text="Frequent words extracted from current video titles after basic filtering. Useful for spotting repeated themes, cuts, and styles in the feed.">i</button>
         </div>
         <div class="subtle">Recurring terms extracted from current titles</div>
@@ -2958,7 +3001,7 @@
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
       <div class="panel-actions">
-        <button class="small-btn is-hidden" id="loadMoreBtn" onclick="loadMoreVideos()">Load More</button>
+        <button class="small-btn is-hidden" id="loadMoreBtn" onclick="loadMoreVideos()" data-i18n="actions.loadMore">Load More</button>
       </div>
     </div>
 <div class="panel" id="feedback">
@@ -3033,11 +3076,11 @@
   <div class="popover" id="infoPopover">
     <div class="popover-title">
       <span id="popoverTitle">Info</span>
-      <button class="popover-close" id="popoverClose">Close</button>
+      <button class="popover-close" id="popoverClose" data-i18n="common.close">Close</button>
     </div>
     <div class="popover-content" id="popoverText"></div>
   </div>
-  <button class="small-btn floating-feedback-btn" id="floatingFeedbackBtn" type="button">Feedback</button>
+  <button class="small-btn floating-feedback-btn" id="floatingFeedbackBtn" type="button" data-i18n="actions.feedback">Feedback</button>
   <div class="share-toast" id="shareToast">Link copied</div>
 <script>
     let scoreChartInstance = null;
@@ -3046,6 +3089,203 @@
     let openingLoaderHidden = false;
     let visibleVideoCount = 6;
     let latestTopHeatTitle = "";
+    let currentLanguage = "en";
+
+    const LANGUAGE_STORAGE_KEY = "smoke_lang";
+    const RTL_LANGS = new Set(["he"]);
+    const FALLBACK_LANGUAGE = "en";
+    const SUPPORTED_LANGUAGES = new Set(["en", "he"]);
+
+    const TRANSLATIONS = {
+      en: {
+        "brand.tagline": "Live meat content intelligence dashboard",
+        "actions.share": "Share",
+        "actions.feedback": "Feedback",
+        "actions.refresh": "Refresh",
+        "actions.scanning": "Scanning...",
+        "actions.cookTrend": "🔥 Cook This Trend",
+        "actions.loadMore": "Load More",
+        "actions.watch": "Watch",
+        "actions.info": "Info",
+        "actions.channel": "Channel",
+        "actions.linkCopied": "Link copied",
+        "nav.overview": "Overview",
+        "nav.cuts": "Cuts",
+        "nav.recipes": "Recipes",
+        "nav.butchers": "Butchers",
+        "nav.feed": "Feed",
+        "nav.about": "About",
+        "hint.tryStart": "Try starting with Smoke Index or Beef Cuts Explorer 🔥",
+        "hint.openSmokeIndex": "Open Smoke Index",
+        "hint.openBeefCuts": "Open Beef Cuts",
+        "common.close": "Close",
+        "sections.smokeIndex": "🔥 Smoke Index",
+        "sections.topChannels": "🎥 Top Channels",
+        "sections.hotKeywords": "🔥 Hot Keywords",
+        "tabs.hotFeed": "Hot Feed",
+        "tabs.rising": "Rising",
+        "status.loading": "Loading radar data...",
+        "status.noneReturned": "No videos returned in the current scan.",
+        "status.cachedLoaded": ({ count }) => `Showing cached results · ${count} videos loaded`,
+        "status.offlineLoaded": ({ count }) => `Showing offline snapshot · ${count} videos loaded`,
+        "status.videosLoaded": ({ count }) => `${count} videos loaded into the radar`,
+        "status.unavailable": "Radar data currently unavailable",
+        "empty.keywords": "No keyword clusters yet.",
+        "empty.channels": "No channel comparison data yet.",
+        "empty.videos": "No videos available right now.",
+        "empty.devMode": "⚠️ Dev mode – no live data connected",
+        "smoke.noHeat": "No active heat",
+        "smoke.helper": "🔥 This is the current leading trend based on YouTube meat content.",
+        "smoke.topHeatSource": "🎥 Top Heat Source",
+        "smoke.topSourceHint": "This is the top performing video right now — click to watch.",
+        "smoke.momentum": "🚀 Momentum",
+        "smoke.engagement": "💬 Engagement",
+        "smoke.freshness": "🕒 Freshness",
+        "smoke.velocity": "⚡ Velocity",
+        "smoke.usingDefaultCut": "Using default cut"
+      },
+      he: {
+        "brand.tagline": "לוח בקרה חי למודיעין תוכן בשר",
+        "actions.share": "שיתוף",
+        "actions.feedback": "משוב",
+        "actions.refresh": "רענון",
+        "actions.scanning": "סורק...",
+        "actions.cookTrend": "🔥 בישול לפי הטרנד",
+        "actions.loadMore": "טען עוד",
+        "actions.watch": "צפייה",
+        "actions.info": "מידע",
+        "actions.channel": "ערוץ",
+        "actions.linkCopied": "הקישור הועתק",
+        "nav.overview": "סקירה",
+        "nav.cuts": "נתחים",
+        "nav.recipes": "מתכונים",
+        "nav.butchers": "קצבים",
+        "nav.feed": "פיד",
+        "nav.about": "אודות",
+        "hint.tryStart": "מומלץ להתחיל עם מדד העשן או סייר הנתחים 🔥",
+        "hint.openSmokeIndex": "פתח מדד עשן",
+        "hint.openBeefCuts": "פתח נתחי בקר",
+        "common.close": "סגירה",
+        "sections.smokeIndex": "🔥 מדד עשן",
+        "sections.topChannels": "🎥 ערוצים מובילים",
+        "sections.hotKeywords": "🔥 מילות מפתח חמות",
+        "tabs.hotFeed": "פיד חם",
+        "tabs.rising": "בעלייה",
+        "status.loading": "טוען נתוני רדאר...",
+        "status.noneReturned": "לא חזרו סרטונים בסריקה הנוכחית.",
+        "status.cachedLoaded": ({ count }) => `מציג נתונים ממטמון · נטענו ${count} סרטונים`,
+        "status.offlineLoaded": ({ count }) => `מציג תמונת מצב לא מקוונת · נטענו ${count} סרטונים`,
+        "status.videosLoaded": ({ count }) => `${count} סרטונים נטענו לרדאר`,
+        "status.unavailable": "נתוני הרדאר אינם זמינים כרגע",
+        "empty.keywords": "עדיין אין אשכולות מילות מפתח.",
+        "empty.channels": "עדיין אין נתוני השוואת ערוצים.",
+        "empty.videos": "אין סרטונים זמינים כרגע.",
+        "empty.devMode": "⚠️ מצב פיתוח – אין חיבור לנתונים חיים",
+        "smoke.noHeat": "אין חום פעיל",
+        "smoke.helper": "🔥 זהו הטרנד המוביל כרגע לפי תוכן בשר ביוטיוב.",
+        "smoke.topHeatSource": "🎥 מקור החום המוביל",
+        "smoke.topSourceHint": "זה הסרטון עם הביצועים הטובים ביותר כרגע — לחץ לצפייה.",
+        "smoke.momentum": "🚀 מומנטום",
+        "smoke.engagement": "💬 מעורבות",
+        "smoke.freshness": "🕒 עדכניות",
+        "smoke.velocity": "⚡ מהירות",
+        "smoke.usingDefaultCut": "משתמש בנתח ברירת מחדל"
+      }
+    };
+
+    function t(key, params = null) {
+      const langPack = TRANSLATIONS[currentLanguage] || TRANSLATIONS[FALLBACK_LANGUAGE];
+      const value = langPack[key] ?? TRANSLATIONS[FALLBACK_LANGUAGE][key] ?? key;
+      return typeof value === "function" ? value(params || {}) : value;
+    }
+
+    function inferDefaultLanguageByLocation() {
+      const localeList = [
+        ...(navigator.languages || []),
+        navigator.language || "",
+        Intl.DateTimeFormat().resolvedOptions().locale || ""
+      ].filter(Boolean).map((entry) => String(entry).toLowerCase());
+      const timeZone = (Intl.DateTimeFormat().resolvedOptions().timeZone || "").toLowerCase();
+      const inIsrael = localeList.some((locale) => locale === "he" || locale.startsWith("he-") || locale.endsWith("-il")) || timeZone === "asia/jerusalem";
+      return inIsrael ? "he" : "en";
+    }
+
+    function setDocumentDirection(language) {
+      const dir = RTL_LANGS.has(language) ? "rtl" : "ltr";
+      document.documentElement.setAttribute("dir", dir);
+      document.body?.setAttribute("dir", dir);
+      document.documentElement.setAttribute("lang", language);
+    }
+
+    function updateLanguageToggleUI() {
+      const heBtn = document.getElementById("langHeBtn");
+      const enBtn = document.getElementById("langEnBtn");
+      heBtn?.classList.toggle("active", currentLanguage === "he");
+      enBtn?.classList.toggle("active", currentLanguage === "en");
+    }
+
+    function translateStaticContent() {
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (!key) return;
+        el.textContent = t(key);
+      });
+
+      const refreshLabel = document.getElementById("refreshLabel");
+      if (refreshLabel && !document.getElementById("loadBtn")?.classList.contains("loading")) {
+        refreshLabel.textContent = t("actions.refresh");
+      }
+
+      const cookBtn = document.getElementById("cookTrendBtn");
+      if (cookBtn) cookBtn.textContent = t("actions.cookTrend");
+
+      const shareToast = document.getElementById("shareToast");
+      if (shareToast) shareToast.textContent = t("actions.linkCopied");
+
+      const smokeLevelNote = document.getElementById("smokeLevelNote");
+      if (smokeLevelNote && (!allData?.videos || !allData.videos.length)) {
+        smokeLevelNote.textContent = t("smoke.noHeat");
+      }
+
+      const momentumEl = document.getElementById("breakdownMomentum");
+      const engagementEl = document.getElementById("breakdownEngagement");
+      const freshnessEl = document.getElementById("breakdownFreshness");
+      const velocityEl = document.getElementById("breakdownVelocity");
+      if (momentumEl?.textContent?.includes(":")) momentumEl.textContent = `${t("smoke.momentum")}: 0`;
+      if (engagementEl?.textContent?.includes(":")) engagementEl.textContent = `${t("smoke.engagement")}: 0`;
+      if (freshnessEl?.textContent?.includes(":")) freshnessEl.textContent = `${t("smoke.freshness")}: 0`;
+      if (velocityEl?.textContent?.includes(":")) velocityEl.textContent = `${t("smoke.velocity")}: 0`;
+    }
+
+    function applyLanguage(language, { persist = true, rerender = true } = {}) {
+      const nextLanguage = SUPPORTED_LANGUAGES.has(language) ? language : FALLBACK_LANGUAGE;
+      currentLanguage = nextLanguage;
+      if (persist) {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+      }
+      setDocumentDirection(nextLanguage);
+      updateLanguageToggleUI();
+      translateStaticContent();
+
+      if (rerender && allData) {
+        renderHero(allData, { animateRefresh: false });
+        renderSignalStrip(allData);
+        renderInsights(allData);
+        renderKpis(allData.summary || {}, allData.formatStats || {});
+        renderKeywords(allData.topKeywords || []);
+        renderChannelTable(allData.topChannels || []);
+        renderTabState();
+      }
+    }
+
+    function setupLanguageControls() {
+      const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      const defaultLanguage = inferDefaultLanguageByLocation();
+      applyLanguage(savedLanguage || defaultLanguage, { persist: false, rerender: false });
+
+      document.getElementById("langHeBtn")?.addEventListener("click", () => applyLanguage("he"));
+      document.getElementById("langEnBtn")?.addEventListener("click", () => applyLanguage("en"));
+    }
 
     const CUT_DEFINITIONS = [
       {
@@ -3580,7 +3820,7 @@ function getSmokeTier(score) {
   return {
     key: "cold",
     label: "🧊 COLD CUT",
-    note: "No active heat"
+    note: t("smoke.noHeat")
   };
 }
 
@@ -3779,26 +4019,26 @@ function updateSmokeUI(data = {}, options = {}) {
     deltaEl.textContent = "→ 0";
   }
 
-  if (momentumEl) momentumEl.textContent = `🚀 Momentum: ${breakdown.momentum}`;
-  if (engagementEl) engagementEl.textContent = `💬 Engagement: ${breakdown.engagement}`;
-  if (freshnessEl) freshnessEl.textContent = `🕒 Freshness: ${breakdown.freshness}`;
-  if (velocityEl) velocityEl.textContent = `⚡ Velocity: ${breakdown.velocity}`;
+  if (momentumEl) momentumEl.textContent = `${t("smoke.momentum")}: ${breakdown.momentum}`;
+  if (engagementEl) engagementEl.textContent = `${t("smoke.engagement")}: ${breakdown.engagement}`;
+  if (freshnessEl) freshnessEl.textContent = `${t("smoke.freshness")}: ${breakdown.freshness}`;
+  if (velocityEl) velocityEl.textContent = `${t("smoke.velocity")}: ${breakdown.velocity}`;
 
 if (helperEl) {
   if (data.source === "cache") {
-    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
+    helperEl.textContent = t("smoke.helper");
   } else if (data.source === "seed" || data.source === "no-key") {
-    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
+    helperEl.textContent = t("smoke.helper");
   } else if (tier.key === "inferno") {
-    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
+    helperEl.textContent = t("smoke.helper");
   } else if (tier.key === "hot") {
-    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
+    helperEl.textContent = t("smoke.helper");
   } else if (tier.key === "smoking") {
-    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
+    helperEl.textContent = t("smoke.helper");
   } else if (tier.key === "warming") {
-    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
+    helperEl.textContent = t("smoke.helper");
   } else {
-    helperEl.textContent = "🔥 This is the current leading trend based on YouTube meat content.";
+    helperEl.textContent = t("smoke.helper");
   }
 }
 
@@ -3816,9 +4056,9 @@ if (topSourceEl) {
       : cleanTitle;
 
   if (breakdown.topVideoUrl) {
-    topSourceEl.innerHTML = `🎥 Top Heat Source: <strong><a href="${breakdown.topVideoUrl}" target="_blank" rel="noopener noreferrer">${shortTitle}</a></strong> <span class="subtle">This is the top performing video right now — click to watch.</span>`;
+    topSourceEl.innerHTML = `${t("smoke.topHeatSource")}: <strong><a href="${breakdown.topVideoUrl}" target="_blank" rel="noopener noreferrer">${shortTitle}</a></strong> <span class="subtle">${t("smoke.topSourceHint")}</span>`;
   } else {
-    topSourceEl.innerHTML = `🎥 Top Heat Source: <strong>${shortTitle}</strong>`;
+    topSourceEl.innerHTML = `${t("smoke.topHeatSource")}: <strong>${shortTitle}</strong>`;
   }
 
   latestTopHeatTitle = cleanTitle;
@@ -3899,7 +4139,7 @@ previousSmokeScore = score;
         if (messageEl) {
           messageEl.textContent = detection.matched
             ? ""
-            : "Using default cut";
+            : t("smoke.usingDefaultCut");
         }
 
         recipePanel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -4113,7 +4353,7 @@ function attachInteractiveCards() {
     function renderKeywords(keywords) {
       const el = document.getElementById("keywords");
       if (!keywords.length) {
-        el.innerHTML = `<div class="empty">No keyword clusters yet.</div>`;
+        el.innerHTML = `<div class="empty">${t("empty.keywords")}</div>`;
         return;
       }
 
@@ -4125,7 +4365,7 @@ function attachInteractiveCards() {
     function renderChannelTable(channels) {
       const el = document.getElementById("channelTable");
       if (!channels.length) {
-        el.innerHTML = `<tr><td colspan="4" class="empty">No channel comparison data yet.</td></tr>`;
+        el.innerHTML = `<tr><td colspan="4" class="empty">${t("empty.channels")}</td></tr>`;
         return;
       }
 
@@ -4194,7 +4434,7 @@ function attachInteractiveCards() {
 
       if (visibleVideoCount < totalVideos) {
         btn.style.display = "inline-flex";
-        btn.textContent = `Load More (${Math.min(4, totalVideos - visibleVideoCount)})`;
+        btn.textContent = `${t("actions.loadMore")} (${Math.min(4, totalVideos - visibleVideoCount)})`;
       } else {
         btn.style.display = "none";
       }
@@ -4204,7 +4444,7 @@ function attachInteractiveCards() {
       const el = document.getElementById("results");
 
       if (!videos.length) {
-        el.innerHTML = `<div class="empty">No videos available right now.</div>`;
+        el.innerHTML = `<div class="empty">${t("empty.videos")}</div>`;
         updateLoadMoreButton(0);
         return;
       }
@@ -4246,11 +4486,11 @@ function attachInteractiveCards() {
               </div>
 
               <div class="links">
-                <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">Watch</a>
-                <button class="small-btn video-info-btn" data-video-index="${index}">Info</button>
+                <a class="watch-link" href="${watchLink}" target="_blank" rel="noopener noreferrer">${t("actions.watch")}</a>
+                <button class="small-btn video-info-btn" data-video-index="${index}">${t("actions.info")}</button>
                 ${v.channelId
-                  ? `<a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">Channel</a>`
-                  : `<span class="secondary-link disabled">Channel</span>`
+                  ? `<a class="secondary-link" href="${channelLink}" target="_blank" rel="noopener noreferrer">${t("actions.channel")}</a>`
+                  : `<span class="secondary-link disabled">${t("actions.channel")}</span>`
                 }
               </div>
             </div>
@@ -5007,7 +5247,7 @@ updateRecipeActionLabels();
 
       btn.classList.toggle("loading", isLoading);
       btn.disabled = isLoading;
-      label.textContent = isLoading ? "Scanning..." : "Refresh";
+      label.textContent = isLoading ? t("actions.scanning") : t("actions.refresh");
     }
 
     async function loadData() {
@@ -5015,7 +5255,7 @@ updateRecipeActionLabels();
       const results = document.getElementById("results");
 
       setRefreshLoading(true);
-      status.textContent = "Loading radar data...";
+      status.textContent = t("status.loading");
       results.innerHTML = "";
       clearErrorBanner();
 
@@ -5048,13 +5288,13 @@ const data = isJson ? await res.json() : null;
         renderTabState();
 
         if (!data.videos || data.videos.length === 0) {
-          status.textContent = "No videos returned in the current scan.";
+          status.textContent = t("status.noneReturned");
         } else if (data.source === "cache") {
-          status.textContent = `Showing cached results · ${data.videos.length} videos loaded`;
+          status.textContent = t("status.cachedLoaded", { count: data.videos.length });
         } else if (data.source === "seed" || data.source === "no-key") {
-          status.textContent = `Showing offline snapshot · ${data.videos.length} videos loaded`;
+          status.textContent = t("status.offlineLoaded", { count: data.videos.length });
         } else {
-          status.textContent = `${data.videos.length} videos loaded into the radar`;
+          status.textContent = t("status.videosLoaded", { count: data.videos.length });
         }
       } catch (error) {
         console.error(error);
@@ -5075,14 +5315,14 @@ const data = isJson ? await res.json() : null;
         if (results) {
           results.innerHTML = `
             <div class="empty">
-              ⚠️ Dev mode – no live data connected
+              ${t("empty.devMode")}
             </div>
   `;
 }
 
         const friendly = getFriendlyErrorMessage(error);
         renderErrorBanner(friendly.title, friendly.message);
-        status.textContent = "Radar data currently unavailable";
+        status.textContent = t("status.unavailable");
       } finally {
         setRefreshLoading(false);
         window.setTimeout(hideOpeningLoader, 350);
@@ -5210,6 +5450,7 @@ const data = isJson ? await res.json() : null;
     }
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupLanguageControls();
   setupThemeControls();
   populateRecipeCutOptions();
   attachTabs();
