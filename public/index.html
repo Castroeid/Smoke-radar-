@@ -19,7 +19,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -131,7 +131,7 @@
       padding: 0;
       background: var(--bg-main-gradient);
       color: var(--text-primary);
-      font-family: "Inter", Arial, sans-serif;
+      font-family: "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       scroll-behavior: smooth;
       overflow-x: hidden;
     }
@@ -143,6 +143,10 @@
 
     html[dir="rtl"] body {
       text-align: right;
+    }
+
+    html[lang="he"] body {
+      font-family: "Heebo", "Rubik", "Assistant", "Noto Sans Hebrew", "Arial Hebrew", Arial, sans-serif;
     }
 
     html[dir="rtl"] .topbar,
@@ -2672,8 +2676,8 @@
         type="button"
         class="info-btn"
         id="smokeInfoBtn"
-        data-popover-title="מדד עשן"
-        data-popover-text="סרטונים חמים בזמן אמת לפי ביצועים"
+        data-i18n-popover-title="popover.smoke.title"
+        data-i18n-popover-text="popover.smoke.text"
       >i</button>
     </div>
 
@@ -2683,7 +2687,7 @@
   <div class="smoke-main-row">
     <div class="smoke-score-block">
       <div class="smoke-value" id="smokeValue">0</div>
-      <div class="smoke-level-note" id="smokeLevelNote">No active heat</div>
+      <div class="smoke-level-note" id="smokeLevelNote" data-i18n="smoke.noHeat">No active heat</div>
     </div>
 
     <div class="smoke-breakdown" id="smokeBreakdown">
@@ -2719,49 +2723,49 @@
 
     <div class="signal-strip app-enter app-enter-delay-2" id="signalStrip">
       <div class="signal-card">
-        <div class="signal-label">סרטונים במעקב</div>
+        <div class="signal-label" data-i18n="signals.trackedVideos">Tracked Videos</div>
         <div class="signal-value">0</div>
-        <div class="signal-sub">גודל הפיד הנוכחי</div>
+        <div class="signal-sub" data-i18n="signals.currentFeedSize">Current feed size</div>
       </div>
       <div class="signal-card" id="topChannelSignalCard">
-        <div class="signal-label">ערוץ מוביל</div>
+        <div class="signal-label" data-i18n="signals.topChannel">Top Channel</div>
         <div class="signal-value">—</div>
-        <div class="signal-sub">🎥 הערוץ החזק כרגע — לחיצה לפתיחה</div>
+        <div class="signal-sub" data-i18n="signals.topChannelHint">🎥 Top performing channel now — click to open</div>
       </div>
       <div class="signal-card">
-        <div class="signal-label">סמואקיות ממוצעת</div>
+        <div class="signal-label" data-i18n="signals.avgSmoke">Avg Smoke</div>
         <div class="signal-value">0</div>
-        <div class="signal-sub">בכל הסריקה הנוכחית</div>
+        <div class="signal-sub" data-i18n="signals.acrossScan">Across current scan</div>
       </div>
       <div class="signal-card">
-        <div class="signal-label">צפיות</div>
+        <div class="signal-label" data-i18n="signals.totalViews">Total Views</div>
         <div class="signal-value">0</div>
-        <div class="signal-sub">מדגם רדאר מוצג</div>
+        <div class="signal-sub" data-i18n="signals.visibleSample">Visible radar sample</div>
       </div>
     </div>
 
     <div class="insights-grid app-enter app-enter-delay-2">
       <div class="insight-card" id="fastestBreakoutCard">
-        <div class="insight-label">🚀 פריצה מהירה</div>
+        <div class="insight-label" data-i18n="insights.fastestLabel">🚀 Fastest Breakout</div>
         <div class="insight-title" id="fastestBreakoutTitle">—</div>
-        <div class="insight-meta" id="fastestBreakoutMeta">⚡ הסרטון שצומח הכי מהר לפי מומנטום.</div>
+        <div class="insight-meta" id="fastestBreakoutMeta" data-i18n="insights.fastestMeta">⚡ Fastest growing video based on recent momentum.</div>
       </div>
 
       <div class="insight-card" id="oldestActiveCard">
-        <div class="insight-label">🕰️ הוותיק הפעיל</div>
+        <div class="insight-label" data-i18n="insights.oldestLabel">🕰️ Oldest Active</div>
         <div class="insight-title" id="oldestActiveTitle">—</div>
-        <div class="insight-meta" id="oldestActiveMeta">📅 הסרטון הוותיק שעדיין צובר תאוצה.</div>
+        <div class="insight-meta" id="oldestActiveMeta" data-i18n="insights.oldestMeta">📅 Oldest video still actively gaining traction.</div>
       </div>
 
       <div class="insight-card">
-        <div class="insight-label">🌍 אזורים מובילים</div>
+        <div class="insight-label" data-i18n="insights.topRegionsLabel">🌍 Top Regions</div>
         <div class="insight-title" id="regionsLead">—</div>
         <div class="region-chips" id="regionChips"></div>
       </div>
 
       <div class="insight-card" id="israelRadarCard">
-        <div class="insight-label">🇮🇱 יוצרי בשר ישראלים</div>
-        <div class="insight-meta">ערוצי בשר וברביקיו נבחרים</div>
+        <div class="insight-label" data-i18n="insights.israeliCreatorsLabel">🇮🇱 Israeli Meat Creators</div>
+        <div class="insight-meta" data-i18n="insights.israeliCreatorsMeta">Selected Israeli meat and BBQ channels</div>
         <div class="insight-link-list" id="israeliCreatorsList"></div>
       </div>
     </div>
@@ -2776,7 +2780,7 @@
     <div class="panel app-enter app-enter-delay-2" id="momentumTrendCard">
       <div class="panel-heading">
         <h2 id="chartTitle">📈 Momentum Trend</h2>
-        <button type="button" class="info-btn" data-popover-title="מומנטום" data-popover-text="השוואת הסרטונים החזקים כרגע בפיד.">i</button>
+        <button type="button" class="info-btn" data-i18n-popover-title="popover.momentum.title" data-i18n-popover-text="popover.momentum.text">i</button>
       </div>
       <div class="subtle" id="chartSubtitle">Highest-ranking videos across the current feed</div>
       <canvas id="scoreChart"></canvas>
@@ -2786,16 +2790,16 @@
       <div class="panel">
         <div class="panel-heading">
           <h2 data-i18n="sections.topChannels">🎥 Top Channels</h2>
-          <button type="button" class="info-btn" data-popover-title="ערוצים מובילים" data-popover-text="דירוג ערוצים לפי ביצועים בפיד הנוכחי.">i</button>
+          <button type="button" class="info-btn" data-i18n-popover-title="popover.channels.title" data-i18n-popover-text="popover.channels.text">i</button>
         </div>
-        <div class="subtle">יוצרים מובילים בדאטה הנוכחי</div>
+        <div class="subtle" data-i18n="channels.subtitle">Top creators in the current data snapshot</div>
         <table>
           <thead>
             <tr>
-              <th>ערוץ</th>
-              <th>סרטונים</th>
-              <th>צפיות</th>
-              <th>סמואקיות</th>
+              <th data-i18n="channels.table.channel">Channel</th>
+              <th data-i18n="channels.table.videos">Videos</th>
+              <th data-i18n="channels.table.views">Views</th>
+              <th data-i18n="channels.table.smoke">Smoke</th>
             </tr>
           </thead>
           <tbody id="channelTable"></tbody>
@@ -2805,9 +2809,9 @@
       <div class="panel">
         <div class="panel-heading">
           <h2 data-i18n="sections.hotKeywords">🔥 Hot Keywords</h2>
-          <button type="button" class="info-btn" data-popover-title="מילות מפתח חמות" data-popover-text="מונחים שחוזרים בכותרות הסרטונים עכשיו.">i</button>
+          <button type="button" class="info-btn" data-i18n-popover-title="popover.keywords.title" data-i18n-popover-text="popover.keywords.text">i</button>
         </div>
-        <div class="subtle">מונחים שחוזרים בכותרות כרגע</div>
+        <div class="subtle" data-i18n="keywords.subtitle">Terms currently repeating across video titles</div>
         <div class="keywords" id="keywords"></div>
       </div>
     </div>
@@ -2823,7 +2827,7 @@
     <div class="panel app-enter app-enter-delay-3" id="cuts">
       <div class="panel-heading">
         <h2 data-i18n="sections.beefCutsExplorer">🥩 Beef Cuts Explorer</h2>
-        <button type="button" class="info-btn" data-popover-title="סייר נתחי בקר" data-popover-text="הקש על נתח כדי לראות מיקום והכוונת בישול.">i</button>
+        <button type="button" class="info-btn" data-i18n-popover-title="popover.cuts.title" data-i18n-popover-text="popover.cuts.text">i</button>
       </div>
       <div class="subtle" data-i18n="cuts.tapGuide">Tap a cut to open a quick guide</div>
 
@@ -3126,6 +3130,12 @@
         "actions.info": "Info",
         "actions.channel": "Channel",
         "actions.linkCopied": "Link copied",
+        "actions.themeLight": "☀️ Light",
+        "actions.themeDark": "🌙 Dark",
+        "actions.smokeFxOn": "💨 Smoke FX On",
+        "actions.smokeFxOff": "💨 Smoke FX Off",
+        "actions.langHebrew": "Hebrew",
+        "actions.langEnglish": "English",
         "feedback.title": "💬 Feedback",
         "feedback.subtitle": "Found something interesting? Missing feature? Send me your thoughts 🙌",
         "feedback.placeholderText": "Write your feedback here...",
@@ -3149,6 +3159,12 @@
         "sections.butcherFinder": "📍 Butcher Finder",
         "sections.topChannels": "🎥 Top Channels",
         "sections.hotKeywords": "🔥 Hot Keywords",
+        "channels.subtitle": "Top creators in the current data snapshot",
+        "channels.table.channel": "Channel",
+        "channels.table.videos": "Videos",
+        "channels.table.views": "Views",
+        "channels.table.smoke": "Smoke",
+        "keywords.subtitle": "Terms currently repeating across video titles",
         "tabs.hotFeed": "Hot Feed",
         "tabs.rising": "Rising",
         "feed.radarTitle": "🎥 Radar Feed",
@@ -3214,6 +3230,14 @@
         "recipe.fallbackTitle": "Smart Cooking Mode",
         "recipe.fallbackDescription": "Quick and balanced cook plan.",
         "recipe.cut.shortRibs": "short ribs",
+        "recipe.fallbackSauce1Name": "Classic Pan Sauce",
+        "recipe.fallbackSauce1Desc": "Simple finishing drizzle for the main cut.",
+        "recipe.fallbackSauce2Name": "Herb Bright Sauce",
+        "recipe.fallbackSauce2Desc": "Fresh contrast for rich beef flavors.",
+        "recipe.fallbackSide1Name": "Charred Veg Mix",
+        "recipe.fallbackSide1Desc": "Fast grilled side with color and crunch.",
+        "recipe.fallbackSide2Name": "Warm Potato Bowl",
+        "recipe.fallbackSide2Desc": "Comfort side that pairs well with smoke.",
         "butchers.helper": "Locate nearby butcher shops and open them directly in Google Maps",
         "butchers.tapToFind": "Tap to find butchers near you.",
         "butchers.noSearchYet": "No search yet.",
@@ -3253,6 +3277,8 @@
         "popover.butchers.text": "Finds nearby butcher shops based on your location.",
         "popover.feed.title": "Video Radar",
         "popover.feed.text": "A compact feed of trending videos in real time.",
+        "popover.cuts.title": "Beef Cuts Explorer",
+        "popover.cuts.text": "Tap a cut to view location and cooking guidance.",
         "status.loading": "Loading radar data...",
         "status.noneReturned": "No videos returned in the current scan.",
         "status.cachedLoaded": ({ count }) => `Showing cached results · ${count} videos loaded`,
@@ -3281,10 +3307,34 @@
         "signals.totalViews": "Total Views",
         "signals.visibleSample": "Visible radar sample",
         "insights.noBreakout": "No breakout video",
+        "insights.fastestLabel": "🚀 Fastest Breakout",
         "insights.fastestMeta": "⚡ Fastest growing video based on recent momentum.",
         "insights.noActiveVideo": "No active video",
+        "insights.oldestLabel": "🕰️ Oldest Active",
         "insights.oldestMeta": "📅 Oldest video still actively gaining traction.",
+        "insights.topRegionsLabel": "🌍 Top Regions",
+        "insights.israeliCreatorsLabel": "🇮🇱 Israeli Meat Creators",
+        "insights.israeliCreatorsMeta": "Selected Israeli meat and BBQ channels",
         "insights.noRegionSignals": "No region signals yet",
+        "meta.liveData": "Live Data",
+        "meta.cachedSnapshot": "Cached Snapshot",
+        "meta.offlineSnapshot": "Offline Snapshot",
+        "meta.cachedBadge": "Cached",
+        "meta.offlineBadge": "Offline",
+        "meta.updatedAt": ({ value }) => `Updated ${value}`,
+        "meta.cacheAge": ({ value }) => `Cache Age: ${value} min`,
+        "meta.ttl": ({ value }) => `TTL: ${value} min`,
+        "meta.liveWindow": ({ value }) => `Live Window: ${value} min`,
+        "meta.quotaCooldown": "Quota cooldown active",
+        "smoke.tier.inferno": "🚨 INFERNO",
+        "smoke.tier.hot": "🔥 HOT GRILL",
+        "smoke.tier.smoking": "💨 SMOKING",
+        "smoke.tier.warming": "🔥 WARMING",
+        "smoke.tier.cold": "🧊 COLD CUT",
+        "smoke.note.inferno": "Breaking out",
+        "smoke.note.hot": "Trending fast",
+        "smoke.note.smoking": "Building momentum",
+        "smoke.note.warming": "Picking up",
         "kpi.totalViews": "Total Views",
         "kpi.avgViews": "Average Views",
         "kpi.avgLikes": "Average Likes",
@@ -3308,7 +3358,17 @@
         "videoInfo.global": "Global",
         "videoInfo.video": "Video",
         "feed.drivingHeat": "🔥 Driving the Heat",
-        "feed.smokeLabel": "Smoke"
+        "feed.smokeLabel": "Smoke",
+        "chart.dataset.viewsPerHour": "Views / Hour",
+        "chart.dataset.smokeScore": "Smoke Score",
+        "popover.smoke.title": "Smoke Index",
+        "popover.smoke.text": "Live heat score for the current radar feed.",
+        "popover.momentum.title": "Momentum",
+        "popover.momentum.text": "Comparison of top-performing videos in the current feed.",
+        "popover.channels.title": "Top Channels",
+        "popover.channels.text": "Channel ranking based on performance in the current feed.",
+        "popover.keywords.title": "Hot Keywords",
+        "popover.keywords.text": "Terms currently recurring in video titles."
       },
       he: {
         "loader.subtitle": "מאתחל את לוח הבקרה של Smoke Radar...",
@@ -3332,6 +3392,12 @@
         "actions.info": "מידע",
         "actions.channel": "ערוץ",
         "actions.linkCopied": "הקישור הועתק",
+        "actions.themeLight": "☀️ בהיר",
+        "actions.themeDark": "🌙 כהה",
+        "actions.smokeFxOn": "💨 אפקט עשן פעיל",
+        "actions.smokeFxOff": "💨 אפקט עשן כבוי",
+        "actions.langHebrew": "עברית",
+        "actions.langEnglish": "אנגלית",
         "feedback.title": "💬 משוב",
         "feedback.subtitle": "מצאת משהו מעניין? חסרה יכולת? נשמח לשמוע ממך 🙌",
         "feedback.placeholderText": "כתוב את המשוב שלך כאן...",
@@ -3355,6 +3421,12 @@
         "sections.butcherFinder": "📍 איתור קצבים",
         "sections.topChannels": "🎥 ערוצים מובילים",
         "sections.hotKeywords": "🔥 מילות מפתח חמות",
+        "channels.subtitle": "יוצרים מובילים בדאטה הנוכחי",
+        "channels.table.channel": "ערוץ",
+        "channels.table.videos": "סרטונים",
+        "channels.table.views": "צפיות",
+        "channels.table.smoke": "סמואקיות",
+        "keywords.subtitle": "מונחים שחוזרים בכותרות כרגע",
         "tabs.hotFeed": "פיד חם",
         "tabs.rising": "בעלייה",
         "feed.radarTitle": "🎥 רדאר הסרטונים",
@@ -3420,6 +3492,14 @@
         "recipe.fallbackTitle": "מצב בישול חכם",
         "recipe.fallbackDescription": "תוכנית בישול מהירה ומאוזנת.",
         "recipe.cut.shortRibs": "צלעות קצרות",
+        "recipe.fallbackSauce1Name": "רוטב מחבת קלאסי",
+        "recipe.fallbackSauce1Desc": "סיומת פשוטה ועשירה למנה המרכזית.",
+        "recipe.fallbackSauce2Name": "רוטב עשבים רענן",
+        "recipe.fallbackSauce2Desc": "ניגוד רענן וטוב לנתחי בקר עשירים.",
+        "recipe.fallbackSide1Name": "ירקות חרוכים",
+        "recipe.fallbackSide1Desc": "תוספת מהירה מהגריל עם צבע וקראנץ׳.",
+        "recipe.fallbackSide2Name": "קערת תפוחי אדמה חמה",
+        "recipe.fallbackSide2Desc": "תוספת מנחמת שמתאימה לבישול מעושן.",
         "butchers.helper": "מצא קצביות קרובות ופתח אותן ישירות ב-Google Maps",
         "butchers.tapToFind": "הקש כדי למצוא קצבים קרובים אליך.",
         "butchers.noSearchYet": "עדיין לא בוצע חיפוש.",
@@ -3459,6 +3539,8 @@
         "popover.butchers.text": "מאתר קצביות קרובות על בסיס המיקום שלך.",
         "popover.feed.title": "רדאר סרטונים",
         "popover.feed.text": "פיד קומפקטי של סרטונים חמים בזמן אמת.",
+        "popover.cuts.title": "סייר נתחי בקר",
+        "popover.cuts.text": "הקש על נתח כדי לראות מיקום והכוונת בישול.",
         "status.loading": "טוען נתוני רדאר...",
         "status.noneReturned": "לא חזרו סרטונים בסריקה הנוכחית.",
         "status.cachedLoaded": ({ count }) => `מציג נתונים ממטמון · נטענו ${count} סרטונים`,
@@ -3487,10 +3569,34 @@
         "signals.totalViews": "צפיות",
         "signals.visibleSample": "מדגם רדאר מוצג",
         "insights.noBreakout": "אין סרטון פריצה",
+        "insights.fastestLabel": "🚀 פריצה מהירה",
         "insights.fastestMeta": "⚡ הסרטון שצומח הכי מהר לפי מומנטום.",
         "insights.noActiveVideo": "אין סרטון פעיל",
+        "insights.oldestLabel": "🕰️ הוותיק הפעיל",
         "insights.oldestMeta": "📅 הסרטון הוותיק ביותר שעדיין צובר תאוצה.",
+        "insights.topRegionsLabel": "🌍 אזורים מובילים",
+        "insights.israeliCreatorsLabel": "🇮🇱 יוצרי בשר ישראלים",
+        "insights.israeliCreatorsMeta": "ערוצי בשר וברביקיו נבחרים",
         "insights.noRegionSignals": "עדיין אין סיגנלים אזוריים",
+        "meta.liveData": "נתונים חיים",
+        "meta.cachedSnapshot": "צילום מצב ממטמון",
+        "meta.offlineSnapshot": "צילום מצב לא מקוון",
+        "meta.cachedBadge": "מטמון",
+        "meta.offlineBadge": "לא מקוון",
+        "meta.updatedAt": ({ value }) => `עודכן ${value}`,
+        "meta.cacheAge": ({ value }) => `גיל מטמון: ${value} דק׳`,
+        "meta.ttl": ({ value }) => `זמן TTL: ${value} דק׳`,
+        "meta.liveWindow": ({ value }) => `חלון חי: ${value} דק׳`,
+        "meta.quotaCooldown": "מגבלת מכסה פעילה",
+        "smoke.tier.inferno": "🚨 תבערה",
+        "smoke.tier.hot": "🔥 גריל חם",
+        "smoke.tier.smoking": "💨 מעשן",
+        "smoke.tier.warming": "🔥 מתחמם",
+        "smoke.tier.cold": "🧊 קר מאוד",
+        "smoke.note.inferno": "פורץ חזק",
+        "smoke.note.hot": "בעלייה מהירה",
+        "smoke.note.smoking": "בונה מומנטום",
+        "smoke.note.warming": "צובר תאוצה",
         "kpi.totalViews": "צפיות",
         "kpi.avgViews": "צפיות ממוצעות",
         "kpi.avgLikes": "לייקים ממוצעים",
@@ -3514,7 +3620,17 @@
         "videoInfo.global": "גלובלי",
         "videoInfo.video": "וידאו",
         "feed.drivingHeat": "🔥 מוביל את הטרנד",
-        "feed.smokeLabel": "סמואקיות"
+        "feed.smokeLabel": "סמואקיות",
+        "chart.dataset.viewsPerHour": "צפיות לשעה",
+        "chart.dataset.smokeScore": "מדד עשן",
+        "popover.smoke.title": "מדד עשן",
+        "popover.smoke.text": "מדד חום בזמן אמת לפי ביצועי הפיד הנוכחי.",
+        "popover.momentum.title": "מומנטום",
+        "popover.momentum.text": "השוואת הסרטונים החזקים כרגע בפיד.",
+        "popover.channels.title": "ערוצים מובילים",
+        "popover.channels.text": "דירוג ערוצים לפי ביצועים בפיד הנוכחי.",
+        "popover.keywords.title": "מילות מפתח חמות",
+        "popover.keywords.text": "מונחים שחוזרים בכותרות הסרטונים עכשיו."
       }
     };
 
@@ -3577,6 +3693,21 @@
 
       const shareToast = document.getElementById("shareToast");
       if (shareToast) shareToast.textContent = t("actions.linkCopied");
+
+      const heBtn = document.getElementById("langHeBtn");
+      const enBtn = document.getElementById("langEnBtn");
+      if (heBtn) heBtn.textContent = t("actions.langHebrew");
+      if (enBtn) enBtn.textContent = t("actions.langEnglish");
+
+      const isLightTheme = document.body.getAttribute("data-theme") === "light";
+      const themeBtn = document.getElementById("themeToggleBtn");
+      if (themeBtn) themeBtn.textContent = isLightTheme ? t("actions.themeDark") : t("actions.themeLight");
+
+      const smokeFxBtn = document.getElementById("smokeFxToggleBtn");
+      if (smokeFxBtn) {
+        const smokeFxEnabled = document.body.classList.contains("smoke-effect");
+        smokeFxBtn.textContent = smokeFxEnabled ? t("actions.smokeFxOn") : t("actions.smokeFxOff");
+      }
 
       const smokeLevelNote = document.getElementById("smokeLevelNote");
       if (smokeLevelNote && (!allData?.videos || !allData.videos.length)) {
@@ -4130,40 +4261,40 @@ function openPopover(title, html, buttonEl = null) {
       const pills = [];
 
       if (data.source === "live") {
-        pills.push(`<div class="meta-pill live">Live Data</div>`);
-        miniLiveBadge.textContent = "Live";
+        pills.push(`<div class="meta-pill live">${escapeHtml(t("meta.liveData"))}</div>`);
+        miniLiveBadge.textContent = t("status.live");
         miniLiveBadge.className = "meta-pill live";
       } else if (data.source === "cache") {
-        pills.push(`<div class="meta-pill cached">Cached Snapshot</div>`);
-        miniLiveBadge.textContent = "Cached";
+        pills.push(`<div class="meta-pill cached">${escapeHtml(t("meta.cachedSnapshot"))}</div>`);
+        miniLiveBadge.textContent = t("meta.cachedBadge");
         miniLiveBadge.className = "meta-pill cached";
       } else if (data.source === "seed" || data.source === "no-key") {
-        pills.push(`<div class="meta-pill warn">Offline Snapshot</div>`);
-        miniLiveBadge.textContent = "Offline";
+        pills.push(`<div class="meta-pill warn">${escapeHtml(t("meta.offlineSnapshot"))}</div>`);
+        miniLiveBadge.textContent = t("meta.offlineBadge");
         miniLiveBadge.className = "meta-pill warn";
       } else {
-        miniLiveBadge.textContent = "Offline";
+        miniLiveBadge.textContent = t("meta.offlineBadge");
         miniLiveBadge.className = "meta-pill warn";
       }
 
       if (data.lastUpdated) {
-        pills.push(`<div class="meta-pill">Updated ${escapeHtml(formatDateTime(data.lastUpdated))}</div>`);
+        pills.push(`<div class="meta-pill">${escapeHtml(t("meta.updatedAt", { value: formatDateTime(data.lastUpdated) }))}</div>`);
       }
 
       if (typeof data.cacheAgeMinutes === "number" && Number.isFinite(data.cacheAgeMinutes)) {
-        pills.push(`<div class="meta-pill">Cache Age: ${escapeHtml(String(data.cacheAgeMinutes))} min</div>`);
+        pills.push(`<div class="meta-pill">${escapeHtml(t("meta.cacheAge", { value: String(data.cacheAgeMinutes) }))}</div>`);
       }
 
       if (data.ttlMinutes) {
-        pills.push(`<div class="meta-pill">TTL: ${escapeHtml(String(data.ttlMinutes))} min</div>`);
+        pills.push(`<div class="meta-pill">${escapeHtml(t("meta.ttl", { value: String(data.ttlMinutes) }))}</div>`);
       }
 
       if (data.liveRefreshWindowMinutes) {
-        pills.push(`<div class="meta-pill">Live Window: ${escapeHtml(String(data.liveRefreshWindowMinutes))} min</div>`);
+        pills.push(`<div class="meta-pill">${escapeHtml(t("meta.liveWindow", { value: String(data.liveRefreshWindowMinutes) }))}</div>`);
       }
 
       if (data.quotaBlockedUntil) {
-        pills.push(`<div class="meta-pill warn">Quota cooldown active</div>`);
+        pills.push(`<div class="meta-pill warn">${escapeHtml(t("meta.quotaCooldown"))}</div>`);
       }
 
       if (data.fallbackReason) {
@@ -4180,38 +4311,38 @@ function getSmokeTier(score) {
   if (score >= 80) {
     return {
       key: "inferno",
-      label: "🚨 INFERNO",
-      note: "Breaking out"
+      label: t("smoke.tier.inferno"),
+      note: t("smoke.note.inferno")
     };
   }
 
   if (score >= 60) {
     return {
       key: "hot",
-      label: "🔥 HOT GRILL",
-      note: "Trending fast"
+      label: t("smoke.tier.hot"),
+      note: t("smoke.note.hot")
     };
   }
 
   if (score >= 40) {
     return {
       key: "smoking",
-      label: "💨 SMOKING",
-      note: "Building momentum"
+      label: t("smoke.tier.smoking"),
+      note: t("smoke.note.smoking")
     };
   }
 
   if (score >= 20) {
     return {
       key: "warming",
-      label: "🔥 WARMING",
-      note: "Picking up"
+      label: t("smoke.tier.warming"),
+      note: t("smoke.note.warming")
     };
   }
 
   return {
     key: "cold",
-    label: "🧊 COLD CUT",
+    label: t("smoke.tier.cold"),
     note: t("smoke.noHeat")
   };
 }
@@ -4458,11 +4589,8 @@ if (topSourceEl) {
 
 const infoBtn = document.getElementById("smokeInfoBtn");
 if (infoBtn) {
-  const tooltipText = currentLanguage === "he"
-  ? "מדד עשן בזמן אמת לפי ביצועים"
-  : "Live heat score for the current radar feed.";
-
-  infoBtn.setAttribute("data-popover-text", tooltipText);
+  infoBtn.setAttribute("data-popover-title", t("popover.smoke.title"));
+  infoBtn.setAttribute("data-popover-text", t("popover.smoke.text"));
 }
 
 previousSmokeScore = score;
@@ -4689,7 +4817,7 @@ function attachInteractiveCards() {
 
       document.getElementById("fastestBreakoutMeta").textContent =
         fastest
-          ? `⚡ Fastest growing video based on recent momentum. ${formatNum(fastest.viewsPerHour)} views/hr • ${fastest.channelTitle}`
+          ? `${t("insights.fastestMeta")} ${formatNum(fastest.viewsPerHour)} ${currentLanguage === "he" ? "צפיות/שעה" : "views/hr"} • ${fastest.channelTitle}`
           : t("insights.fastestMeta");
 
       document.getElementById("oldestActiveTitle").textContent =
@@ -4697,7 +4825,7 @@ function attachInteractiveCards() {
 
       document.getElementById("oldestActiveMeta").textContent =
         oldest
-          ? `📅 Oldest video still actively gaining traction. ${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}`
+          ? `${t("insights.oldestMeta")} ${formatHours(oldest.hoursSincePublished)} • ${oldest.channelTitle}`
           : t("insights.oldestMeta");
 
       setCardLinkBehavior(document.getElementById("fastestBreakoutCard"), getVideoUrl(fastest));
@@ -4782,7 +4910,7 @@ function renderVideoInfo(v) {
       const detectedDish = detectDishFromTitle(v.title || "");
       const detectedTheme = detectTheme(v.title || "");
       const formatLabel = currentLanguage === "he" && String(v.formatLabel || "").toLowerCase() === "short"
-        ? "Short"
+        ? "שורט"
         : (v.formatLabel || t("videoInfo.video"));
 
       const html = `
@@ -4843,9 +4971,9 @@ function renderVideoInfo(v) {
         const viewCount = v.viewCount ?? v.views ?? 0;
         const likeCount = v.likeCount ?? v.likes ?? 0;
         const formatLabel = currentLanguage === "he" && String(v.formatLabel || "").toLowerCase() === "short"
-          ? "Short"
+          ? "שורט"
           : (v.formatLabel || t("videoInfo.video"));
-        const channelTitle = v.channelTitle ?? v.channel ?? "Unknown Channel";
+        const channelTitle = v.channelTitle ?? v.channel ?? t("videoInfo.unknownChannel");
         const channelLink = v.channelId
           ? `https://youtube.com/channel/${v.channelId}`
           : (v.url || "https://youtube.com");
@@ -4940,7 +5068,7 @@ function renderVideoInfo(v) {
             return t.length > 24 ? t.slice(0, 24) + "..." : t;
           }),
           datasets: [{
-            label: isRising ? "Views / Hour" : "Smoke Score",
+            label: isRising ? t("chart.dataset.viewsPerHour") : t("chart.dataset.smokeScore"),
             data: top.map(x => isRising ? (x.viewsPerHour || 0) : (x.smokeScore || 0)),
             borderColor: "#ff8f5c",
             backgroundColor: isRising ? "#ff6b2c" : "rgba(255,107,44,0.18)",
@@ -5305,10 +5433,16 @@ function updateBeefHighlight(cutName) {
 
     async function generateRecipe(mode = "all") {
       const cut = document.getElementById("cutType").value;
+      const meatType = document.getElementById("meatType").value;
       const cutDefinition = CUTS_BY_ID[cut];
       const cutLabel = formatCutLabel(cutDefinition) || cut;
-      const method = document.getElementById("cookingMethod").value;
-      const flavor = document.getElementById("flavorProfile").value;
+      const methodEl = document.getElementById("cookingMethod");
+      const flavorEl = document.getElementById("flavorProfile");
+      const method = methodEl.value;
+      const flavor = flavorEl.value;
+      const meatTypeLabel = document.getElementById("meatType").selectedOptions?.[0]?.textContent?.trim() || meatType;
+      const methodLabel = methodEl.selectedOptions?.[0]?.textContent?.trim() || method;
+      const flavorLabel = flavorEl.selectedOptions?.[0]?.textContent?.trim() || flavor;
       const output = document.getElementById("recipeOutput");
 
       const randomSeed = Math.floor(Math.random() * 1000000);
@@ -5321,7 +5455,7 @@ function updateBeefHighlight(cutName) {
 
       try {
        const res = await fetch(
-  `/api/ai-recipe?cut=${encodeURIComponent(cutLabel)}&method=${encodeURIComponent(method)}&flavor=${encodeURIComponent(flavor)}&r=${randomSeed}&mode=${encodeURIComponent(mode)}`
+  `/api/ai-recipe?lang=${encodeURIComponent(currentLanguage)}&meatType=${encodeURIComponent(meatTypeLabel)}&cut=${encodeURIComponent(cutLabel)}&method=${encodeURIComponent(methodLabel)}&flavor=${encodeURIComponent(flavorLabel)}&r=${randomSeed}&mode=${encodeURIComponent(mode)}`
 );
 
 const contentType = res.headers.get("content-type") || "";
@@ -5354,8 +5488,8 @@ updateRecipeActionLabels();
         output.innerHTML = renderAiRecipe(data.recipe, {
           structuredRecipe: mergedStructured,
           cut: cutLabel,
-          method,
-          flavor,
+          method: methodLabel,
+          flavor: flavorLabel,
           source: data.source || "ai"
         });
       } catch (err) {
@@ -5385,28 +5519,28 @@ updateRecipeActionLabels();
         },
         sauces: [
           {
-            name: "Classic Pan Sauce",
-            description: "Simple finishing drizzle for the main cut.",
-            ingredients: ["Butter", "Garlic", "Pan drippings"],
-            steps: ["Melt butter", "Add garlic", "Whisk drippings and serve warm"]
+            name: t("recipe.fallbackSauce1Name"),
+            description: t("recipe.fallbackSauce1Desc"),
+            ingredients: [],
+            steps: [t("recipe.defaultStep")]
           },
           {
-            name: "Herb Bright Sauce",
-            description: "Fresh contrast for rich beef flavors.",
-            ingredients: ["Parsley", "Olive oil", "Lemon"],
-            steps: ["Chop herbs", "Mix with oil", "Finish with lemon and salt"]
+            name: t("recipe.fallbackSauce2Name"),
+            description: t("recipe.fallbackSauce2Desc"),
+            ingredients: [],
+            steps: [t("recipe.defaultStep")]
           }
         ],
         sides: [
           {
-            name: "Charred Veg Mix",
-            description: "Fast grilled side with color and crunch.",
-            steps: ["Season vegetables", "Grill until charred", "Serve hot"]
+            name: t("recipe.fallbackSide1Name"),
+            description: t("recipe.fallbackSide1Desc"),
+            steps: [t("recipe.defaultStep")]
           },
           {
-            name: "Warm Potato Bowl",
-            description: "Comfort side that pairs well with smoke.",
-            steps: ["Boil potatoes", "Dress with olive oil", "Season and serve"]
+            name: t("recipe.fallbackSide2Name"),
+            description: t("recipe.fallbackSide2Desc"),
+            steps: [t("recipe.defaultStep")]
           }
         ]
       });
@@ -5814,14 +5948,14 @@ const data = isJson ? await res.json() : null;
       document.body.setAttribute("data-theme", isLight ? "light" : "dark");
       document.body.classList.toggle("light", isLight);
       const btn = document.getElementById("themeToggleBtn");
-      if (btn) btn.textContent = isLight ? "🌙 Dark" : "☀️ Light";
+      if (btn) btn.textContent = isLight ? t("actions.themeDark") : t("actions.themeLight");
       localStorage.setItem("smoke_theme", theme);
     }
 
     function applySmokeEffect(enabled = false) {
       document.body.classList.toggle("smoke-effect", Boolean(enabled));
       const btn = document.getElementById("smokeFxToggleBtn");
-      if (btn) btn.textContent = enabled ? "💨 Smoke FX On" : "💨 Smoke FX Off";
+      if (btn) btn.textContent = enabled ? t("actions.smokeFxOn") : t("actions.smokeFxOff");
       localStorage.setItem("smoke_fx", enabled ? "1" : "0");
     }
 

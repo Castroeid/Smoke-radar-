@@ -662,6 +662,8 @@ app.get("/api/smoke-radar", async (req, res) => {
 });
 
 app.get("/api/ai-recipe", async (req, res) => {
+  const supportedRecipeLanguages = new Set(["en", "he"]);
+
   const sanitizeStringList = (value, fallback = []) =>
     Array.isArray(value)
       ? value
@@ -677,7 +679,35 @@ app.get("/api/ai-recipe", async (req, res) => {
     return Number.isFinite(num) ? num : Date.now();
   };
 
-  const buildFallbackSmartRecipe = ({ cut, method, flavor, seed }) => {
+  const recipeTextByLanguage = {
+    en: {
+      saucePairing: "Sauce pairing",
+      sauceDescription: "Complements the main recipe.",
+      sideDish: "Side dish",
+      sideDescription: "Quick supporting side.",
+      recipeTitle: "AI Recipe",
+      ingredientsLabel: "Ingredients",
+      stepsLabel: "Steps",
+      tipsLabel: "Tips",
+      donenessLabel: "Target doneness",
+      donenessText: "Use a thermometer and cook to preference."
+    },
+    he: {
+      saucePairing: "התאמת רוטב",
+      sauceDescription: "משלים את המנה המרכזית.",
+      sideDish: "תוספת",
+      sideDescription: "תוספת מהירה למנה.",
+      recipeTitle: "מתכון AI",
+      ingredientsLabel: "מרכיבים",
+      stepsLabel: "שלבים",
+      tipsLabel: "טיפים",
+      donenessLabel: "דרגת עשייה מומלצת",
+      donenessText: "מומלץ להשתמש במדחום ולבשל לפי ההעדפה שלך."
+    }
+  };
+
+  const buildFallbackSmartRecipe = ({ cut, method, flavor, seed, language = "en" }) => {
+    const isHebrew = language === "he";
     const sauces = [
       {
         name: "Smoky Garlic Butter",
@@ -727,6 +757,13 @@ app.get("/api/ai-recipe", async (req, res) => {
         ]
       }
     ];
+    const localizedSauces = isHebrew
+      ? [
+          { ...sauces[0], name: "חמאת שום מעושנת", description: "עשיר ומבריק, מושלם להברשה וסיום." },
+          { ...sauces[1], name: "גלייז פלפל וחרדל", description: "חמצמץ ומעט חריף, מצוין לנתחים מעושנים." },
+          { ...sauces[2], name: "צ׳ימיצ׳ורי עשבים", description: "רענן וחד לאיזון טעמי בשר עשירים." }
+        ]
+      : sauces;
 
     const sides = [
       {
@@ -757,14 +794,25 @@ app.get("/api/ai-recipe", async (req, res) => {
         ]
       }
     ];
+    const localizedSides = isHebrew
+      ? [
+          { ...sides[0], name: "תירס חרוך עם ליים", description: "תירס מתקתק ומעושן עם רעננות הדרית." },
+          { ...sides[1], name: "תפוחי אדמה פריכים בעשבים", description: "קוביות זהובות עם רוזמרין ומלח ים." },
+          { ...sides[2], name: "אספרגוס על הגריל", description: "תוספת מהירה עם שמן זית ופלפל." }
+        ]
+      : sides;
 
-    const sauceShift = toSeedNumber(seed) % sauces.length;
-    const sideShift = toSeedNumber(seed) % sides.length;
+    const sauceShift = toSeedNumber(seed) % localizedSauces.length;
+    const sideShift = toSeedNumber(seed) % localizedSides.length;
 
     return {
       main: {
-        title: `${flavor || "Bold"} ${cut || "Meat"} (${method || "Cooked"})`,
-        description: `A concise ${flavor || "savory"} main recipe built for ${method || "high-heat cooking"}.`,
+        title: isHebrew
+          ? `${flavor || "קלאסי"} ${cut || "בשר"} (${method || "בישול"})`
+          : `${flavor || "Bold"} ${cut || "Meat"} (${method || "Cooked"})`,
+        description: isHebrew
+          ? `תוכנית בישול קצרה ומדויקת בסגנון ${flavor || "מאוזן"} לשיטת ${method || "בישול מהיר"}.`
+          : `A concise ${flavor || "savory"} main recipe built for ${method || "high-heat cooking"}.`,
         ingredients: [
           `${cut || "Main cut"} (about 2 lb)`,
           "Kosher salt",
@@ -778,13 +826,14 @@ app.get("/api/ai-recipe", async (req, res) => {
           "Rest 8-10 minutes, slice, and serve."
         ]
       },
-      sauces: [sauces[sauceShift], sauces[(sauceShift + 1) % sauces.length], sauces[(sauceShift + 2) % sauces.length]],
-      sides: [sides[sideShift], sides[(sideShift + 1) % sides.length], sides[(sideShift + 2) % sides.length]]
+      sauces: [localizedSauces[sauceShift], localizedSauces[(sauceShift + 1) % localizedSauces.length], localizedSauces[(sauceShift + 2) % localizedSauces.length]],
+      sides: [localizedSides[sideShift], localizedSides[(sideShift + 1) % localizedSides.length], localizedSides[(sideShift + 2) % localizedSides.length]]
     };
   };
 
   const normalizeSmartRecipe = (payload, context = {}) => {
     const fallback = buildFallbackSmartRecipe(context);
+    const copy = recipeTextByLanguage[context.language === "he" ? "he" : "en"];
     const normalized = payload && typeof payload === "object" ? payload : {};
 
     const main = normalized.main && typeof normalized.main === "object" ? normalized.main : {};
@@ -792,8 +841,8 @@ app.get("/api/ai-recipe", async (req, res) => {
     const sauces = sanitizeObjectList(normalized.sauces).map((entry) => {
       const item = entry && typeof entry === "object" ? entry : {};
       return {
-        name: String(item.name || "Sauce pairing").trim(),
-        description: String(item.description || "Complements the main recipe.").trim(),
+        name: String(item.name || copy.saucePairing).trim(),
+        description: String(item.description || copy.sauceDescription).trim(),
         ingredients: sanitizeStringList(item.ingredients),
         steps: sanitizeStringList(item.steps)
       };
@@ -802,8 +851,8 @@ app.get("/api/ai-recipe", async (req, res) => {
     const sides = sanitizeObjectList(normalized.sides).map((entry) => {
       const item = entry && typeof entry === "object" ? entry : {};
       return {
-        name: String(item.name || "Side dish").trim(),
-        description: String(item.description || "Quick supporting side.").trim(),
+        name: String(item.name || copy.sideDish).trim(),
+        description: String(item.description || copy.sideDescription).trim(),
         steps: sanitizeStringList(item.steps)
       };
     }).filter(item => item.name);
@@ -819,31 +868,35 @@ app.get("/api/ai-recipe", async (req, res) => {
         steps: sanitizeStringList(main.steps, fallback.main.steps).slice(0, 8)
       },
       sauces: safeSauces.map((item, idx) => ({
-        name: item.name || fallback.sauces[idx]?.name || "Sauce pairing",
-        description: item.description || fallback.sauces[idx]?.description || "Complements the main recipe.",
+        name: item.name || fallback.sauces[idx]?.name || copy.saucePairing,
+        description: item.description || fallback.sauces[idx]?.description || copy.sauceDescription,
         ingredients: sanitizeStringList(item.ingredients, fallback.sauces[idx]?.ingredients || []).slice(0, 10),
         steps: sanitizeStringList(item.steps, fallback.sauces[idx]?.steps || []).slice(0, 6)
       })),
       sides: safeSides.map((item, idx) => ({
-        name: item.name || fallback.sides[idx]?.name || "Side dish",
-        description: item.description || fallback.sides[idx]?.description || "Quick supporting side.",
+        name: item.name || fallback.sides[idx]?.name || copy.sideDish,
+        description: item.description || fallback.sides[idx]?.description || copy.sideDescription,
         steps: sanitizeStringList(item.steps, fallback.sides[idx]?.steps || []).slice(0, 4)
       }))
     };
   };
 
-  const structuredToLegacyText = (structuredRecipe) => {
+  const structuredToLegacyText = (structuredRecipe, language = "en") => {
+    const copy = recipeTextByLanguage[language === "he" ? "he" : "en"];
     const main = structuredRecipe?.main || {};
     const ingredients = (main.ingredients || []).map(item => `- ${item}`).join("\n");
     const steps = (main.steps || []).map((item, idx) => `${idx + 1}. ${item}`).join("\n");
     const sauceTips = (structuredRecipe?.sauces || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
     const sideTips = (structuredRecipe?.sides || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
 
-    return `Title: ${main.title || "AI Recipe"}\nIngredients:\n${ingredients}\n\nSteps:\n${steps}\n\nTips:\n${sauceTips}\n${sideTips}\n\nTarget doneness:\nUse a thermometer and cook to preference.`;
+    return `Title: ${main.title || copy.recipeTitle}\n${copy.ingredientsLabel}:\n${ingredients}\n\n${copy.stepsLabel}:\n${steps}\n\n${copy.tipsLabel}:\n${sauceTips}\n${sideTips}\n\n${copy.donenessLabel}:\n${copy.donenessText}`;
   };
 
   try {
-    const { cut, method, flavor, r, mode = "all" } = req.query;
+    const { cut, method, flavor, r, mode = "all", lang, meatType } = req.query;
+    const outputLanguage = supportedRecipeLanguages.has(String(lang || "").toLowerCase())
+      ? String(lang).toLowerCase()
+      : "en";
 
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
@@ -855,16 +908,19 @@ You are a creative professional chef specializing in beef and meat dishes.
 Create a concise Smart Cooking Mode response.
 
 Cut: ${cut}
+Meat type: ${meatType}
 Cooking method: ${method}
 Flavor profile: ${flavor}
 Variation seed: ${r}
 Refresh mode: ${mode}
+Output language: ${outputLanguage === "he" ? "Hebrew" : "English"}
 
 Rules:
 - Keep copy concise and practical (no long paragraphs)
 - Return exactly 2-3 sauces
 - Return exactly 2-3 sides
 - Always return valid JSON only, no markdown
+- Write every returned field in ${outputLanguage === "he" ? "Hebrew" : "English"}
 
 JSON shape:
 {
@@ -918,9 +974,10 @@ JSON shape:
       cut,
       method,
       flavor,
-      seed: r
+      seed: r,
+      language: outputLanguage
     });
-    const recipe = structuredToLegacyText(structuredRecipe);
+    const recipe = structuredToLegacyText(structuredRecipe, outputLanguage);
 
     return res.json({
       recipe,
