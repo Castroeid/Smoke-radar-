@@ -808,15 +808,53 @@
       margin-bottom: 10px;
     }
 
+    .hero-banner-shell {
+      position: relative;
+      margin: 6px 0 18px;
+      border-radius: 18px;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 183, 143, 0.12), transparent 52%),
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(8,10,16,0.1));
+      box-shadow:
+        0 0 0 1px rgba(255, 153, 102, 0.22),
+        0 16px 34px rgba(6, 8, 14, 0.26);
+    }
+
+    .hero-banner-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 28%),
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 62%, rgba(7, 9, 14, 0.25) 100%);
+      z-index: 2;
+    }
+
+    .hero-banner-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.08),
+        inset 0 0 30px rgba(6, 8, 13, 0.15);
+      z-index: 3;
+    }
+
     .hero-banner {
       display: block;
       width: 100%;
       height: auto;
-      border-radius: 16px;
+      border-radius: inherit;
       border: 0;
-      margin: 6px 0 18px;
+      margin: 0;
       box-shadow: none;
-      overflow: visible;
+      -webkit-mask-image: radial-gradient(135% 120% at 50% 50%, #000 74%, transparent 100%);
+      mask-image: radial-gradient(135% 120% at 50% 50%, #000 74%, transparent 100%);
     }
 
     .panel:hover,
@@ -2553,7 +2591,9 @@
       <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
     </div>
 <section class="zone zone-radar">
-  <img class="hero-banner app-enter app-enter-delay-2" src="/assets/banner-hero.png" alt="Smoke Radar hero banner image" />
+  <div class="hero-banner-shell app-enter app-enter-delay-2">
+    <img class="hero-banner" src="/assets/banner-hero.png" alt="Smoke Radar hero banner image" />
+  </div>
 
   <div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
   <div class="smoke-index-top">
