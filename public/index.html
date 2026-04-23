@@ -27,7 +27,7 @@
       --bg-card: #0b1017;
       --bg-elevated: #101722;
       --text-primary: #eef3f8;
-      --text-secondary: #97a5bb;
+      --text-secondary: #a6b3c6;
       --border: #1b2534;
       --accent: #ff6b2c;
       --accent-soft: #ff955f;
@@ -38,7 +38,8 @@
       --bg-tag: #131b27;
       --bg-tag-border: #243043;
       --input-bg: #111927;
-      --input-border: #1f2a3a;
+      --input-border: #2a3648;
+      --placeholder: #8f9db2;
       --input-focus: rgba(255,107,44,0.42);
       --card-hover-shadow: 0 14px 32px rgba(0,0,0,0.30);
       --glow: 0 0 24px rgba(255,107,44,0.18);
@@ -66,18 +67,19 @@
       --bg-card: #fffdfa;
       --bg-elevated: #f8f4ee;
       --text-primary: #25303b;
-      --text-secondary: #5f6d7d;
+      --text-secondary: #49596b;
       --border: #ddd5c9;
       --accent: #f06b34;
       --accent-soft: #fb9a66;
       --shadow: 0 10px 24px rgba(41, 49, 61, 0.10);
       --bg-main-gradient: radial-gradient(circle at top, #fcf9f3 0%, #f3efe8 68%);
-      --bg-overlay-soft: rgba(28, 40, 56, 0.03);
-      --bg-overlay-strong: rgba(28, 40, 56, 0.08);
+      --bg-overlay-soft: rgba(28, 40, 56, 0.055);
+      --bg-overlay-strong: rgba(28, 40, 56, 0.11);
       --bg-tag: #f7f3ed;
       --bg-tag-border: #d8d0c4;
       --input-bg: #fffdfa;
-      --input-border: #cfc5b9;
+      --input-border: #b8ad9f;
+      --placeholder: #68798b;
       --input-focus: rgba(240,107,52,0.35);
       --card-hover-shadow: 0 16px 30px rgba(35, 44, 56, 0.14);
       --glow: 0 0 20px rgba(240,107,52,0.16);
@@ -102,22 +104,24 @@
     body.smoke-effect::before {
       content: "";
       position: fixed;
-      inset: -18% -12% -12%;
+      inset: -24% -18% -14%;
       pointer-events: none;
       z-index: 1;
       background:
-        radial-gradient(40% 45% at 15% 85%, rgba(255,255,255,0.14), transparent 62%),
-        radial-gradient(34% 40% at 78% 90%, rgba(255,120,54,0.12), transparent 64%),
-        radial-gradient(30% 34% at 45% 100%, rgba(205,219,236,0.13), transparent 68%);
-      opacity: 0.2;
-      animation: smokeDrift 44s ease-in-out infinite alternate;
+        radial-gradient(52% 50% at 10% 92%, rgba(255,255,255,0.26), transparent 68%),
+        radial-gradient(48% 46% at 86% 88%, rgba(255,130,70,0.22), transparent 70%),
+        radial-gradient(46% 42% at 52% 100%, rgba(190,205,224,0.24), transparent 72%);
+      filter: blur(24px);
+      opacity: 0.085;
+      animation: smokeDrift 68s ease-in-out infinite alternate;
     }
 
     .container { position: relative; z-index: 2; }
 
     @keyframes smokeDrift {
-      0% { transform: translate3d(0, 20px, 0) scale(1); opacity: 0.12; }
-      100% { transform: translate3d(0, -18px, 0) scale(1.035); opacity: 0.24; }
+      0% { transform: translate3d(-1.5%, 20px, 0) scale(1); opacity: 0.065; }
+      50% { transform: translate3d(1.5%, 0, 0) scale(1.02); opacity: 0.085; }
+      100% { transform: translate3d(-1%, -22px, 0) scale(1.04); opacity: 0.105; }
     }
 
     * { box-sizing: border-box; }
@@ -780,80 +784,10 @@
       margin: 6px 0 18px;
       box-shadow: var(--shadow);
       overflow: hidden;
-      display: flex;
-      align-items: flex-end;
-      padding: clamp(18px, 2.2vw, 28px);
-      background-image:
-        linear-gradient(118deg, rgba(8, 10, 14, 0.8) 2%, rgba(8, 10, 14, 0.48) 56%, rgba(8, 10, 14, 0.66) 100%),
-        linear-gradient(155deg, rgba(255,107,44,0.2), rgba(12,18,27,0.86)),
-        url('/assets/banner-hero.png');
+      background-image: url('/assets/banner-hero.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      isolation: isolate;
-    }
-
-    .hero-banner::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.22) 100%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .hero-banner-content {
-      position: relative;
-      z-index: 1;
-      max-width: min(620px, 100%);
-      display: grid;
-      gap: 10px;
-      color: var(--hero-title);
-    }
-
-    .hero-banner-title {
-      margin: 0;
-      font-size: clamp(28px, 3.4vw, 46px);
-      line-height: 0.98;
-      letter-spacing: -0.03em;
-      font-weight: 800;
-      text-transform: uppercase;
-      text-wrap: balance;
-    }
-
-    .hero-banner-subtitle {
-      margin: 0;
-      font-size: clamp(15px, 1.35vw, 19px);
-      color: var(--hero-subtitle);
-      font-weight: 500;
-    }
-
-    .hero-banner-support {
-      margin: 0;
-      font-size: 13px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--hero-support);
-      font-weight: 700;
-    }
-
-    .hero-banner-highlights {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 2px;
-    }
-
-    .hero-highlight-pill {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.23);
-      background: rgba(12, 20, 31, 0.45);
-      color: var(--text-primary);
-      padding: 5px 10px;
-      font-size: 12px;
-      font-weight: 600;
     }
 
     .panel:hover,
@@ -987,7 +921,7 @@
 
     .recipe-generator-title {
       font-size: 24px;
-      color: #f8fbff;
+      color: var(--text-primary);
       letter-spacing: -0.02em;
       text-shadow: 0 0 14px rgba(255, 136, 76, 0.18);
     }
@@ -1042,6 +976,10 @@
       font-size: 14px;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+    .feedback-input::placeholder {
+      color: var(--placeholder);
+      opacity: 1;
+    }
 
     .feedback-input:focus {
       outline: none;
@@ -1074,7 +1012,7 @@
       border-radius: 22px;
       padding: 22px;
       border: 1px solid var(--border);
-      background: rgba(12, 18, 28, 0.72);
+      background: color-mix(in srgb, var(--panel-2) 78%, transparent);
       margin-top: 4px;
     }
 
@@ -1130,7 +1068,7 @@
     .smart-section-title {
       margin: 0;
       font-size: 13px;
-      color: #f5d7c9;
+      color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.06em;
       font-weight: 800;
@@ -2024,15 +1962,6 @@
       .hero-banner {
         min-height: 220px;
         height: auto;
-        padding: 16px;
-      }
-
-      .hero-banner-title {
-        font-size: 30px;
-      }
-
-      .hero-banner-subtitle {
-        font-size: 14px;
       }
     }
     /* =========================
@@ -2254,6 +2183,11 @@
 .smoke-helper {
   margin-top: 14px;
   margin-bottom: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, var(--accent) 25%);
+  background: color-mix(in srgb, var(--panel-2) 84%, transparent);
+  color: var(--text-secondary);
 }
 
 .smoke-hero.tier-cold {
@@ -2591,19 +2525,7 @@
       <button class="first-run-hint-close" id="closeFirstRunHint" type="button">Close</button>
     </div>
 <section class="zone zone-radar">
-  <div class="hero-banner app-enter app-enter-delay-2">
-    <div class="hero-banner-content">
-      <h2 class="hero-banner-title">TRACK. ANALYZE.<br>COOK BETTER.</h2>
-      <p class="hero-banner-subtitle">Real-time intelligence from the world of meat.</p>
-      <p class="hero-banner-support">Powered by YouTube.</p>
-      <div class="hero-banner-highlights" aria-label="Feature highlights">
-        <span class="hero-highlight-pill">Trends</span>
-        <span class="hero-highlight-pill">Analytics</span>
-        <span class="hero-highlight-pill">Recipes</span>
-        <span class="hero-highlight-pill">Butchers</span>
-      </div>
-    </div>
-  </div>
+  <div class="hero-banner app-enter app-enter-delay-2" aria-label="Smoke Radar hero banner image"></div>
 
   <div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
   <div class="smoke-index-top">
