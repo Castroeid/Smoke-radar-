@@ -309,6 +309,7 @@
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
+      justify-content: flex-end;
     }
 
     .lang-toggle {
@@ -317,8 +318,8 @@
       border-radius: 12px;
       overflow: hidden;
       background: var(--bg-overlay-soft);
-      width: 168px;
-      flex: 0 0 168px;
+      width: 184px;
+      flex: 0 0 184px;
     }
 
     .lang-toggle .small-btn {
@@ -373,6 +374,17 @@
       cursor: pointer;
       transition: 0.18s ease;
       background: var(--bg-overlay-soft);
+    }
+
+
+    #themeToggleBtn,
+    #smokeFxToggleBtn,
+    #shareBtn {
+      min-width: 104px;
+    }
+
+    #loadBtn {
+      min-width: 112px;
     }
 
     .first-run-hint {
@@ -2026,6 +2038,13 @@
         flex-wrap: wrap;
       }
 
+      #themeToggleBtn,
+      #smokeFxToggleBtn,
+      #shareBtn,
+      #loadBtn {
+        min-width: 0;
+      }
+
       .lang-toggle {
         order: -1;
       }
@@ -2623,6 +2642,10 @@
       </div>
     </div>
 
+  <div class="hero-banner-shell app-enter app-enter-delay-2">
+    <img class="hero-banner" src="/assets/banner-hero.png" alt="Smoke Radar hero banner image" />
+  </div>
+
     <div class="meta-strip app-enter app-enter-delay-1" id="metaStrip"></div>
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
@@ -2637,10 +2660,6 @@
       <button class="first-run-hint-close" id="closeFirstRunHint" type="button" data-i18n="common.close">Close</button>
     </div>
 <section class="zone zone-radar">
-  <div class="hero-banner-shell app-enter app-enter-delay-2">
-    <img class="hero-banner" src="/assets/banner-hero.png" alt="Smoke Radar hero banner image" />
-  </div>
-
   <div class="panel smoke-hero app-enter app-enter-delay-2" id="smokeIndexCard">
   <div class="smoke-index-top">
     <div class="smoke-title-wrap">
@@ -2691,7 +2710,7 @@
     🔥 This is the current leading trend based on YouTube meat content.
   </div>
   <div class="source-label" data-i18n="smoke.sourceLabel">🎥 Based on YouTube videos</div>
-  <div class="smoke-top-source" id="smokeTopSource" data-i18n="smoke.topHeatSourceDefault">🎥 Top Heat Source: —</div>
+  <div class="smoke-top-source" id="smokeTopSource" data-i18n="smoke.topHeatSourceDefault">🎥 Top Video: —</div>
   <div class="smoke-trend-actions">
     <button class="small-btn" id="cookTrendBtn" type="button" data-i18n="actions.cookTrend">🔥 Cook This Trend</button>
     <span class="smoke-trend-message" id="cookTrendMessage"></span>
@@ -3156,7 +3175,7 @@
         "smoke.scaleHotGrill": "Hot Grill",
         "smoke.scaleInferno": "Inferno",
         "smoke.sourceLabel": "🎥 Based on YouTube videos",
-        "smoke.topHeatSourceDefault": "🎥 Top Heat Source: —",
+        "smoke.topHeatSourceDefault": "🎥 Top Video: —",
         "cuts.tapGuide": "Tap a cut to open a quick guide",
         "cuts.quickUsageTitle": "Quick usage",
         "cuts.quickUsageLine1": "Tap a cut to view its location on the cow, best cooking styles, and a practical tip.",
@@ -3191,7 +3210,7 @@
         "empty.devMode": "⚠️ Dev mode – no live data connected",
         "smoke.noHeat": "No active heat",
         "smoke.helper": "🔥 This is the current leading trend based on YouTube meat content.",
-        "smoke.topHeatSource": "🎥 Top Heat Source",
+        "smoke.topHeatSource": "🎥 Top Video",
         "smoke.topSourceHint": "This is the top performing video right now — click to watch.",
         "smoke.momentum": "🚀 Momentum",
         "smoke.engagement": "💬 Engagement",
@@ -3202,7 +3221,7 @@
       he: {
         "loader.subtitle": "מאתחל את לוח הבקרה של Smoke Radar...",
         "brand.tagline": "לוח בקרה חי למודיעין תוכן בשר",
-        "status.live": "חי",
+        "status.live": "בזמן אמת",
         "actions.share": "שיתוף",
         "actions.feedback": "משוב",
         "actions.refresh": "רענון",
@@ -3255,7 +3274,7 @@
         "smoke.scaleHotGrill": "גריל חם",
         "smoke.scaleInferno": "תבערה",
         "smoke.sourceLabel": "🎥 מבוסס על סרטוני YouTube",
-        "smoke.topHeatSourceDefault": "🎥 מקור החום המוביל: —",
+        "smoke.topHeatSourceDefault": "🎥 הסרטון המוביל: —",
         "cuts.tapGuide": "הקש על נתח כדי לפתוח מדריך מהיר",
         "cuts.quickUsageTitle": "שימוש מהיר",
         "cuts.quickUsageLine1": "הקש על נתח כדי לראות את המיקום שלו על הבקר, שיטות בישול מומלצות וטיפ שימושי.",
@@ -3290,7 +3309,7 @@
         "empty.devMode": "⚠️ מצב פיתוח – אין חיבור לנתונים חיים",
         "smoke.noHeat": "אין חום פעיל",
         "smoke.helper": "🔥 זהו הטרנד המוביל כרגע לפי תוכן בשר ביוטיוב.",
-        "smoke.topHeatSource": "🎥 מקור החום המוביל",
+        "smoke.topHeatSource": "🎥 הסרטון המוביל",
         "smoke.topSourceHint": "זה הסרטון עם הביצועים הטובים ביותר כרגע — לחץ לצפייה.",
         "smoke.momentum": "🚀 מומנטום",
         "smoke.engagement": "💬 מעורבות",
