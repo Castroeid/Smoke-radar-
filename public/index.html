@@ -317,13 +317,16 @@
       border-radius: 12px;
       overflow: hidden;
       background: var(--bg-overlay-soft);
+      width: 168px;
+      flex: 0 0 168px;
     }
 
     .lang-toggle .small-btn {
       border: 0;
       border-radius: 0;
       background: transparent;
-      min-width: 74px;
+      min-width: 0;
+      flex: 1 1 0;
     }
 
     .lang-toggle .small-btn.active {
@@ -2580,7 +2583,7 @@
   <div class="opening-loader" id="openingLoader">
     <div class="opening-loader-icon">🥩</div>
     <div class="opening-loader-title">Smoke Radar</div>
-    <div class="opening-loader-subtitle">Initializing meat intelligence dashboard...</div>
+    <div class="opening-loader-subtitle" data-i18n="loader.subtitle">Initializing meat intelligence dashboard...</div>
   </div>
 
   <div class="container">
@@ -2594,7 +2597,7 @@
       </div>
 
       <div class="top-actions">
-        <div class="meta-pill live" id="miniLiveBadge">Live</div>
+        <div class="meta-pill live" id="miniLiveBadge" data-i18n="status.live">Live</div>
         <div class="lang-toggle" aria-label="Language toggle">
           <button class="small-btn" id="langHeBtn" type="button">עברית</button>
           <button class="small-btn" id="langEnBtn" type="button">English</button>
@@ -2677,18 +2680,18 @@
   </div>
 
   <div class="smoke-scale">
-    <span>Cold</span>
-    <span>Warming</span>
-    <span>Smoking</span>
-    <span>Hot Grill</span>
-    <span>Inferno</span>
+    <span data-i18n="smoke.scaleCold">Cold</span>
+    <span data-i18n="smoke.scaleWarming">Warming</span>
+    <span data-i18n="smoke.scaleSmoking">Smoking</span>
+    <span data-i18n="smoke.scaleHotGrill">Hot Grill</span>
+    <span data-i18n="smoke.scaleInferno">Inferno</span>
   </div>
 
   <div class="subtle smoke-helper" id="smokeHelper">
     🔥 This is the current leading trend based on YouTube meat content.
   </div>
-  <div class="source-label">🎥 Based on YouTube videos</div>
-  <div class="smoke-top-source" id="smokeTopSource">🎥 Top Heat Source: —</div>
+  <div class="source-label" data-i18n="smoke.sourceLabel">🎥 Based on YouTube videos</div>
+  <div class="smoke-top-source" id="smokeTopSource" data-i18n="smoke.topHeatSourceDefault">🎥 Top Heat Source: —</div>
   <div class="smoke-trend-actions">
     <button class="small-btn" id="cookTrendBtn" type="button" data-i18n="actions.cookTrend">🔥 Cook This Trend</button>
     <span class="smoke-trend-message" id="cookTrendMessage"></span>
@@ -2793,17 +2796,17 @@
   </section>
     
 <div class="zone-divider">
-  <span>EXPLORE CUTS</span>
+  <span data-i18n="sections.exploreCuts">EXPLORE CUTS</span>
 </div>
 
     <section class="zone zone-cuts">
 
     <div class="panel app-enter app-enter-delay-3" id="cuts">
       <div class="panel-heading">
-        <h2>🥩 Beef Cuts Explorer</h2>
+        <h2 data-i18n="sections.beefCutsExplorer">🥩 Beef Cuts Explorer</h2>
         <button type="button" class="info-btn" data-popover-title="Beef Cuts Explorer" data-popover-text="Tap a cut to open its location and cooking guide.">i</button>
       </div>
-      <div class="subtle">Tap a cut to open a quick guide</div>
+      <div class="subtle" data-i18n="cuts.tapGuide">Tap a cut to open a quick guide</div>
 
       <div class="cuts-grid">
         <div>
@@ -2895,12 +2898,12 @@
         <div>
           <div class="panel" style="margin:0 0 12px 0;">
             <div class="panel-heading">
-              <h2 style="font-size:18px;">Quick usage</h2>
+              <h2 style="font-size:18px;" data-i18n="cuts.quickUsageTitle">Quick usage</h2>
             </div>
-            <div class="subtle" style="margin-bottom:8px;">
+            <div class="subtle" style="margin-bottom:8px;" data-i18n="cuts.quickUsageLine1">
               Tap a cut to view its location on the cow, best cooking styles, and a practical tip.
             </div>
-            <div class="subtle" style="margin-bottom:0;">
+            <div class="subtle" style="margin-bottom:0;" data-i18n="cuts.quickUsageLine2">
               The info appears directly inside the page instead of a floating popup.
             </div>
           </div>
@@ -2913,20 +2916,20 @@
 </section>
 
   <div class="zone-divider">
- <span>TOOLS & GENERATORS</span>
+ <span data-i18n="sections.toolsGenerators">TOOLS & GENERATORS</span>
     </div>
 <section class="zone zone-tools">
 
     <div class="panel app-enter app-enter-delay-4 recipe-generator-panel" id="recipes">
       <div class="panel-heading">
-        <h2 class="recipe-generator-title">🥘 Recipe Generator</h2>
+        <h2 class="recipe-generator-title" data-i18n="sections.recipeGenerator">🥘 Recipe Generator</h2>
         <button type="button" class="info-btn" data-popover-title="Recipe Generator" data-popover-text="A built-in recipe builder that creates structured meat recipes based on cut, cooking method, and flavor profile.">i</button>
       </div>
-      <div class="subtle">Build a premium Smart Cooking Mode plan by cut, method, and flavor profile</div>
+      <div class="subtle" data-i18n="recipe.helper">Build a premium Smart Cooking Mode plan by cut, method, and flavor profile</div>
 
       <div class="recipe-grid">
         <div class="recipe-field">
-          <label for="meatType">Meat Type</label>
+          <label for="meatType" data-i18n="recipe.labels.meatType">Meat Type</label>
           <select id="meatType">
             <option value="beef">Beef</option>
             <option value="lamb">Lamb</option>
@@ -2935,12 +2938,12 @@
         </div>
 
         <div class="recipe-field">
-          <label for="cutType">Cut</label>
+          <label for="cutType" data-i18n="recipe.labels.cut">Cut</label>
           <select id="cutType"></select>
         </div>
 
         <div class="recipe-field">
-          <label for="cookingMethod">Cooking Method</label>
+          <label for="cookingMethod" data-i18n="recipe.labels.cookingMethod">Cooking Method</label>
           <select id="cookingMethod">
             <option value="smoking">Smoking</option>
             <option value="long_cook">Long Cook</option>
@@ -2951,7 +2954,7 @@
         </div>
 
         <div class="recipe-field">
-          <label for="flavorProfile">Flavor Profile</label>
+          <label for="flavorProfile" data-i18n="recipe.labels.flavorProfile">Flavor Profile</label>
           <select id="flavorProfile">
             <option value="classic" selected>Classic</option>
             <option value="peppery">Peppery</option>
@@ -2963,13 +2966,13 @@
       </div>
 
       <div class="recipe-actions">
-        <button class="pill-btn" id="generateRecipeBtn" onclick="generateRecipe('all')">Generate Recipe</button>
-        <button class="pill-btn secondary" id="generateSaucesBtn" onclick="generateRecipe('sauces')">Generate Sauces</button>
-        <button class="pill-btn secondary" id="generateSidesBtn" onclick="generateRecipe('sides')">Generate Sides</button>
+        <button class="pill-btn" id="generateRecipeBtn" onclick="generateRecipe('all')" data-i18n="actions.generateRecipe">Generate Recipe</button>
+        <button class="pill-btn secondary" id="generateSaucesBtn" onclick="generateRecipe('sauces')" data-i18n="actions.generateSauces">Generate Sauces</button>
+        <button class="pill-btn secondary" id="generateSidesBtn" onclick="generateRecipe('sides')" data-i18n="actions.generateSides">Generate Sides</button>
       </div>
 
       <div class="recipe-output" id="recipeOutput">
-        <div class="recipe-placeholder">
+        <div class="recipe-placeholder" data-i18n="recipe.placeholder">
           Choose your cut, cooking method, and flavor profile — or cook directly from the current trend.
         </div>
       </div>
@@ -2977,18 +2980,18 @@
 
     <div class="panel app-enter app-enter-delay-4" id="butchers">
       <div class="panel-heading">
-        <h2>📍 Butcher Finder</h2>
+        <h2 data-i18n="sections.butcherFinder">📍 Butcher Finder</h2>
         <button type="button" class="info-btn" data-popover-title="Butcher Finder" data-popover-text="Find nearby butcher shops using your current location and Google Places.">i</button>
       </div>
-      <div class="subtle">Locate nearby butcher shops and open them directly in Google Maps</div>
+      <div class="subtle" data-i18n="butchers.helper">Locate nearby butcher shops and open them directly in Google Maps</div>
 
       <div class="butcher-toolbar">
-        <button class="pill-btn" id="findButchersBtn" type="button" onclick="findButchersNearMe()">Use My Location</button>
-        <div class="butcher-status" id="butcherStatus">Tap to find butchers near you.</div>
+        <button class="pill-btn" id="findButchersBtn" type="button" onclick="findButchersNearMe()" data-i18n="actions.useMyLocation">Use My Location</button>
+        <div class="butcher-status" id="butcherStatus" data-i18n="butchers.tapToFind">Tap to find butchers near you.</div>
       </div>
 
       <div class="butcher-grid" id="butcherResults">
-        <div class="butcher-empty">No search yet.</div>
+        <div class="butcher-empty" data-i18n="butchers.noSearchYet">No search yet.</div>
       </div>
     </div>
 
@@ -2997,7 +3000,7 @@
         <h2 id="feedTitle">🎥 Radar Feed</h2>
         <button type="button" class="info-btn" data-popover-title="Radar Feed" data-popover-text="Compact feed view. Click Info for expanded metadata.">i</button>
       </div>
-      <div class="source-label">🎥 Based on YouTube videos</div>
+      <div class="source-label" data-i18n="smoke.sourceLabel">🎥 Based on YouTube videos</div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
       <div class="video-grid" id="results"></div>
       <div class="panel-actions">
@@ -3098,11 +3101,21 @@
 
     const TRANSLATIONS = {
       en: {
+        "loader.subtitle": "Initializing meat intelligence dashboard...",
         "brand.tagline": "Live meat content intelligence dashboard",
+        "status.live": "Live",
         "actions.share": "Share",
         "actions.feedback": "Feedback",
         "actions.refresh": "Refresh",
         "actions.scanning": "Scanning...",
+        "actions.useMyLocation": "Use My Location",
+        "actions.openInMaps": "Open in Maps",
+        "actions.generateRecipe": "Generate Recipe",
+        "actions.generateSauces": "Generate Sauces",
+        "actions.generateSides": "Generate Sides",
+        "actions.regenerateRecipe": "Regenerate Recipe",
+        "actions.regenerateSauces": "Regenerate Sauces",
+        "actions.regenerateSides": "Regenerate Sides",
         "actions.cookTrend": "🔥 Cook This Trend",
         "actions.loadMore": "Load More",
         "actions.watch": "Watch",
@@ -3119,11 +3132,53 @@
         "hint.openSmokeIndex": "Open Smoke Index",
         "hint.openBeefCuts": "Open Beef Cuts",
         "common.close": "Close",
+        "sections.exploreCuts": "EXPLORE CUTS",
+        "sections.toolsGenerators": "TOOLS & GENERATORS",
         "sections.smokeIndex": "🔥 Smoke Index",
+        "sections.beefCutsExplorer": "🥩 Beef Cuts Explorer",
+        "sections.recipeGenerator": "🥘 Recipe Generator",
+        "sections.butcherFinder": "📍 Butcher Finder",
         "sections.topChannels": "🎥 Top Channels",
         "sections.hotKeywords": "🔥 Hot Keywords",
         "tabs.hotFeed": "Hot Feed",
         "tabs.rising": "Rising",
+        "feed.radarTitle": "🎥 Radar Feed",
+        "feed.risingTitle": "🎥 Rising Feed",
+        "feed.radarSubtitle": "Live-discovered videos ranked by momentum",
+        "feed.risingSubtitle": "Videos currently accelerating fastest",
+        "chart.momentumTrend": "📈 Momentum Trend",
+        "chart.risingMomentum": "📈 Rising Momentum",
+        "chart.momentumSubtitle": "Highest-ranking videos across the current feed",
+        "chart.risingSubtitle": "Fastest current movers by views per hour",
+        "smoke.scaleCold": "Cold",
+        "smoke.scaleWarming": "Warming",
+        "smoke.scaleSmoking": "Smoking",
+        "smoke.scaleHotGrill": "Hot Grill",
+        "smoke.scaleInferno": "Inferno",
+        "smoke.sourceLabel": "🎥 Based on YouTube videos",
+        "smoke.topHeatSourceDefault": "🎥 Top Heat Source: —",
+        "cuts.tapGuide": "Tap a cut to open a quick guide",
+        "cuts.quickUsageTitle": "Quick usage",
+        "cuts.quickUsageLine1": "Tap a cut to view its location on the cow, best cooking styles, and a practical tip.",
+        "cuts.quickUsageLine2": "The info appears directly inside the page instead of a floating popup.",
+        "recipe.helper": "Build a premium Smart Cooking Mode plan by cut, method, and flavor profile",
+        "recipe.placeholder": "Choose your cut, cooking method, and flavor profile — or cook directly from the current trend.",
+        "recipe.labels.meatType": "Meat Type",
+        "recipe.labels.cut": "Cut",
+        "recipe.labels.cookingMethod": "Cooking Method",
+        "recipe.labels.flavorProfile": "Flavor Profile",
+        "butchers.helper": "Locate nearby butcher shops and open them directly in Google Maps",
+        "butchers.tapToFind": "Tap to find butchers near you.",
+        "butchers.noSearchYet": "No search yet.",
+        "butchers.noneFound": "No butchers found nearby.",
+        "butchers.locating": "Locating...",
+        "butchers.finding": "Finding butchers near you...",
+        "butchers.foundCount": ({ count }) => `Found ${count} butcher shops near your location.`,
+        "butchers.loadError": "Could not load butcher shops right now.",
+        "butchers.geoNotSupported": "Geolocation is not supported on this browser.",
+        "butchers.locationDenied": "Location denied. Please allow location access to find nearby butchers.",
+        "butchers.locationUnavailable": "Location unavailable right now. Please try again.",
+        "butchers.locationTimeout": "Location request timed out. Please try again.",
         "status.loading": "Loading radar data...",
         "status.noneReturned": "No videos returned in the current scan.",
         "status.cachedLoaded": ({ count }) => `Showing cached results · ${count} videos loaded`,
@@ -3145,11 +3200,21 @@
         "smoke.usingDefaultCut": "Using default cut"
       },
       he: {
+        "loader.subtitle": "מאתחל את לוח הבקרה של Smoke Radar...",
         "brand.tagline": "לוח בקרה חי למודיעין תוכן בשר",
+        "status.live": "חי",
         "actions.share": "שיתוף",
         "actions.feedback": "משוב",
         "actions.refresh": "רענון",
         "actions.scanning": "סורק...",
+        "actions.useMyLocation": "השתמש במיקום שלי",
+        "actions.openInMaps": "פתח במפות",
+        "actions.generateRecipe": "צור מתכון",
+        "actions.generateSauces": "צור רטבים",
+        "actions.generateSides": "צור תוספות",
+        "actions.regenerateRecipe": "צור מחדש מתכון",
+        "actions.regenerateSauces": "צור מחדש רטבים",
+        "actions.regenerateSides": "צור מחדש תוספות",
         "actions.cookTrend": "🔥 בישול לפי הטרנד",
         "actions.loadMore": "טען עוד",
         "actions.watch": "צפייה",
@@ -3166,11 +3231,53 @@
         "hint.openSmokeIndex": "פתח מדד עשן",
         "hint.openBeefCuts": "פתח נתחי בקר",
         "common.close": "סגירה",
+        "sections.exploreCuts": "חוקרים נתחים",
+        "sections.toolsGenerators": "כלים ומחוללים",
         "sections.smokeIndex": "🔥 מדד עשן",
+        "sections.beefCutsExplorer": "🥩 סייר נתחי בקר",
+        "sections.recipeGenerator": "🥘 מחולל מתכונים",
+        "sections.butcherFinder": "📍 איתור קצבים",
         "sections.topChannels": "🎥 ערוצים מובילים",
         "sections.hotKeywords": "🔥 מילות מפתח חמות",
         "tabs.hotFeed": "פיד חם",
         "tabs.rising": "בעלייה",
+        "feed.radarTitle": "🎥 פיד רדאר",
+        "feed.risingTitle": "🎥 פיד בעלייה",
+        "feed.radarSubtitle": "סרטונים שהתגלו בזמן אמת ומדורגים לפי מומנטום",
+        "feed.risingSubtitle": "סרטונים שמאיצים הכי מהר כרגע",
+        "chart.momentumTrend": "📈 מגמת מומנטום",
+        "chart.risingMomentum": "📈 מומנטום בעלייה",
+        "chart.momentumSubtitle": "הסרטונים המובילים בפיד הנוכחי",
+        "chart.risingSubtitle": "המאיצים המהירים ביותר לפי צפיות לשעה",
+        "smoke.scaleCold": "קר",
+        "smoke.scaleWarming": "מתחמם",
+        "smoke.scaleSmoking": "מעשן",
+        "smoke.scaleHotGrill": "גריל חם",
+        "smoke.scaleInferno": "תבערה",
+        "smoke.sourceLabel": "🎥 מבוסס על סרטוני YouTube",
+        "smoke.topHeatSourceDefault": "🎥 מקור החום המוביל: —",
+        "cuts.tapGuide": "הקש על נתח כדי לפתוח מדריך מהיר",
+        "cuts.quickUsageTitle": "שימוש מהיר",
+        "cuts.quickUsageLine1": "הקש על נתח כדי לראות את המיקום שלו על הבקר, שיטות בישול מומלצות וטיפ שימושי.",
+        "cuts.quickUsageLine2": "המידע מוצג ישירות בדף במקום חלון קופץ.",
+        "recipe.helper": "בנה תוכנית Smart Cooking Mode לפי נתח, שיטת בישול ופרופיל טעמים",
+        "recipe.placeholder": "בחר נתח, שיטת בישול ופרופיל טעמים — או בשל ישירות לפי הטרנד הנוכחי.",
+        "recipe.labels.meatType": "סוג בשר",
+        "recipe.labels.cut": "נתח",
+        "recipe.labels.cookingMethod": "שיטת בישול",
+        "recipe.labels.flavorProfile": "פרופיל טעמים",
+        "butchers.helper": "מצא קצביות קרובות ופתח אותן ישירות ב-Google Maps",
+        "butchers.tapToFind": "הקש כדי למצוא קצבים קרובים אליך.",
+        "butchers.noSearchYet": "עדיין לא בוצע חיפוש.",
+        "butchers.noneFound": "לא נמצאו קצבים בקרבת מקום.",
+        "butchers.locating": "מאתר מיקום...",
+        "butchers.finding": "מחפש קצבים קרובים...",
+        "butchers.foundCount": ({ count }) => `נמצאו ${count} קצביות בקרבת המיקום שלך.`,
+        "butchers.loadError": "לא ניתן לטעון כרגע קצביות.",
+        "butchers.geoNotSupported": "שירות מיקום לא נתמך בדפדפן הזה.",
+        "butchers.locationDenied": "הגישה למיקום נדחתה. אפשר הרשאת מיקום כדי למצוא קצבים קרובים.",
+        "butchers.locationUnavailable": "המיקום לא זמין כרגע. נסה שוב.",
+        "butchers.locationTimeout": "בקשת המיקום התעכבה. נסה שוב.",
         "status.loading": "טוען נתוני רדאר...",
         "status.noneReturned": "לא חזרו סרטונים בסריקה הנוכחית.",
         "status.cachedLoaded": ({ count }) => `מציג נתונים ממטמון · נטענו ${count} סרטונים`,
@@ -4578,15 +4685,15 @@ function attachInteractiveCards() {
         }
       });
 
-      document.getElementById("chartTitle").textContent = isRising ? "📈 Rising Momentum" : "📈 Momentum Trend";
+      document.getElementById("chartTitle").textContent = isRising ? t("chart.risingMomentum") : t("chart.momentumTrend");
       document.getElementById("chartSubtitle").textContent = isRising
-        ? "Fastest current movers by views per hour"
-        : "Highest-ranking videos across the current feed";
+        ? t("chart.risingSubtitle")
+        : t("chart.momentumSubtitle");
 
-      document.getElementById("feedTitle").textContent = isRising ? "🎥 Rising Feed" : "🎥 Radar Feed";
+      document.getElementById("feedTitle").textContent = isRising ? t("feed.risingTitle") : t("feed.radarTitle");
       document.getElementById("feedSubtitle").textContent = isRising
-        ? "Videos currently accelerating fastest"
-        : "Live-discovered videos ranked by momentum";
+        ? t("feed.risingSubtitle")
+        : t("feed.radarSubtitle");
     }
 
     function renderTabState() {
@@ -4780,7 +4887,7 @@ function updateBeefHighlight(cutName) {
       if (!mount) return;
 
       if (!Array.isArray(results) || results.length === 0) {
-        mount.innerHTML = `<div class="butcher-empty">No butchers found nearby.</div>`;
+        mount.innerHTML = `<div class="butcher-empty">${t("butchers.noneFound")}</div>`;
         return;
       }
 
@@ -4799,7 +4906,7 @@ function updateBeefHighlight(cutName) {
             <p>${escapeHtml(highlights.mentionText)}</p>
           </div>
           <div>
-            <a class="small-btn" href="${escapeHtml(place.mapsUrl || "https://maps.google.com")}" target="_blank" rel="noopener noreferrer">Open in Maps</a>
+            <a class="small-btn" href="${escapeHtml(place.mapsUrl || "https://maps.google.com")}" target="_blank" rel="noopener noreferrer">${t("actions.openInMaps")}</a>
           </div>
         </article>
       `;
@@ -4812,7 +4919,7 @@ function updateBeefHighlight(cutName) {
 
       if (button) {
         button.disabled = loading;
-        button.textContent = loading ? "Locating..." : "Use My Location";
+        button.textContent = loading ? t("butchers.locating") : t("actions.useMyLocation");
       }
 
       if (status && message) {
@@ -4822,12 +4929,12 @@ function updateBeefHighlight(cutName) {
 
     async function findButchersNearMe() {
       if (!navigator.geolocation) {
-        setButcherState({ loading: false, message: "Geolocation is not supported on this browser." });
+        setButcherState({ loading: false, message: t("butchers.geoNotSupported") });
         renderButcherResults([]);
         return;
       }
 
-      setButcherState({ loading: true, message: "Finding butchers near you..." });
+      setButcherState({ loading: true, message: t("butchers.finding") });
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -4847,21 +4954,21 @@ function updateBeefHighlight(cutName) {
             renderButcherResults(data);
             setButcherState({
               loading: false,
-              message: data.length ? `Found ${data.length} butcher shops near your location.` : "No butchers found nearby."
+              message: data.length ? t("butchers.foundCount", { count: data.length }) : t("butchers.noneFound")
             });
           } catch (error) {
             console.error("Butcher finder UI error:", error);
             renderButcherResults([]);
-            setButcherState({ loading: false, message: "Could not load butcher shops right now." });
+            setButcherState({ loading: false, message: t("butchers.loadError") });
           }
         },
         (error) => {
           console.warn("Geolocation denied or unavailable:", error);
           renderButcherResults([]);
 
-          let message = "Location denied. Please allow location access to find nearby butchers.";
-          if (error?.code === 2) message = "Location unavailable right now. Please try again.";
-          if (error?.code === 3) message = "Location request timed out. Please try again.";
+          let message = t("butchers.locationDenied");
+          if (error?.code === 2) message = t("butchers.locationUnavailable");
+          if (error?.code === 3) message = t("butchers.locationTimeout");
 
           setButcherState({ loading: false, message });
         },
@@ -4903,9 +5010,9 @@ function updateBeefHighlight(cutName) {
       const hasSauces = (latestStructuredRecipe?.sauces || []).length > 0;
       const hasSides = (latestStructuredRecipe?.sides || []).length > 0;
 
-      recipeBtn.textContent = hasMain ? "Regenerate Recipe" : "Generate Recipe";
-      sauceBtn.textContent = hasSauces ? "Regenerate Sauces" : "Generate Sauces";
-      sideBtn.textContent = hasSides ? "Regenerate Sides" : "Generate Sides";
+      recipeBtn.textContent = hasMain ? t("actions.regenerateRecipe") : t("actions.generateRecipe");
+      sauceBtn.textContent = hasSauces ? t("actions.regenerateSauces") : t("actions.generateSauces");
+      sideBtn.textContent = hasSides ? t("actions.regenerateSides") : t("actions.generateSides");
     }
 
     async function generateRecipe(mode = "all") {
