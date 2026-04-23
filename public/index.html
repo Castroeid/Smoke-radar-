@@ -2942,18 +2942,14 @@
     <div class="panel app-enter app-enter-delay-4 recipe-generator-panel" id="recipes">
       <div class="panel-heading">
         <h2 class="recipe-generator-title" data-i18n="sections.recipeGenerator">🥘 Recipe Generator</h2>
-        <button type="button" class="info-btn" data-popover-title="מחולל מתכונים" data-popover-text="יוצר מתכונים מובנים לפי נתח, שיטה וטעמים.">i</button>
+        <button type="button" class="info-btn" data-i18n-popover-title="popover.recipe.title" data-i18n-popover-text="popover.recipe.text">i</button>
       </div>
       <div class="subtle" data-i18n="recipe.helper">Build a premium Smart Cooking Mode plan by cut, method, and flavor profile</div>
 
       <div class="recipe-grid">
         <div class="recipe-field">
           <label for="meatType" data-i18n="recipe.labels.meatType">Meat Type</label>
-          <select id="meatType">
-            <option value="beef">Beef</option>
-            <option value="lamb">Lamb</option>
-            <option value="veal">Veal</option>
-          </select>
+          <select id="meatType"></select>
         </div>
 
         <div class="recipe-field">
@@ -2963,24 +2959,12 @@
 
         <div class="recipe-field">
           <label for="cookingMethod" data-i18n="recipe.labels.cookingMethod">Cooking Method</label>
-          <select id="cookingMethod">
-            <option value="smoking">Smoking</option>
-            <option value="long_cook">Long Cook</option>
-            <option value="cast_iron" selected>Cast Iron</option>
-            <option value="bbq">BBQ</option>
-            <option value="oven_roast">Oven Roast</option>
-          </select>
+          <select id="cookingMethod"></select>
         </div>
 
         <div class="recipe-field">
           <label for="flavorProfile" data-i18n="recipe.labels.flavorProfile">Flavor Profile</label>
-          <select id="flavorProfile">
-            <option value="classic" selected>Classic</option>
-            <option value="peppery">Peppery</option>
-            <option value="garlic_herb">Garlic & Herb</option>
-            <option value="sweet_smoky">Sweet & Smoky</option>
-            <option value="spicy">Spicy</option>
-          </select>
+          <select id="flavorProfile"></select>
         </div>
       </div>
 
@@ -3000,7 +2984,7 @@
     <div class="panel app-enter app-enter-delay-4" id="butchers">
       <div class="panel-heading">
         <h2 data-i18n="sections.butcherFinder">📍 Butcher Finder</h2>
-        <button type="button" class="info-btn" data-popover-title="איתור קצבים" data-popover-text="מאתר קצביות קרובות לפי המיקום שלך.">i</button>
+        <button type="button" class="info-btn" data-i18n-popover-title="popover.butchers.title" data-i18n-popover-text="popover.butchers.text">i</button>
       </div>
       <div class="subtle" data-i18n="butchers.helper">Locate nearby butcher shops and open them directly in Google Maps</div>
 
@@ -3017,7 +3001,7 @@
     <div class="panel app-enter app-enter-delay-4" id="feed">
       <div class="panel-heading">
         <h2 id="feedTitle">🎥 Radar Feed</h2>
-        <button type="button" class="info-btn" data-popover-title="רדאר הסרטונים" data-popover-text="פיד קומפקטי של סרטונים חמים בזמן אמת.">i</button>
+        <button type="button" class="info-btn" data-i18n-popover-title="popover.feed.title" data-i18n-popover-text="popover.feed.text">i</button>
       </div>
       <div class="source-label" data-i18n="smoke.sourceLabel">🎥 Based on YouTube videos</div>
       <div class="subtle" id="feedSubtitle">Live-discovered videos ranked by momentum</div>
@@ -3028,12 +3012,11 @@
     </div>
 <div class="panel" id="feedback">
   <div class="panel-heading">
-    <h2>💬 Feedback</h2>
+    <h2 data-i18n="feedback.title">💬 Feedback</h2>
   </div>
 
-  <div class="subtle">
-    Found something interesting? Missing feature?  
-    Send me your thoughts 🙌
+  <div class="subtle" data-i18n="feedback.subtitle">
+    Found something interesting? Missing feature? Send me your thoughts 🙌
   </div>
 
   <form id="feedbackForm">
@@ -3041,6 +3024,7 @@
       id="feedbackText"
       class="feedback-input"
       placeholder="Write your feedback here..."
+      data-i18n-placeholder="feedback.placeholderText"
     ></textarea>
 
     <input
@@ -3048,9 +3032,10 @@
       id="feedbackEmail"
       class="feedback-input"
       placeholder="Your email (optional)"
+      data-i18n-placeholder="feedback.placeholderEmail"
     />
 
-    <button class="pill-btn" type="submit">
+    <button class="pill-btn" type="submit" data-i18n="feedback.sendButton">
       Send Feedback 🚀
     </button>
   </form>
@@ -3062,33 +3047,33 @@
         <img src="/images/avatar-placeholder.png" alt="Smoke Radar creator avatar" class="about-avatar" />
 
         <div class="about-copy">
-          <h3>About Smoke Radar</h3>
+          <h3 data-i18n="about.title">About Smoke Radar</h3>
 
-          <p>
+          <p data-i18n="about.p1">
             Smoke Radar was born from a simple idea — finding the most interesting,
             high-quality meat content out there without wasting time scrolling.
           </p>
 
-          <p>
+          <p data-i18n="about.p2">
             Instead of guessing what is worth watching, Smoke Radar scans, filters,
             and highlights videos based on real signals like momentum, engagement,
             and content movement.
           </p>
 
-          <p>
+          <p data-i18n="about.p3">
             Built by a meat enthusiast who loves coffee, looks for originality,
             and is always chasing the next interesting thing worth discovering.
           </p>
 
-          <p>
+          <p data-i18n="about.p4">
             Built for meat lovers, pitmasters, and curious food explorers.
           </p>
 
           <div class="about-highlights">
-            <span class="about-pill">🥩 Meat-first discovery</span>
-            <span class="about-pill">☕ Coffee-fueled building</span>
-            <span class="about-pill">🔥 Trend-driven radar</span>
-            <span class="about-pill">🎯 Curious, original, useful</span>
+            <span class="about-pill" data-i18n="about.pill1">🥩 Meat-first discovery</span>
+            <span class="about-pill" data-i18n="about.pill2">☕ Coffee-fueled building</span>
+            <span class="about-pill" data-i18n="about.pill3">🔥 Trend-driven radar</span>
+            <span class="about-pill" data-i18n="about.pill4">🎯 Curious, original, useful</span>
           </div>
         </div>
       </div>
@@ -3141,6 +3126,11 @@
         "actions.info": "Info",
         "actions.channel": "Channel",
         "actions.linkCopied": "Link copied",
+        "feedback.title": "💬 Feedback",
+        "feedback.subtitle": "Found something interesting? Missing feature? Send me your thoughts 🙌",
+        "feedback.placeholderText": "Write your feedback here...",
+        "feedback.placeholderEmail": "Your email (optional)",
+        "feedback.sendButton": "Send Feedback 🚀",
         "nav.overview": "Overview",
         "nav.cuts": "Cuts",
         "nav.recipes": "Recipes",
@@ -3180,12 +3170,50 @@
         "cuts.quickUsageTitle": "Quick usage",
         "cuts.quickUsageLine1": "Tap a cut to view its location on the cow, best cooking styles, and a practical tip.",
         "cuts.quickUsageLine2": "The info appears directly inside the page instead of a floating popup.",
+        "cuts.locationTitle": "Location on the cow",
+        "cuts.stylesTitle": "Best cooking styles",
+        "cuts.tipTitle": "Tip",
         "recipe.helper": "Build a premium Smart Cooking Mode plan by cut, method, and flavor profile",
         "recipe.placeholder": "Choose your cut, cooking method, and flavor profile — or cook directly from the current trend.",
         "recipe.labels.meatType": "Meat Type",
         "recipe.labels.cut": "Cut",
         "recipe.labels.cookingMethod": "Cooking Method",
         "recipe.labels.flavorProfile": "Flavor Profile",
+        "recipe.meatType.beef": "Beef",
+        "recipe.meatType.lamb": "Lamb",
+        "recipe.meatType.veal": "Veal",
+        "recipe.method.smoking": "Smoking",
+        "recipe.method.long_cook": "Long Cook",
+        "recipe.method.cast_iron": "Cast Iron",
+        "recipe.method.bbq": "BBQ",
+        "recipe.method.oven_roast": "Oven Roast",
+        "recipe.flavor.classic": "Classic",
+        "recipe.flavor.peppery": "Peppery",
+        "recipe.flavor.garlic_herb": "Garlic & Herb",
+        "recipe.flavor.sweet_smoky": "Sweet & Smoky",
+        "recipe.flavor.spicy": "Spicy",
+        "recipe.loading": "🔥 Generating AI recipe...",
+        "recipe.unavailable": "⚠️ AI recipe not available in dev environment",
+        "recipe.error": "❌ Failed to generate AI recipe.",
+        "recipe.sectionMain": "🔥 MAIN RECIPE",
+        "recipe.ingredients": "Ingredients",
+        "recipe.steps": "Step-by-step",
+        "recipe.aiPowered": "AI POWERED",
+        "recipe.ingredientsMissing": "Ingredients not provided.",
+        "recipe.stepsMissing": "Steps not provided.",
+        "recipe.descriptionMissing": "No description provided.",
+        "recipe.saucesTitle": "🥣 SAUCES",
+        "recipe.sidesTitle": "🍽️ SIDES",
+        "recipe.noSauces": "No sauce pairings available.",
+        "recipe.noSides": "No side suggestions available.",
+        "recipe.defaultStep": "Prep quickly and serve hot next to the main cut.",
+        "recipe.ctaTitle": "🥩 Ready to cook this?",
+        "recipe.ctaDescription": "Find butcher shops near you for this recipe.",
+        "recipe.ctaLookingFor": ({ cut }) => `Looking for ${cut} nearby?`,
+        "recipe.ctaFindButchers": "Find Butchers Near Me",
+        "recipe.fallbackTitle": "Smart Cooking Mode",
+        "recipe.fallbackDescription": "Quick and balanced cook plan.",
+        "recipe.cut.shortRibs": "short ribs",
         "butchers.helper": "Locate nearby butcher shops and open them directly in Google Maps",
         "butchers.tapToFind": "Tap to find butchers near you.",
         "butchers.noSearchYet": "No search yet.",
@@ -3198,6 +3226,33 @@
         "butchers.locationDenied": "Location denied. Please allow location access to find nearby butchers.",
         "butchers.locationUnavailable": "Location unavailable right now. Please try again.",
         "butchers.locationTimeout": "Location request timed out. Please try again.",
+        "butchers.unknownName": "Unknown butcher",
+        "butchers.addressUnavailable": "Address unavailable",
+        "butchers.reviewHighlights": "Review highlights",
+        "butchers.summaryDefault": "Local butcher shop",
+        "butchers.summaryHighlyRated": "Highly rated",
+        "butchers.summaryPopular": "Popular local spot",
+        "butchers.mentionQuality": "quality",
+        "butchers.mentionFresh": "fresh",
+        "butchers.mentionService": "good service",
+        "butchers.mentionMeat": "quality meat",
+        "butchers.mentionsText": ({ items }) => `Reviews mention ${items}.`,
+        "butchers.signalsOnly": "Signals are based on rating and review volume only.",
+        "about.title": "About Smoke Radar",
+        "about.p1": "Smoke Radar was born from a simple idea — finding the most interesting, high-quality meat content out there without wasting time scrolling.",
+        "about.p2": "Instead of guessing what is worth watching, Smoke Radar scans, filters, and highlights videos based on real signals like momentum, engagement, and content movement.",
+        "about.p3": "Built by a meat enthusiast who loves coffee, looks for originality, and is always chasing the next interesting thing worth discovering.",
+        "about.p4": "Built for meat lovers, pitmasters, and curious food explorers.",
+        "about.pill1": "🥩 Meat-first discovery",
+        "about.pill2": "☕ Coffee-fueled building",
+        "about.pill3": "🔥 Trend-driven radar",
+        "about.pill4": "🎯 Curious, original, useful",
+        "popover.recipe.title": "Recipe Generator",
+        "popover.recipe.text": "Builds structured recipes by cut, method, and flavor profile.",
+        "popover.butchers.title": "Butcher Finder",
+        "popover.butchers.text": "Finds nearby butcher shops based on your location.",
+        "popover.feed.title": "Video Radar",
+        "popover.feed.text": "A compact feed of trending videos in real time.",
         "status.loading": "Loading radar data...",
         "status.noneReturned": "No videos returned in the current scan.",
         "status.cachedLoaded": ({ count }) => `Showing cached results · ${count} videos loaded`,
@@ -3277,6 +3332,11 @@
         "actions.info": "מידע",
         "actions.channel": "ערוץ",
         "actions.linkCopied": "הקישור הועתק",
+        "feedback.title": "💬 משוב",
+        "feedback.subtitle": "מצאת משהו מעניין? חסרה יכולת? נשמח לשמוע ממך 🙌",
+        "feedback.placeholderText": "כתוב את המשוב שלך כאן...",
+        "feedback.placeholderEmail": "האימייל שלך (אופציונלי)",
+        "feedback.sendButton": "שליחת משוב 🚀",
         "nav.overview": "סקירה",
         "nav.cuts": "נתחים",
         "nav.recipes": "מתכונים",
@@ -3316,12 +3376,50 @@
         "cuts.quickUsageTitle": "שימוש מהיר",
         "cuts.quickUsageLine1": "הקש על נתח כדי לראות את המיקום שלו על הבקר, שיטות בישול מומלצות וטיפ שימושי.",
         "cuts.quickUsageLine2": "המידע מוצג ישירות בדף במקום חלון קופץ.",
+        "cuts.locationTitle": "מיקום על הבקר",
+        "cuts.stylesTitle": "שיטות בישול מומלצות",
+        "cuts.tipTitle": "טיפ",
         "recipe.helper": "בנה תוכנית Smart Cooking Mode לפי נתח, שיטת בישול ופרופיל טעמים",
         "recipe.placeholder": "בחר נתח, שיטת בישול ופרופיל טעמים — או בשל ישירות לפי הטרנד הנוכחי.",
         "recipe.labels.meatType": "סוג בשר",
         "recipe.labels.cut": "נתח",
         "recipe.labels.cookingMethod": "שיטת בישול",
         "recipe.labels.flavorProfile": "פרופיל טעמים",
+        "recipe.meatType.beef": "בקר",
+        "recipe.meatType.lamb": "טלה",
+        "recipe.meatType.veal": "עגל",
+        "recipe.method.smoking": "עישון",
+        "recipe.method.long_cook": "בישול ארוך",
+        "recipe.method.cast_iron": "מחבת ברזל יצוק",
+        "recipe.method.bbq": "ברביקיו",
+        "recipe.method.oven_roast": "צלייה בתנור",
+        "recipe.flavor.classic": "קלאסי",
+        "recipe.flavor.peppery": "פלפלי",
+        "recipe.flavor.garlic_herb": "שום ועשבי תיבול",
+        "recipe.flavor.sweet_smoky": "מתוק ומעושן",
+        "recipe.flavor.spicy": "חריף",
+        "recipe.loading": "🔥 מייצר מתכון AI...",
+        "recipe.unavailable": "⚠️ מתכון AI לא זמין בסביבת פיתוח",
+        "recipe.error": "❌ יצירת מתכון AI נכשלה.",
+        "recipe.sectionMain": "🔥 מתכון מרכזי",
+        "recipe.ingredients": "מרכיבים",
+        "recipe.steps": "שלב-אחר-שלב",
+        "recipe.aiPowered": "מופעל AI",
+        "recipe.ingredientsMissing": "לא סופקו מרכיבים.",
+        "recipe.stepsMissing": "לא סופקו שלבים.",
+        "recipe.descriptionMissing": "לא סופק תיאור.",
+        "recipe.saucesTitle": "🥣 רטבים",
+        "recipe.sidesTitle": "🍽️ תוספות",
+        "recipe.noSauces": "אין התאמות רטבים זמינות.",
+        "recipe.noSides": "אין הצעות לתוספות כרגע.",
+        "recipe.defaultStep": "הכנה מהירה והגשה חמה לצד המנה המרכזית.",
+        "recipe.ctaTitle": "🥩 מוכנים לבשל את זה?",
+        "recipe.ctaDescription": "מצאו קצביות קרובות למתכון הזה.",
+        "recipe.ctaLookingFor": ({ cut }) => `מחפשים ${cut} בקרבתכם?`,
+        "recipe.ctaFindButchers": "מצאו קצביות קרובות",
+        "recipe.fallbackTitle": "מצב בישול חכם",
+        "recipe.fallbackDescription": "תוכנית בישול מהירה ומאוזנת.",
+        "recipe.cut.shortRibs": "צלעות קצרות",
         "butchers.helper": "מצא קצביות קרובות ופתח אותן ישירות ב-Google Maps",
         "butchers.tapToFind": "הקש כדי למצוא קצבים קרובים אליך.",
         "butchers.noSearchYet": "עדיין לא בוצע חיפוש.",
@@ -3334,6 +3432,33 @@
         "butchers.locationDenied": "הגישה למיקום נדחתה. אפשר הרשאת מיקום כדי למצוא קצבים קרובים.",
         "butchers.locationUnavailable": "המיקום לא זמין כרגע. נסה שוב.",
         "butchers.locationTimeout": "בקשת המיקום התעכבה. נסה שוב.",
+        "butchers.unknownName": "קצב לא ידוע",
+        "butchers.addressUnavailable": "כתובת לא זמינה",
+        "butchers.reviewHighlights": "תובנות ביקורות",
+        "butchers.summaryDefault": "קצבייה מקומית",
+        "butchers.summaryHighlyRated": "דירוג גבוה",
+        "butchers.summaryPopular": "מקום מקומי פופולרי",
+        "butchers.mentionQuality": "איכות",
+        "butchers.mentionFresh": "טריות",
+        "butchers.mentionService": "שירות טוב",
+        "butchers.mentionMeat": "בשר איכותי",
+        "butchers.mentionsText": ({ items }) => `בביקורות מציינים ${items}.`,
+        "butchers.signalsOnly": "הסיגנלים מבוססים על דירוג ונפח ביקורות בלבד.",
+        "about.title": "על Smoke Radar",
+        "about.p1": "Smoke Radar מרכז עבורך במהירות את תוכן הבשר הכי מעניין ברשת — בלי אינסוף גלילה.",
+        "about.p2": "המערכת סורקת, מסננת ומבליטה סרטונים לפי סיגנלים אמיתיים כמו מומנטום, מעורבות ותנועת תוכן.",
+        "about.p3": "נבנה על ידי חובב בשר עם קפה ביד, עין על מקוריות, ורעב קבוע לדבר המעניין הבא.",
+        "about.p4": "מיועד לאוהבי בשר, אנשי עשן וחובבי אוכל סקרנים.",
+        "about.pill1": "🥩 גילוי שמתחיל בבשר",
+        "about.pill2": "☕ נבנה על קפה",
+        "about.pill3": "🔥 רדאר שמבוסס טרנדים",
+        "about.pill4": "🎯 קצר, חד ושימושי",
+        "popover.recipe.title": "מחולל מתכונים",
+        "popover.recipe.text": "בונה מתכונים מובנים לפי נתח, שיטה ופרופיל טעמים.",
+        "popover.butchers.title": "איתור קצביות",
+        "popover.butchers.text": "מאתר קצביות קרובות על בסיס המיקום שלך.",
+        "popover.feed.title": "רדאר סרטונים",
+        "popover.feed.text": "פיד קומפקטי של סרטונים חמים בזמן אמת.",
         "status.loading": "טוען נתוני רדאר...",
         "status.noneReturned": "לא חזרו סרטונים בסריקה הנוכחית.",
         "status.cachedLoaded": ({ count }) => `מציג נתונים ממטמון · נטענו ${count} סרטונים`,
@@ -3430,6 +3555,17 @@
         if (!key) return;
         el.textContent = t(key);
       });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (!key) return;
+        el.setAttribute("placeholder", t(key));
+      });
+      document.querySelectorAll("[data-i18n-popover-title]").forEach((el) => {
+        const titleKey = el.getAttribute("data-i18n-popover-title");
+        const textKey = el.getAttribute("data-i18n-popover-text");
+        if (titleKey) el.dataset.popoverTitle = t(titleKey);
+        if (textKey) el.dataset.popoverText = t(textKey);
+      });
 
       const refreshLabel = document.getElementById("refreshLabel");
       if (refreshLabel && !document.getElementById("loadBtn")?.classList.contains("loading")) {
@@ -3465,7 +3601,12 @@
       }
       setDocumentDirection(nextLanguage);
       updateLanguageToggleUI();
+      populateRecipeStaticOptions();
+      populateRecipeCutOptions();
       translateStaticContent();
+      const activeCutId = getActiveCutId();
+      renderCutsGrid(activeCutId);
+      if (activeCutId) showCutPanel(activeCutId);
 
       if (rerender && allData) {
         renderHero(allData, { animateRefresh: false });
@@ -3490,124 +3631,124 @@
     const CUT_DEFINITIONS = [
       {
         id: "chuck",
-        displayName: "Chuck",
+        displayName: { en: "Chuck", he: "צוואר / כתף" },
         localName: null,
         aliases: ["shoulder"],
         regionId: "chuck",
-        location: "Front shoulder and neck transition above the foreleg.",
-        description: "Heavily used shoulder group with dense connective tissue and deep beef character.",
-        cookingMethods: ["Long cook", "Braised dishes", "Ground beef", "Roast"],
-        quickTip: "Chuck shines when given time to break down and soften.",
+        location: { en: "Front shoulder and neck transition above the foreleg.", he: "אזור הכתף הקדמית והצוואר מעל הרגל הקדמית." },
+        description: { en: "Heavily used shoulder group with dense connective tissue and deep beef character.", he: "קבוצת שרירי כתף פעילה עם רקמת חיבור צפופה וטעם בקר עמוק." },
+        cookingMethods: [{ en: "Long cook", he: "בישול ארוך" }, { en: "Braised dishes", he: "מנות ברייזינג" }, { en: "Ground beef", he: "בשר טחון" }, { en: "Roast", he: "צלייה" }],
+        quickTip: { en: "Chuck shines when given time to break down and soften.", he: "הנתח הזה מצטיין כשנותנים לו זמן להתפרק ולהתרכך." },
         inExplorer: true,
         inRecipeGenerator: false
       },
       {
         id: "rib",
-        displayName: "Rib / Ribeye",
+        displayName: { en: "Rib / Ribeye", he: "צלעות / אנטריקוט" },
         localName: null,
         aliases: ["ribeye", "entrecote"],
         regionId: "rib",
-        location: "Upper middle front, directly behind the chuck along the thoracic ribs.",
-        description: "Classic prime rib zone with strong marbling, rich fat cover, and tender muscle bundles.",
-        cookingMethods: ["Roasting", "Grill", "Reverse sear"],
-        quickTip: "Keep rib cuts medium-rare to medium so the marbling renders without drying.",
+        location: { en: "Upper middle front, directly behind the chuck along the thoracic ribs.", he: "חלק קדמי-אמצעי עליון, מאחורי הכתף לאורך הצלעות." },
+        description: { en: "Classic prime rib zone with strong marbling, rich fat cover, and tender muscle bundles.", he: "אזור פריים קלאסי עם שומניות גבוהה, כיסוי שומן עשיר ושריר רך." },
+        cookingMethods: [{ en: "Roasting", he: "צלייה" }, { en: "Grill", he: "גריל" }, { en: "Reverse sear", he: "צריבה הפוכה" }],
+        quickTip: { en: "Keep rib cuts medium-rare to medium so the marbling renders without drying.", he: "כדאי לשמור על מידת מדיום-רייר עד מדיום כדי להמיס שומן בלי לייבש." },
         inExplorer: true,
         inRecipeGenerator: false
       },
       {
         id: "short_loin",
-        displayName: "Short Loin / Tenderloin",
+        displayName: { en: "Short Loin / Tenderloin", he: "סינטה קצרה / פילה" },
         localName: null,
         aliases: ["tenderloin", "filet"],
         regionId: "short_loin",
-        location: "Upper middle back between rib and sirloin.",
-        description: "Transition section that yields strip and T-bone style steaks with balanced tenderness.",
-        cookingMethods: ["High-heat grill", "Cast iron", "Roasting"],
-        quickTip: "Use dry heat and avoid overcooking to preserve fine loin texture.",
+        location: { en: "Upper middle back between rib and sirloin.", he: "אזור גב אמצעי עליון בין הצלעות לסינטה." },
+        description: { en: "Transition section that yields strip and T-bone style steaks with balanced tenderness.", he: "אזור מעבר שמספק סטייקים בסגנון סטריפ ו-T-bone עם רכות מאוזנת." },
+        cookingMethods: [{ en: "High-heat grill", he: "גריל חום גבוה" }, { en: "Cast iron", he: "ברזל יצוק" }, { en: "Roasting", he: "צלייה" }],
+        quickTip: { en: "Use dry heat and avoid overcooking to preserve fine loin texture.", he: "עובדים בחום יבש ונמנעים מבישול יתר כדי לשמור על המרקם." },
         inExplorer: true,
         inRecipeGenerator: false
       },
       {
         id: "sirloin",
-        displayName: "Sirloin",
+        displayName: { en: "Sirloin", he: "סינטה" },
         localName: null,
         aliases: ["top sirloin"],
         regionId: "sirloin",
-        location: "Upper rear before the hip and round.",
-        description: "Rear loin group with moderate marbling and a robust beef-forward profile.",
-        cookingMethods: ["Grilling", "Cast iron", "Roasting"],
-        quickTip: "Do not overcook it. Sirloin is best when sliced properly and rested.",
+        location: { en: "Upper rear before the hip and round.", he: "חלק אחורי עליון לפני האגן והירך." },
+        description: { en: "Rear loin group with moderate marbling and a robust beef-forward profile.", he: "קבוצת שרירים אחורית עם שומניות בינונית וטעם בקר מודגש." },
+        cookingMethods: [{ en: "Grilling", he: "גריל" }, { en: "Cast iron", he: "ברזל יצוק" }, { en: "Roasting", he: "צלייה" }],
+        quickTip: { en: "Do not overcook it. Sirloin is best when sliced properly and rested.", he: "לא לבשל יתר על המידה. סינטה טובה אחרי מנוחה ופריסה נכונה." },
         inExplorer: true,
         inRecipeGenerator: false
       },
       {
         id: "picanha",
-        displayName: "Picanha",
+        displayName: { en: "Picanha", he: "פיקניה" },
         localName: null,
         aliases: ["rump cap"],
         regionId: "picanha",
-        location: "Top rear rump cap above the sirloin near the tail end.",
-        description: "Distinct rump-cap cut known for a thick fat cap and concentrated beef flavor.",
-        cookingMethods: ["Grill", "Reverse sear", "Roast", "Skewer over coals"],
-        quickTip: "Keep the fat cap on, score lightly, and render it slowly before the final sear.",
+        location: { en: "Top rear rump cap above the sirloin near the tail end.", he: "כובע הראמפ בחלק האחורי העליון מעל הסינטה, סמוך לזנב." },
+        description: { en: "Distinct rump-cap cut known for a thick fat cap and concentrated beef flavor.", he: "נתח ראמפ קאפ ייחודי עם שכבת שומן עבה וטעם בקר מרוכז." },
+        cookingMethods: [{ en: "Grill", he: "גריל" }, { en: "Reverse sear", he: "צריבה הפוכה" }, { en: "Roast", he: "צלייה" }, { en: "Skewer over coals", he: "שיפוד על גחלים" }],
+        quickTip: { en: "Keep the fat cap on, score lightly, and render it slowly before the final sear.", he: "משאירים את שכבת השומן, חורצים קלות וממיסים לאט לפני צריבה סופית." },
         inExplorer: true,
         inRecipeGenerator: true
       },
       {
         id: "round",
-        displayName: "Round / Rump",
+        displayName: { en: "Round / Rump", he: "ירך אחורית / ראמפ" },
         localName: null,
         aliases: ["rump", "shaitel"],
         regionId: "round",
-        location: "Hindquarter and upper back leg around the rump and thigh.",
-        description: "Large rear-leg muscle group that is lean, dense, and excellent for roasts or slicing.",
-        cookingMethods: ["Roasting", "Braising", "Sous vide then sear"],
-        quickTip: "Round stays juicier when cooked gently and sliced thin against the grain.",
+        location: { en: "Hindquarter and upper back leg around the rump and thigh.", he: "הרבע האחורי וחלקה העליון של הרגל האחורית סביב הירך." },
+        description: { en: "Large rear-leg muscle group that is lean, dense, and excellent for roasts or slicing.", he: "קבוצת שרירים אחורית גדולה, רזה וצפופה, מצוינת לצלייה או פריסה." },
+        cookingMethods: [{ en: "Roasting", he: "צלייה" }, { en: "Braising", he: "ברייזינג" }, { en: "Sous vide then sear", he: "סו-ויד ואז צריבה" }],
+        quickTip: { en: "Round stays juicier when cooked gently and sliced thin against the grain.", he: "הנתח נשאר עסיסי יותר בבישול עדין ופריסה דקה נגד כיוון הסיבים." },
         inExplorer: true,
         inRecipeGenerator: false
       },
       {
         id: "brisket",
-        displayName: "Brisket",
+        displayName: { en: "Brisket", he: "בריסקט" },
         localName: null,
         aliases: [],
         regionId: "brisket",
-        location: "Lower chest, toward the front underside of the cow.",
-        description: "Chest cut with collagen-rich muscle that excels in low-and-slow cooking.",
-        cookingMethods: ["Smoking", "Long braise", "Low and slow oven cook"],
-        quickTip: "Brisket rewards patience. Resting is almost as important as the cook itself.",
+        location: { en: "Lower chest, toward the front underside of the cow.", he: "חזה תחתון בחלק הקדמי התחתון של הבקר." },
+        description: { en: "Chest cut with collagen-rich muscle that excels in low-and-slow cooking.", he: "נתח חזה עשיר בקולגן שמצטיין בבישול נמוך ואיטי." },
+        cookingMethods: [{ en: "Smoking", he: "עישון" }, { en: "Long braise", he: "ברייזינג ארוך" }, { en: "Low and slow oven cook", he: "תנור נמוך ואיטי" }],
+        quickTip: { en: "Brisket rewards patience. Resting is almost as important as the cook itself.", he: "בריסקט מתגמל סבלנות; מנוחה חשובה כמעט כמו הבישול." },
         inExplorer: true,
         inRecipeGenerator: true
       },
       {
         id: "plate",
-        displayName: "Plate / Short Ribs",
+        displayName: { en: "Plate / Short Ribs", he: "שפונדרה / אסאדו" },
         localName: null,
         aliases: ["short ribs", "plate ribs", "asado"],
         regionId: "plate",
-        location: "Lower middle belly under rib and short loin.",
-        description: "Belly section that includes short plate muscles with rich flavor and loose grain.",
-        cookingMethods: ["Smoking", "Braising", "Hot grill after marinade"],
-        quickTip: "Plate cuts benefit from either low-and-slow rendering or hot-and-fast slicing.",
+        location: { en: "Lower middle belly under rib and short loin.", he: "בטן אמצעית תחתונה מתחת לצלעות ולסינטה הקצרה." },
+        description: { en: "Belly section that includes short plate muscles with rich flavor and loose grain.", he: "אזור בטן עם שרירים עשירים בטעם וסיבים רפויים יחסית." },
+        cookingMethods: [{ en: "Smoking", he: "עישון" }, { en: "Braising", he: "ברייזינג" }, { en: "Hot grill after marinade", he: "גריל חם אחרי מרינדה" }],
+        quickTip: { en: "Plate cuts benefit from either low-and-slow rendering or hot-and-fast slicing.", he: "השפונדרה נהנית מהמסה איטית או מפריסה מהירה אחרי חום גבוה." },
         inExplorer: true,
         inRecipeGenerator: false
       },
       {
         id: "flank",
-        displayName: "Flank",
+        displayName: { en: "Flank", he: "פלאנק" },
         localName: null,
         aliases: [],
         regionId: "flank",
-        location: "Lower abdominal muscles, behind the short plate.",
-        description: "Lean abdominal cut with long fibers and bold, beef-forward flavor.",
-        cookingMethods: ["High-heat grill", "Cast iron", "Marinated sear"],
-        quickTip: "Always slice flank against the grain.",
+        location: { en: "Lower abdominal muscles, behind the short plate.", he: "שרירי בטן תחתונים מאחורי השפונדרה." },
+        description: { en: "Lean abdominal cut with long fibers and bold, beef-forward flavor.", he: "נתח בטן רזה עם סיבים ארוכים וטעם בקר מודגש." },
+        cookingMethods: [{ en: "High-heat grill", he: "גריל חום גבוה" }, { en: "Cast iron", he: "ברזל יצוק" }, { en: "Marinated sear", he: "צריבה אחרי מרינדה" }],
+        quickTip: { en: "Always slice flank against the grain.", he: "תמיד פורסים פלאנק נגד כיוון הסיבים." },
         inExplorer: true,
         inRecipeGenerator: false
       },
       {
         id: "ribeye",
-        displayName: "Ribeye",
+        displayName: { en: "Ribeye", he: "אנטריקוט" },
         localName: null,
         aliases: ["entrecote"],
         description: "Well-marbled steak from the rib family with rich flavor and tenderness.",
@@ -3618,7 +3759,7 @@
       },
       {
         id: "short_ribs",
-        displayName: "Short Ribs",
+        displayName: { en: "Short Ribs", he: "צלעות קצרות" },
         localName: null,
         aliases: ["plate ribs", "asado"],
         description: "Collagen-rich rib section that performs best low and slow.",
@@ -3629,7 +3770,7 @@
       },
       {
         id: "tomahawk",
-        displayName: "Tomahawk",
+        displayName: { en: "Tomahawk", he: "טומהוק" },
         localName: null,
         aliases: [],
         description: "Long-bone rib steak with dramatic presentation and heavy marbling.",
@@ -3640,7 +3781,7 @@
       },
       {
         id: "entrecote",
-        displayName: "Entrecote",
+        displayName: { en: "Entrecote", he: "אנטריקוט" },
         localName: null,
         aliases: ["ribeye"],
         description: "Local-style naming for ribeye steak, prized for marbling and juiciness.",
@@ -3651,7 +3792,7 @@
       },
       {
         id: "filet",
-        displayName: "Filet / Tenderloin",
+        displayName: { en: "Filet / Tenderloin", he: "פילה / טנדרלוין" },
         localName: null,
         aliases: ["tenderloin"],
         description: "Ultra-tender center cut with mild flavor and very little connective tissue.",
@@ -3662,7 +3803,7 @@
       },
       {
         id: "shaitel",
-        displayName: "Shaitel",
+        displayName: { en: "Shaitel", he: "שייטל" },
         localName: null,
         aliases: ["round", "rump"],
         description: "Lean rear-leg cut used for roasts, schnitzel slicing, and gentle cooking.",
@@ -3673,7 +3814,7 @@
       },
       {
         id: "asado",
-        displayName: "Asado",
+        displayName: { en: "Asado", he: "אסאדו" },
         localName: null,
         aliases: ["short ribs", "plate ribs"],
         description: "Bone-in cross-cut rib style, ideal for long, slow cooks with deep flavor.",
@@ -3692,29 +3833,80 @@
         return acc;
       }, {});
 
-    function formatCutLabel(cut, { includeLocal = false } = {}) {
-      if (!cut) return "";
-      if (includeLocal && cut.localName) {
-        return `${cut.displayName} (${cut.localName})`;
-      }
-      return cut.displayName;
+    const RECIPE_STATIC_OPTIONS = {
+      meatType: [
+        { value: "beef", labelKey: "recipe.meatType.beef" },
+        { value: "lamb", labelKey: "recipe.meatType.lamb" },
+        { value: "veal", labelKey: "recipe.meatType.veal" }
+      ],
+      cookingMethod: [
+        { value: "smoking", labelKey: "recipe.method.smoking" },
+        { value: "long_cook", labelKey: "recipe.method.long_cook" },
+        { value: "cast_iron", labelKey: "recipe.method.cast_iron" },
+        { value: "bbq", labelKey: "recipe.method.bbq" },
+        { value: "oven_roast", labelKey: "recipe.method.oven_roast" }
+      ],
+      flavorProfile: [
+        { value: "classic", labelKey: "recipe.flavor.classic" },
+        { value: "peppery", labelKey: "recipe.flavor.peppery" },
+        { value: "garlic_herb", labelKey: "recipe.flavor.garlic_herb" },
+        { value: "sweet_smoky", labelKey: "recipe.flavor.sweet_smoky" },
+        { value: "spicy", labelKey: "recipe.flavor.spicy" }
+      ]
+    };
+
+    function populateRecipeStaticOptions() {
+      Object.entries(RECIPE_STATIC_OPTIONS).forEach(([selectId, options]) => {
+        const selectEl = document.getElementById(selectId);
+        if (!selectEl) return;
+        const selectedValue = selectEl.value;
+        selectEl.innerHTML = options
+          .map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(t(option.labelKey))}</option>`)
+          .join("");
+        if (options.some((option) => option.value === selectedValue)) {
+          selectEl.value = selectedValue;
+        } else if (selectId === "cookingMethod") {
+          selectEl.value = "cast_iron";
+        } else if (selectId === "flavorProfile") {
+          selectEl.value = "classic";
+        } else {
+          selectEl.value = options[0]?.value || "";
+        }
+      });
     }
 
-    const cutCards = Object.values(BEEF_CUTS).map((cut) => ({
-      id: cut.id,
-      label: formatCutLabel(cut)
-    }));
+    function formatCutLabel(cut, { includeLocal = false } = {}) {
+      if (!cut) return "";
+      const primaryName = localizeCutField(cut.displayName);
+      if (includeLocal && cut.localName) {
+        return `${primaryName} (${cut.localName})`;
+      }
+      return primaryName;
+    }
+
+    function localizeCutField(fieldValue) {
+      if (Array.isArray(fieldValue)) {
+        return fieldValue.map((item) => localizeCutField(item));
+      }
+      if (fieldValue && typeof fieldValue === "object") {
+        return fieldValue[currentLanguage] || fieldValue[FALLBACK_LANGUAGE] || "";
+      }
+      return fieldValue || "";
+    }
 
     function populateRecipeCutOptions() {
       const cutSelect = document.getElementById("cutType");
       if (!cutSelect) return;
 
+      const selectedValue = cutSelect.value;
       const options = CUT_DEFINITIONS.filter((cut) => cut.inRecipeGenerator);
       cutSelect.innerHTML = options
         .map((cut) => `<option value="${escapeHtml(cut.id)}">${escapeHtml(formatCutLabel(cut))}</option>`)
         .join("");
 
-      if (options.some((cut) => cut.id === "ribeye")) {
+      if (options.some((cut) => cut.id === selectedValue)) {
+        cutSelect.value = selectedValue;
+      } else if (options.some((cut) => cut.id === "ribeye")) {
         cutSelect.value = "ribeye";
       }
     }
@@ -4845,6 +5037,10 @@ function renderVideoInfo(v) {
     function renderCutsGrid(activeId = null) {
       const grid = document.getElementById("cutsGrid");
       if (!grid) return;
+      const cutCards = Object.values(BEEF_CUTS).map((cut) => ({
+        id: cut.id,
+        label: formatCutLabel(cut)
+      }));
 
       grid.innerHTML = cutCards.map(c => `
         <button class="cut-grid-card ${c.id === activeId ? "active" : ""}" data-cut-id="${c.id}">
@@ -4883,17 +5079,17 @@ function renderVideoInfo(v) {
       if (!panel) return;
 
       panel.innerHTML = `
-        <h3>${escapeHtml(cut.displayName)}</h3>
-        <p>${escapeHtml(cut.description)}</p>
+        <h3>${escapeHtml(formatCutLabel(cut))}</h3>
+        <p>${escapeHtml(localizeCutField(cut.description))}</p>
 
-        <h4>Location on the cow</h4>
-        <p>${escapeHtml(cut.location)}</p>
+        <h4>${escapeHtml(t("cuts.locationTitle"))}</h4>
+        <p>${escapeHtml(localizeCutField(cut.location))}</p>
 
-        <h4>Best cooking styles</h4>
-        <ul>${cut.cookingMethods.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        <h4>${escapeHtml(t("cuts.stylesTitle"))}</h4>
+        <ul>${localizeCutField(cut.cookingMethods).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
 
-        <h4>Tip</h4>
-        <p>${escapeHtml(cut.quickTip)}</p>
+        <h4>${escapeHtml(t("cuts.tipTitle"))}</h4>
+        <p>${escapeHtml(localizeCutField(cut.quickTip))}</p>
       `;
       panel.classList.remove("is-hidden");
     }
@@ -4942,12 +5138,12 @@ function updateBeefHighlight(cutName) {
     function buildReviewHighlights(place = {}) {
       const rating = Number(place.rating || 0);
       const totalReviews = Number(place.userRatingsTotal || 0);
-      let summary = "Local butcher shop";
+      let summary = t("butchers.summaryDefault");
 
       if (rating >= 4.7) {
-        summary = "Highly rated";
+        summary = t("butchers.summaryHighlyRated");
       } else if (totalReviews >= 120) {
-        summary = "Popular local spot";
+        summary = t("butchers.summaryPopular");
       }
 
       const reviewText = [
@@ -4956,10 +5152,10 @@ function updateBeefHighlight(cutName) {
       ].join(" ").toLowerCase();
 
       const keywordChecks = [
-        { token: "quality", label: "quality" },
-        { token: "fresh", label: "fresh" },
-        { token: "service", label: "good service" },
-        { token: "meat", label: "quality meat" }
+        { token: "quality", label: t("butchers.mentionQuality") },
+        { token: "fresh", label: t("butchers.mentionFresh") },
+        { token: "service", label: t("butchers.mentionService") },
+        { token: "meat", label: t("butchers.mentionMeat") }
       ];
 
       const foundKeywords = keywordChecks
@@ -4968,8 +5164,8 @@ function updateBeefHighlight(cutName) {
         .slice(0, 2);
 
       const mentionText = foundKeywords.length
-        ? `Reviews mention ${foundKeywords.join(" and ")}.`
-        : "Signals are based on rating and review volume only.";
+        ? t("butchers.mentionsText", { items: foundKeywords.join(currentLanguage === "he" ? " ו-" : " and ") })
+        : t("butchers.signalsOnly");
 
       return { summary, mentionText };
     }
@@ -4988,12 +5184,12 @@ function updateBeefHighlight(cutName) {
         return `
         <article class="butcher-card">
           <div class="butcher-title-row">
-            <h3 class="butcher-name">${escapeHtml(place.name || "Unknown butcher")}</h3>
+            <h3 class="butcher-name">${escapeHtml(place.name || t("butchers.unknownName"))}</h3>
             <div class="butcher-rating">⭐ ${place.rating ? Number(place.rating).toFixed(1) : "N/A"} · ${formatNum(place.userRatingsTotal || 0)}</div>
           </div>
-          <p class="butcher-address">${escapeHtml(place.address || "Address unavailable")}</p>
+          <p class="butcher-address">${escapeHtml(place.address || t("butchers.addressUnavailable"))}</p>
           <div class="butcher-highlights">
-            <strong>Review highlights</strong>
+            <strong>${escapeHtml(t("butchers.reviewHighlights"))}</strong>
             <p>${escapeHtml(highlights.summary)}</p>
             <p>${escapeHtml(highlights.mentionText)}</p>
           </div>
@@ -5074,8 +5270,8 @@ function updateBeefHighlight(cutName) {
 
     function getRecipeCutLabel(rawCut = "") {
       const normalized = String(rawCut || "").trim().toLowerCase();
-      if (!normalized) return "this cut";
-      if (["beef short ribs", "short ribs"].includes(normalized)) return "short ribs";
+      if (!normalized) return t("recipe.labels.cut");
+      if (["beef short ribs", "short ribs"].includes(normalized)) return t("recipe.cut.shortRibs");
       return normalized;
     }
 
@@ -5119,7 +5315,7 @@ function updateBeefHighlight(cutName) {
 
       output.innerHTML = `
         <div class="recipe-placeholder">
-          🔥 Generating AI recipe...
+          ${escapeHtml(t("recipe.loading"))}
         </div>
       `;
 
@@ -5134,7 +5330,7 @@ const isJson = contentType.includes("application/json");
 if (!res.ok) {
   output.innerHTML = `
     <div class="recipe-placeholder">
-      ⚠️ AI recipe not available in dev environment
+      ${escapeHtml(t("recipe.unavailable"))}
     </div>
   `;
   return;
@@ -5143,7 +5339,7 @@ if (!res.ok) {
 if (!isJson) {
   output.innerHTML = `
     <div class="recipe-placeholder">
-      ⚠️ AI recipe not available in dev environment
+      ${escapeHtml(t("recipe.unavailable"))}
     </div>
   `;
   return;
@@ -5167,7 +5363,7 @@ updateRecipeActionLabels();
 
         output.innerHTML = `
           <div class="recipe-placeholder">
-            ❌ Failed to generate AI recipe.<br>
+            ${escapeHtml(t("recipe.error"))}<br>
             ${escapeHtml(err.message || "")}
           </div>
         `;
@@ -5182,8 +5378,8 @@ updateRecipeActionLabels();
       const parsed = parseAiRecipe(recipeText);
       const parsedStructured = normalizeStructuredRecipe({
         main: {
-          title: parsed.title || "Smart Cooking Mode",
-          description: parsed.tips[0] || "Quick and balanced cook plan.",
+          title: parsed.title || t("recipe.fallbackTitle"),
+          description: parsed.tips[0] || t("recipe.fallbackDescription"),
           ingredients: parsed.ingredients.slice(0, 10),
           steps: parsed.steps.slice(0, 8)
         },
@@ -5287,11 +5483,11 @@ updateRecipeActionLabels();
       const cutLabel = getRecipeCutLabel(meta.cut);
       const mainIngredients = (main.ingredients || []).length
         ? `<ul>${(main.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-        : `<p>Ingredients not provided.</p>`;
+        : `<p>${escapeHtml(t("recipe.ingredientsMissing"))}</p>`;
 
       const mainSteps = (main.steps || []).length
         ? `<ol>${(main.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
-        : `<p>Steps not provided.</p>`;
+        : `<p>${escapeHtml(t("recipe.stepsMissing"))}</p>`;
 
       const sauceCards = (structuredRecipe.sauces || []).map((sauce, index) => `
         <article class="sauce-card" id="sauceCard${index}">
@@ -5303,9 +5499,9 @@ updateRecipeActionLabels();
             <span class="sauce-chevron">⌄</span>
           </button>
           <div class="sauce-details">
-            <h4>Ingredients</h4>
+            <h4>${escapeHtml(t("recipe.ingredients"))}</h4>
             <ul>${(sauce.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-            <h4>Steps</h4>
+            <h4>${escapeHtml(t("recipe.steps"))}</h4>
             <ol>${(sauce.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
           </div>
         </article>
@@ -5316,7 +5512,7 @@ updateRecipeActionLabels();
           <h5>${escapeHtml(side.name)}</h5>
           <p>${escapeHtml(side.description)}</p>
           <ol class="side-steps">
-            ${((side.steps || []).length ? side.steps : ["Prep quickly and serve hot next to the main cut."])
+            ${((side.steps || []).length ? side.steps : [t("recipe.defaultStep")])
               .slice(0, 3)
               .map(step => `<li>${escapeHtml(step)}</li>`)
               .join("")}
@@ -5327,8 +5523,8 @@ updateRecipeActionLabels();
       return `
         <div class="ai-recipe-wrap">
           <div class="ai-recipe-header">
-            <h3 class="ai-recipe-title">${escapeHtml(main.title || "Smart Cooking Mode")}</h3>
-            <span class="ai-recipe-badge">${escapeHtml(meta.source || "ai")} powered</span>
+            <h3 class="ai-recipe-title">${escapeHtml(main.title || t("recipe.fallbackTitle"))}</h3>
+            <span class="ai-recipe-badge">${escapeHtml(t("recipe.aiPowered"))}</span>
           </div>
 
           <div class="ai-recipe-meta">
@@ -5338,47 +5534,47 @@ updateRecipeActionLabels();
           </div>
 
           <section class="smart-section">
-            <h4 class="smart-section-title">🔥 MAIN RECIPE</h4>
+            <h4 class="smart-section-title">${escapeHtml(t("recipe.sectionMain"))}</h4>
             <div class="ai-recipe-grid">
               <div class="ai-recipe-card full">
-                <h4>${escapeHtml(main.title || "Smart Cooking Mode")}</h4>
-              <p>${escapeHtml(main.description || "No description provided.")}</p>
+                <h4>${escapeHtml(main.title || t("recipe.fallbackTitle"))}</h4>
+              <p>${escapeHtml(main.description || t("recipe.descriptionMissing"))}</p>
               </div>
 
               <div class="ai-recipe-card">
-                <h4>Ingredients</h4>
+                <h4>${escapeHtml(t("recipe.ingredients"))}</h4>
                 ${mainIngredients}
               </div>
 
               <div class="ai-recipe-card">
-                <h4>Step-by-step</h4>
+                <h4>${escapeHtml(t("recipe.steps"))}</h4>
                 ${mainSteps}
               </div>
             </div>
           </section>
 
           <section class="pairings-section smart-section">
-            <h4 class="pairings-title">🥣 SAUCES</h4>
+            <h4 class="pairings-title">${escapeHtml(t("recipe.saucesTitle"))}</h4>
             <div class="sauce-grid">
-              ${sauceCards || "<p>No sauce pairings available.</p>"}
+              ${sauceCards || `<p>${escapeHtml(t("recipe.noSauces"))}</p>`}
             </div>
           </section>
 
           <section class="pairings-section smart-section">
-            <h4 class="pairings-title">🍽️ SIDES</h4>
+            <h4 class="pairings-title">${escapeHtml(t("recipe.sidesTitle"))}</h4>
             <div class="sides-grid">
-              ${sidesCards || "<p>No side suggestions available.</p>"}
+              ${sidesCards || `<p>${escapeHtml(t("recipe.noSides"))}</p>`}
             </div>
           </section>
 
           <section class="smart-section">
             <div class="recipe-butcher-cta">
-              <h4>🥩 Ready to cook this?</h4>
-              <p>Find butcher shops near you for this recipe.</p>
-              <p>Looking for ${escapeHtml(cutLabel)} nearby?</p>
+              <h4>${escapeHtml(t("recipe.ctaTitle"))}</h4>
+              <p>${escapeHtml(t("recipe.ctaDescription"))}</p>
+              <p>${escapeHtml(t("recipe.ctaLookingFor", { cut: cutLabel }))}</p>
               <div class="recipe-butcher-actions">
-                <button class="small-btn" type="button" onclick="jumpToButcherFinder()">Find Butchers Near Me</button>
-                <button class="small-btn" type="button" onclick="jumpToButcherFinder({ useLocation: true })">Use My Location</button>
+                <button class="small-btn" type="button" onclick="jumpToButcherFinder()">${escapeHtml(t("recipe.ctaFindButchers"))}</button>
+                <button class="small-btn" type="button" onclick="jumpToButcherFinder({ useLocation: true })">${escapeHtml(t("actions.useMyLocation"))}</button>
               </div>
             </div>
           </section>
