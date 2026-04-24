@@ -28,6 +28,7 @@ const screenTitle = document.getElementById("screenTitle");
 const screenContent = document.getElementById("screenContent");
 const backBtn = document.getElementById("backBtn");
 const nextBtn = document.getElementById("nextBtn");
+const appRoot = document.getElementById("app");
 
 backBtn.addEventListener("click", () => {
   if (currentStep > 0) {
@@ -46,6 +47,7 @@ function setStep(stepIndex) {
 
 function render() {
   const step = steps[currentStep];
+  appRoot.dataset.step = step;
   screenTitle.textContent = titleMap[step];
   backBtn.classList.toggle("hidden", currentStep === 0);
   nextBtn.textContent = currentStep === steps.length - 1 ? "סיום" : "המשך";

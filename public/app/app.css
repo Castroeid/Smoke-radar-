@@ -1,20 +1,35 @@
 :root {
   color-scheme: dark;
-  --bg: #080b10;
-  --bg-elevated: #121722;
-  --line: #232b3a;
-  --text: #edf2f7;
-  --muted: #9aa7ba;
-  --accent: #ff6b2c;
-  --accent-soft: #ff9f75;
-  --chip: #1b2331;
+  --bg: #050506;
+  --bg-elevated: #111114;
+  --line: #2b2a30;
+  --text: #f7f5ef;
+  --muted: #b0a99b;
+  --accent: #ff5a1f;
+  --accent-soft: #ff9d59;
+  --chip: #1b1a1f;
+  --glow: 0 0 0 1px rgba(255, 118, 35, 0.4), 0 10px 24px rgba(255, 77, 0, 0.35);
 }
 
 * { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: "Heebo", "Assistant", system-ui, sans-serif;
-  background: radial-gradient(circle at top, #121925 0%, var(--bg) 60%);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 98, 25, 0.18) 0, transparent 35%),
+    radial-gradient(circle at 80% 18%, rgba(255, 58, 0, 0.18) 0, transparent 32%),
+    radial-gradient(circle at 50% 120%, rgba(255, 136, 46, 0.2) 0, transparent 45%),
+    linear-gradient(180deg, #0d0b0c 0%, var(--bg) 40%, #050506 100%);
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(255, 98, 25, 0.18) 0, transparent 35%),
+    radial-gradient(circle at 80% 18%, rgba(255, 58, 0, 0.18) 0, transparent 32%),
+    radial-gradient(circle at 50% 120%, rgba(255, 136, 46, 0.2) 0, transparent 45%),
+    linear-gradient(180deg, #0d0b0c 0%, var(--bg) 40%, #050506 100%),
+    url("/app/assets/app-bg-smoke.jpg"),
+    url("/app/assets/fire-texture.png");
+  background-size: cover, cover, cover, cover, cover, 1200px;
+  background-repeat: no-repeat;
+  background-blend-mode: screen, screen, normal, normal, overlay, soft-light;
   color: var(--text);
 }
 
@@ -22,54 +37,108 @@ body {
   min-height: 100vh;
   max-width: 520px;
   margin: 0 auto;
-  padding: 20px 16px 24px;
+  padding: max(18px, env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 16px;
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 144, 84, 0.16), transparent 35%),
+    radial-gradient(circle at 82% 22%, rgba(255, 90, 31, 0.22), transparent 32%),
+    linear-gradient(180deg, rgba(8, 8, 10, 0.84), rgba(7, 7, 8, 0.92));
+  z-index: -1;
+  pointer-events: none;
 }
 
 .app-header h1 {
-  margin: 8px 0 0;
-  font-size: 1.45rem;
+  margin: 6px 0 0;
+  font-size: clamp(1.7rem, 5.4vw, 2.45rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
-.brand { margin: 0; color: var(--accent-soft); font-weight: 700; }
+.app-header { display: grid; gap: 4px; }
+.brand {
+  margin: 0;
+  color: var(--accent-soft);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.hero-kicker {
+  margin: 0;
+  color: #f9b37f;
+  opacity: 0.86;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.hero-subtitle {
+  margin: 2px 0 0;
+  font-size: .94rem;
+  color: var(--muted);
+}
+
+.app-shell:not([data-step="home"]) .hero-subtitle,
+.app-shell:not([data-step="home"]) .hero-kicker { display: none; }
 
 .screen-content { display: grid; gap: 12px; align-content: start; }
 
 .card {
-  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  background:
+    linear-gradient(160deg, rgba(255, 110, 35, 0.09), transparent 45%),
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 14px;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.34);
 }
 
 .btn {
   border: 1px solid transparent;
-  border-radius: 14px;
-  padding: 14px;
-  font-size: 1rem;
-  font-weight: 700;
+  border-radius: 16px;
+  padding: 16px;
+  font-size: 1.05rem;
+  font-weight: 800;
   width: 100%;
   cursor: pointer;
+  transition: transform .14s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+}
+.btn:active {
+  transform: translateY(1px) scale(.996);
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), #ff844e);
+  background: linear-gradient(135deg, #ff7e36 0%, var(--accent) 45%, #e63b00 100%);
   color: #fff;
+  box-shadow: var(--glow);
+}
+.btn-primary:hover {
+  box-shadow: 0 0 0 1px rgba(255, 126, 54, .55), 0 14px 26px rgba(255, 74, 13, .4);
 }
 .btn-ghost {
-  background: transparent;
+  background: rgba(255,255,255,.02);
   border-color: var(--line);
   color: var(--text);
 }
 .btn-choice {
-  background: var(--bg-elevated);
+  background:
+    linear-gradient(155deg, rgba(255, 103, 25, 0.07), transparent 45%),
+    var(--bg-elevated);
   border-color: var(--line);
   color: var(--text);
   text-align: right;
+  min-height: 68px;
 }
 .btn-choice.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(255,107,44,.25) inset;
+  box-shadow: 0 0 0 2px rgba(255,107,44,.25) inset, 0 8px 24px rgba(255, 90, 31, 0.2);
 }
 
 .app-nav { display: grid; grid-template-columns: 1fr 1.3fr; gap: 10px; }
@@ -90,6 +159,42 @@ select, input {
 
 label { font-size: .92rem; color: var(--muted); margin-bottom: 6px; display: block; }
 
+.app-shell[data-step="home"] .app-header {
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.55)),
+    url("/app/assets/hero-steak.jpg");
+  background-size: cover;
+  background-position: center;
+  border-radius: 24px;
+  padding: 18px 16px 20px;
+  border: 1px solid rgba(255, 146, 80, 0.26);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 115, 45, .28) inset;
+}
+.app-shell[data-step="home"] .brand {
+  font-size: .9rem;
+  color: #ffd2af;
+}
+.app-shell[data-step="home"] h1 {
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  font-weight: 900;
+}
+.app-shell[data-step="home"] .screen-content {
+  background: rgba(14, 14, 17, .74);
+  border: 1px solid rgba(255, 138, 68, .16);
+  border-radius: 24px;
+  padding: 14px;
+  backdrop-filter: blur(2px);
+}
+.app-shell[data-step="home"] .btn-choice {
+  font-size: 1.08rem;
+  min-height: 74px;
+}
+
 @media (min-width: 700px) {
-  .app-shell { margin-top: 18px; border: 1px solid var(--line); border-radius: 24px; }
+  .app-shell {
+    margin-top: 18px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    overflow: hidden;
+  }
 }
