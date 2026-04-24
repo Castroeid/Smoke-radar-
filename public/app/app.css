@@ -1,0 +1,95 @@
+:root {
+  color-scheme: dark;
+  --bg: #080b10;
+  --bg-elevated: #121722;
+  --line: #232b3a;
+  --text: #edf2f7;
+  --muted: #9aa7ba;
+  --accent: #ff6b2c;
+  --accent-soft: #ff9f75;
+  --chip: #1b2331;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Heebo", "Assistant", system-ui, sans-serif;
+  background: radial-gradient(circle at top, #121925 0%, var(--bg) 60%);
+  color: var(--text);
+}
+
+.app-shell {
+  min-height: 100vh;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 16px 24px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+}
+
+.app-header h1 {
+  margin: 8px 0 0;
+  font-size: 1.45rem;
+}
+.brand { margin: 0; color: var(--accent-soft); font-weight: 700; }
+
+.screen-content { display: grid; gap: 12px; align-content: start; }
+
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 100%;
+  cursor: pointer;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #ff844e);
+  color: #fff;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text);
+}
+.btn-choice {
+  background: var(--bg-elevated);
+  border-color: var(--line);
+  color: var(--text);
+  text-align: right;
+}
+.btn-choice.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255,107,44,.25) inset;
+}
+
+.app-nav { display: grid; grid-template-columns: 1fr 1.3fr; gap: 10px; }
+.list { margin: 8px 0 0; padding: 0 18px 0 0; display: grid; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { background: var(--chip); border: 1px solid var(--line); padding: 8px 10px; border-radius: 999px; font-size: .92rem; }
+.small { color: var(--muted); font-size: .9rem; }
+.hidden { display: none !important; }
+
+select, input {
+  width: 100%;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+label { font-size: .92rem; color: var(--muted); margin-bottom: 6px; display: block; }
+
+@media (min-width: 700px) {
+  .app-shell { margin-top: 18px; border: 1px solid var(--line); border-radius: 24px; }
+}
