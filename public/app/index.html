@@ -9,19 +9,24 @@
   <link rel="stylesheet" href="/app/app.css" />
 </head>
 <body>
-  <main id="app" class="app-shell">
-    <header class="app-header">
+  <main id="app" class="app-shell" data-step="landing">
+    <header id="appHeader" class="app-header">
       <p class="brand">🔥 Smoke Radar</p>
-      <p class="hero-kicker">Premium Fire Edition</p>
-      <h1 id="screenTitle">מה בא לך להכין היום?</h1>
-      <p class="hero-subtitle">בוחרים בשר, מציתים טעם, ומבשלים כמו קמפיין.</p>
+      <h1 id="screenTitle"></h1>
+      <p id="screenSubtitle" class="hero-subtitle"></p>
+      <div class="progress-wrap" aria-hidden="true">
+        <span id="progressText" class="progress-text"></span>
+        <div class="progress-track">
+          <span id="progressFill" class="progress-fill"></span>
+        </div>
+      </div>
     </header>
 
     <section id="screenContent" class="screen-content"></section>
 
     <nav class="app-nav">
-      <button id="backBtn" class="btn btn-ghost" type="button">חזרה</button>
-      <button id="nextBtn" class="btn btn-primary" type="button">המשך</button>
+      <button id="backBtn" class="btn btn-ghost" type="button"></button>
+      <button id="nextBtn" class="btn btn-primary" type="button"></button>
     </nav>
   </main>
 
