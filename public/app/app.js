@@ -11,15 +11,19 @@ const cutsCatalog = [
   { id: "short_ribs", labels: { he: "אסאדו / שפונדרה", en: "Short Ribs" }, aliases: ["short ribs", "שפונדרה"] },
   { id: "chuck", labels: { he: "צוואר / כתף", en: "Chuck" }, aliases: ["chuck", "צוואר", "כתף"] },
   { id: "flank", labels: { he: "פלנק", en: "Flank" }, aliases: ["flank", "פלנק"] },
-  { id: "striploin", labels: { he: "סינטה / סטריפלוין", en: "Striploin" }, aliases: ["striploin", "סטריפלוין"] },
-  { id: "tenderloin", labels: { he: "פילה מובחר", en: "Tenderloin" }, aliases: ["tenderloin"] }
+  { id: "striploin", labels: { he: "סטריפלוין / סינטה", en: "Striploin" }, aliases: ["striploin", "סטריפלוין", "סינטה"] },
+  { id: "tenderloin", labels: { he: "פילה", en: "Tenderloin" }, aliases: ["tenderloin", "פילה"] }
 ];
 
 const methods = [
   { id: "grill", labels: { he: "גריל", en: "Grill" } },
   { id: "cast_iron", labels: { he: "מחבת ברזל", en: "Cast Iron" } },
   { id: "oven", labels: { he: "תנור", en: "Oven" } },
+  { id: "bbq", labels: { he: "ברביקיו", en: "BBQ" } },
   { id: "smoker", labels: { he: "מעשנה", en: "Smoker" } },
+  { id: "smoking", labels: { he: "עישון", en: "Smoking" } },
+  { id: "long_cook", labels: { he: "בישול ארוך", en: "Long Cook" } },
+  { id: "oven_roast", labels: { he: "צלייה בתנור", en: "Oven Roast" } },
   { id: "low_slow", labels: { he: "נמוך ואיטי", en: "Low & Slow" } },
   { id: "pan_sear", labels: { he: "צריבה במחבת", en: "Pan Sear" } },
   { id: "reverse_sear", labels: { he: "ריברס סיר", en: "Reverse Sear" } }
@@ -28,10 +32,16 @@ const methods = [
 const flavorProfiles = [
   { id: "classic", labels: { he: "קלאסי", en: "Classic" } },
   { id: "smoky", labels: { he: "מעושן", en: "Smoky" } },
-  { id: "bold", labels: { he: "עז", en: "Bold" } },
+  { id: "spicy", labels: { he: "חריף", en: "Spicy" } },
+  { id: "garlic_herbs", labels: { he: "שום ועשבי תיבול", en: "Garlic & Herbs" } },
   { id: "mediterranean", labels: { he: "ים תיכוני", en: "Mediterranean" } },
-  { id: "spicy", labels: { he: "חריף", en: "Spicy" } }
+  { id: "sweet_smoky", labels: { he: "מתוק-מעושן", en: "Sweet & Smoky" } },
+  { id: "israeli_style", labels: { he: "ישראלי", en: "Israeli Style" } }
 ];
+
+function defaultDietaryPreference(lang) {
+  return lang === "he" ? "kosher" : "non_kosher";
+}
 
 const copy = {
   he: {
@@ -88,7 +98,7 @@ const state = {
     cutId: "ribeye",
     methodId: "grill",
     flavorId: "smoky",
-    dietaryPreference: "kosher",
+    dietaryPreference: defaultDietaryPreference(document.documentElement.lang === "en" ? "en" : "he"),
     servings: 4
   },
   mealIdeas: [],
@@ -126,6 +136,7 @@ function t(path) {
 
 function getCutById(id) { return cutsCatalog.find((c) => c.id === id) || cutsCatalog[0]; }
 function getMethodById(id) { return methods.find((m) => m.id === id) || methods[0]; }
+function getFlavorById(id) { return flavorProfiles.find((f) => f.id === id) || flavorProfiles[0]; }
 
 function render() {
   const step = STEPS[currentStep];
@@ -251,10 +262,10 @@ function renderPreferences() {
       <div class="field"><label>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</label>
         <select id="flavorId">${flavorProfiles.map((f) => `<option value="${f.id}">${f.labels[state.lang]}</option>`).join("")}</select>
       </div>
-      <div class="field"><label>${state.lang === "he" ? "כשרות" : "Kosher preference"}</label>
+      <div class="field"><label>${state.lang === "he" ? "העדפת כשרות" : "Dietary preference"}</label>
         <select id="dietaryPreference">
           <option value="kosher">${state.lang === "he" ? "כשר" : "Kosher"}</option>
-          <option value="non-kosher">${state.lang === "he" ? "לא כשר" : "Non-kosher"}</option>
+          <option value="non_kosher">${state.lang === "he" ? "לא כשר" : "Non-kosher"}</option>
         </select>
       </div>
       <div class="field"><label>${state.lang === "he" ? "מספר מנות" : "Servings"}</label><input type="number" min="1" max="20" id="servings" value="${state.preferences.servings}" /></div>
@@ -274,7 +285,7 @@ function collectPreferences() {
   state.preferences.cutId = document.getElementById("cutId").value;
   state.preferences.methodId = document.getElementById("methodId").value;
   state.preferences.flavorId = document.getElementById("flavorId").value;
-  state.preferences.dietaryPreference = document.getElementById("dietaryPreference").value;
+  state.preferences.dietaryPreference = document.getElementById("dietaryPreference").value === "kosher" ? "kosher" : "non_kosher";
   state.preferences.servings = Number(document.getElementById("servings").value || 1);
 }
 
@@ -283,7 +294,7 @@ function buildIdeas() {
   return [
     { title: `${cut} ${state.lang === "he" ? "עם צריבה חזקה" : "with high-heat crust"}`, note: state.lang === "he" ? "ביצוע מהיר ומדויק" : "Quick precision cook", flavorId: "classic" },
     { title: `${cut} ${state.lang === "he" ? "במעשנה ארוכה" : "smoked low and slow"}`, note: state.lang === "he" ? "עומק טעמים" : "Deep smoke profile", flavorId: "smoky" },
-    { title: `${cut} ${state.lang === "he" ? "עם רוטב פלפל" : "with pepper sauce"}`, note: state.lang === "he" ? "מנה עשירה" : "Bold steakhouse style", flavorId: "bold" },
+    { title: `${cut} ${state.lang === "he" ? "עם שום ועשבי תיבול" : "with garlic and herbs"}`, note: state.lang === "he" ? "מנה עשירה ומאוזנת" : "Savory herb-forward style", flavorId: "garlic_herbs" },
     { title: `${cut} ${state.lang === "he" ? "בסגנון ים תיכוני" : "Mediterranean style"}`, note: state.lang === "he" ? "עשבי תיבול והדר" : "Herbs and citrus", flavorId: "mediterranean" }
   ];
 }
@@ -309,9 +320,9 @@ function renderCookIdeas() {
 
 async function loadRecipe() {
   const p = state.preferences;
-  const cut = getCutById(p.cutId).labels.en;
-  const method = getMethodById(p.methodId).labels.he;
-  const flavor = flavorProfiles.find((f) => f.id === p.flavorId)?.labels.en || "Smoky";
+  const cut = getCutById(p.cutId).labels[state.lang];
+  const method = getMethodById(p.methodId).labels[state.lang];
+  const flavor = getFlavorById(p.flavorId).labels[state.lang];
   const query = new URLSearchParams({
     lang: state.lang,
     meatType: p.meatType,
@@ -348,6 +359,9 @@ function renderRecipe() {
 
   const r = state.recipe;
   const main = r.main || {};
+  const selectedCut = getCutById(state.preferences.cutId).labels[state.lang];
+  const selectedMethod = getMethodById(state.preferences.methodId).labels[state.lang];
+  const selectedFlavor = getFlavorById(state.preferences.flavorId).labels[state.lang];
   const prep = main.prepTime || (state.lang === "he" ? "20 דקות" : "20 min");
   const cook = main.cookTime || (state.lang === "he" ? "45 דקות" : "45 min");
   const total = main.totalTime || (state.lang === "he" ? "65 דקות" : "65 min");
@@ -364,8 +378,11 @@ function renderRecipe() {
       <div class="meta-item"><strong>${state.lang === "he" ? "זמן בישול" : "Cook Time"}</strong>${cook}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "סה״כ זמן" : "Total Time"}</strong>${total}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "קושי" : "Difficulty"}</strong>${difficulty}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "נתח" : "Cut"}</strong>${selectedCut}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</strong>${selectedMethod}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</strong>${selectedFlavor}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "מנות" : "Servings"}</strong>${state.preferences.servings}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "כשרות" : "Kosher"}</strong>${state.preferences.dietaryPreference === "kosher" ? (state.lang === "he" ? "כשר" : "Kosher") : (state.lang === "he" ? "לא כשר" : "Non-kosher")}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "העדפת כשרות" : "Dietary preference"}</strong>${state.preferences.dietaryPreference === "kosher" ? (state.lang === "he" ? "כשר" : "Kosher") : (state.lang === "he" ? "לא כשר" : "Non-kosher")}</div>
     </div>
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${i}</li>`).join("")}</ul></div>
