@@ -2970,6 +2970,11 @@
           <label for="flavorProfile" data-i18n="recipe.labels.flavorProfile">Flavor Profile</label>
           <select id="flavorProfile"></select>
         </div>
+
+        <div class="recipe-field">
+          <label for="dietaryPreference" data-i18n="recipe.labels.dietaryPreference">Dietary preference</label>
+          <select id="dietaryPreference"></select>
+        </div>
       </div>
 
       <div class="recipe-actions">
@@ -3195,6 +3200,7 @@
         "recipe.labels.cut": "Cut",
         "recipe.labels.cookingMethod": "Cooking Method",
         "recipe.labels.flavorProfile": "Flavor Profile",
+        "recipe.labels.dietaryPreference": "Dietary preference",
         "recipe.meatType.beef": "Beef",
         "recipe.meatType.lamb": "Lamb",
         "recipe.meatType.veal": "Veal",
@@ -3208,6 +3214,8 @@
         "recipe.flavor.garlic_herb": "Garlic & Herb",
         "recipe.flavor.sweet_smoky": "Sweet & Smoky",
         "recipe.flavor.spicy": "Spicy",
+        "recipe.dietary.kosher": "Kosher",
+        "recipe.dietary.non_kosher": "Non-kosher",
         "recipe.loading": "🔥 Generating AI recipe...",
         "recipe.unavailable": "⚠️ AI recipe not available in dev environment",
         "recipe.error": "❌ Failed to generate AI recipe.",
@@ -3227,8 +3235,13 @@
         "recipe.descriptionMissing": "No description provided.",
         "recipe.saucesTitle": "🥣 SAUCES",
         "recipe.sidesTitle": "🍽️ SIDES",
+        "recipe.drinksTitle": "🥤 Drink Pairings",
         "recipe.noSauces": "No sauce pairings available.",
         "recipe.noSides": "No side suggestions available.",
+        "recipe.noDrinks": "No drink suggestions available.",
+        "recipe.kosherLabel": "Kosher",
+        "recipe.nonKosherLabel": "Non-kosher",
+        "recipe.dietaryChip": "Dietary",
         "recipe.defaultStep": "Prep quickly and serve hot next to the main cut.",
         "recipe.ctaTitle": "🥩 Ready to cook this?",
         "recipe.ctaDescription": "Find butcher shops near you for this recipe.",
@@ -3464,6 +3477,7 @@
         "recipe.labels.cut": "נתח",
         "recipe.labels.cookingMethod": "שיטת בישול",
         "recipe.labels.flavorProfile": "פרופיל טעמים",
+        "recipe.labels.dietaryPreference": "העדפת כשרות",
         "recipe.meatType.beef": "בקר",
         "recipe.meatType.lamb": "טלה",
         "recipe.meatType.veal": "עגל",
@@ -3477,6 +3491,8 @@
         "recipe.flavor.garlic_herb": "שום ועשבי תיבול",
         "recipe.flavor.sweet_smoky": "מתוק ומעושן",
         "recipe.flavor.spicy": "חריף",
+        "recipe.dietary.kosher": "כשר",
+        "recipe.dietary.non_kosher": "לא כשר",
         "recipe.loading": "🔥 מייצר מתכון AI...",
         "recipe.unavailable": "⚠️ מתכון AI לא זמין בסביבת פיתוח",
         "recipe.error": "❌ יצירת מתכון AI נכשלה.",
@@ -3496,8 +3512,13 @@
         "recipe.descriptionMissing": "לא סופק תיאור.",
         "recipe.saucesTitle": "🥣 רטבים",
         "recipe.sidesTitle": "🍽️ תוספות",
+        "recipe.drinksTitle": "🥤 שתייה מתאימה",
         "recipe.noSauces": "אין התאמות רטבים זמינות.",
         "recipe.noSides": "אין הצעות לתוספות כרגע.",
+        "recipe.noDrinks": "אין הצעות לשתייה כרגע.",
+        "recipe.kosherLabel": "כשר",
+        "recipe.nonKosherLabel": "לא כשר",
+        "recipe.dietaryChip": "כשרות",
         "recipe.defaultStep": "הכנה מהירה והגשה חמה לצד המנה המרכזית.",
         "recipe.ctaTitle": "🥩 מוכנים לבשל את זה?",
         "recipe.ctaDescription": "מצאו קצביות קרובות למתכון הזה.",
@@ -3997,6 +4018,10 @@
         { value: "garlic_herb", labelKey: "recipe.flavor.garlic_herb" },
         { value: "sweet_smoky", labelKey: "recipe.flavor.sweet_smoky" },
         { value: "spicy", labelKey: "recipe.flavor.spicy" }
+      ],
+      dietaryPreference: [
+        { value: "kosher", labelKey: "recipe.dietary.kosher" },
+        { value: "non_kosher", labelKey: "recipe.dietary.non_kosher" }
       ]
     };
 
@@ -4014,6 +4039,8 @@
           selectEl.value = "cast_iron";
         } else if (selectId === "flavorProfile") {
           selectEl.value = "classic";
+        } else if (selectId === "dietaryPreference") {
+          selectEl.value = currentLanguage === "he" ? "kosher" : "non_kosher";
         } else {
           selectEl.value = options[0]?.value || "";
         }
@@ -5454,9 +5481,12 @@ function updateBeefHighlight(cutName) {
       const flavorEl = document.getElementById("flavorProfile");
       const method = methodEl.value;
       const flavor = flavorEl.value;
+      const dietaryEl = document.getElementById("dietaryPreference");
+      const dietaryPreference = dietaryEl?.value || (currentLanguage === "he" ? "kosher" : "non_kosher");
       const meatTypeLabel = document.getElementById("meatType").selectedOptions?.[0]?.textContent?.trim() || meatType;
       const methodLabel = methodEl.selectedOptions?.[0]?.textContent?.trim() || method;
       const flavorLabel = flavorEl.selectedOptions?.[0]?.textContent?.trim() || flavor;
+      const dietaryLabel = dietaryEl?.selectedOptions?.[0]?.textContent?.trim() || dietaryPreference;
       const output = document.getElementById("recipeOutput");
 
       const randomSeed = Math.floor(Math.random() * 1000000);
@@ -5469,7 +5499,7 @@ function updateBeefHighlight(cutName) {
 
       try {
        const res = await fetch(
-  `/api/ai-recipe?lang=${encodeURIComponent(currentLanguage)}&meatType=${encodeURIComponent(meatTypeLabel)}&cut=${encodeURIComponent(cutLabel)}&method=${encodeURIComponent(methodLabel)}&flavor=${encodeURIComponent(flavorLabel)}&r=${randomSeed}&mode=${encodeURIComponent(mode)}`
+  `/api/ai-recipe?lang=${encodeURIComponent(currentLanguage)}&meatType=${encodeURIComponent(meatTypeLabel)}&cut=${encodeURIComponent(cutLabel)}&method=${encodeURIComponent(methodLabel)}&flavor=${encodeURIComponent(flavorLabel)}&dietaryPreference=${encodeURIComponent(dietaryPreference)}&r=${randomSeed}&mode=${encodeURIComponent(mode)}`
 );
 
 const contentType = res.headers.get("content-type") || "";
@@ -5504,6 +5534,8 @@ updateRecipeActionLabels();
           cut: cutLabel,
           method: methodLabel,
           flavor: flavorLabel,
+          dietaryPreference,
+          dietaryLabel,
           source: data.source || "ai"
         });
       } catch (err) {
@@ -5525,6 +5557,7 @@ updateRecipeActionLabels();
 
       const parsed = parseAiRecipe(recipeText);
       const parsedStructured = normalizeStructuredRecipe({
+        dietaryPreference: currentLanguage === "he" ? "kosher" : "non_kosher",
         main: {
           title: parsed.title || t("recipe.fallbackTitle"),
           description: parsed.tips[0] || t("recipe.fallbackDescription"),
@@ -5564,6 +5597,10 @@ updateRecipeActionLabels();
             description: t("recipe.fallbackSide2Desc"),
             steps: [t("recipe.defaultStep")]
           }
+        ],
+        drinkPairings: [
+          { name: currentLanguage === "he" ? "יין אדום יבש" : "Dry red wine", description: currentLanguage === "he" ? "משתלב מצוין עם בשר צלוי." : "Pairs well with roasted beef." },
+          { name: currentLanguage === "he" ? "מים מוגזים עם לימון" : "Sparkling water with lemon", description: currentLanguage === "he" ? "מרענן ומנקה חך." : "Refreshing palate cleanser." }
         ]
       });
 
@@ -5600,6 +5637,16 @@ updateRecipeActionLabels();
             .filter(item => item.name)
             .slice(0, 3)
         : [];
+      const safeDrinks = Array.isArray(recipe.drinkPairings)
+        ? recipe.drinkPairings
+            .map((item) => ({
+              name: String(item?.name || "").trim(),
+              description: String(item?.description || "").trim()
+            }))
+            .filter(item => item.name)
+            .slice(0, 3)
+        : [];
+      const dietaryPreference = String(recipe?.dietaryPreference || "").trim().toLowerCase();
 
       return {
         main: {
@@ -5617,7 +5664,9 @@ updateRecipeActionLabels();
           chefTips: safeList(recipe?.main?.chefTips)
         },
         sauces: safeSauces,
-        sides: safeSides
+        sides: safeSides,
+        drinkPairings: safeDrinks,
+        dietaryPreference: dietaryPreference === "kosher" ? "kosher" : "non_kosher"
       };
     }
 
@@ -5628,6 +5677,8 @@ updateRecipeActionLabels();
       if (mode === "sauces") {
         return {
           ...currentRecipe,
+          dietaryPreference: incomingRecipe.dietaryPreference || currentRecipe.dietaryPreference,
+          drinkPairings: incomingRecipe.drinkPairings.length ? incomingRecipe.drinkPairings : currentRecipe.drinkPairings,
           sauces: incomingRecipe.sauces.length ? incomingRecipe.sauces : currentRecipe.sauces
         };
       }
@@ -5635,6 +5686,8 @@ updateRecipeActionLabels();
       if (mode === "sides") {
         return {
           ...currentRecipe,
+          dietaryPreference: incomingRecipe.dietaryPreference || currentRecipe.dietaryPreference,
+          drinkPairings: incomingRecipe.drinkPairings.length ? incomingRecipe.drinkPairings : currentRecipe.drinkPairings,
           sides: incomingRecipe.sides.length ? incomingRecipe.sides : currentRecipe.sides
         };
       }
@@ -5646,6 +5699,8 @@ updateRecipeActionLabels();
       const main = structuredRecipe?.main || {};
       const metadata = main.metadata || {};
       const cutLabel = getRecipeCutLabel(meta.cut);
+      const dietaryPreference = structuredRecipe?.dietaryPreference || meta.dietaryPreference || (currentLanguage === "he" ? "kosher" : "non_kosher");
+      const dietaryLabel = dietaryPreference === "kosher" ? t("recipe.kosherLabel") : t("recipe.nonKosherLabel");
       const mainIngredients = (main.ingredients || []).length
         ? `<ul>${(main.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
         : `<p>${escapeHtml(t("recipe.ingredientsMissing"))}</p>`;
@@ -5687,6 +5742,12 @@ updateRecipeActionLabels();
           </ol>
         </article>
       `).join("");
+      const drinkCards = (structuredRecipe.drinkPairings || []).map((drink) => `
+        <article class="side-card">
+          <h5>${escapeHtml(drink.name)}</h5>
+          <p>${escapeHtml(drink.description)}</p>
+        </article>
+      `).join("");
 
       return `
         <div class="ai-recipe-wrap">
@@ -5699,6 +5760,7 @@ updateRecipeActionLabels();
             <span class="ai-recipe-chip">🥩 ${escapeHtml(meta.cut || "cut")}</span>
             <span class="ai-recipe-chip">🔥 ${escapeHtml(meta.method || "method")}</span>
             <span class="ai-recipe-chip">🧂 ${escapeHtml(meta.flavor || "flavor")}</span>
+            <span class="ai-recipe-chip">✡️ ${escapeHtml(t("recipe.dietaryChip"))}: ${escapeHtml(meta.dietaryLabel || dietaryLabel)}</span>
           </div>
 
           <section class="smart-section">
@@ -5748,6 +5810,13 @@ updateRecipeActionLabels();
             <h4 class="pairings-title">${escapeHtml(t("recipe.sidesTitle"))}</h4>
             <div class="sides-grid">
               ${sidesCards || `<p>${escapeHtml(t("recipe.noSides"))}</p>`}
+            </div>
+          </section>
+
+          <section class="pairings-section smart-section">
+            <h4 class="pairings-title">${escapeHtml(t("recipe.drinksTitle"))}</h4>
+            <div class="sides-grid">
+              ${drinkCards || `<p>${escapeHtml(t("recipe.noDrinks"))}</p>`}
             </div>
           </section>
 
