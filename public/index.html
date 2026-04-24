@@ -3214,6 +3214,13 @@
         "recipe.sectionMain": "🔥 MAIN RECIPE",
         "recipe.ingredients": "Ingredients",
         "recipe.steps": "Step-by-step",
+        "recipe.metadata": "Cooking Metadata",
+        "recipe.chefTips": "Chef Tips",
+        "recipe.metaPrep": "Prep",
+        "recipe.metaCook": "Cook",
+        "recipe.metaTotal": "Total",
+        "recipe.metaDifficulty": "Difficulty",
+        "recipe.metaServings": "Serves",
         "recipe.aiPowered": "AI POWERED",
         "recipe.ingredientsMissing": "Ingredients not provided.",
         "recipe.stepsMissing": "Steps not provided.",
@@ -3476,6 +3483,13 @@
         "recipe.sectionMain": "🔥 מתכון מרכזי",
         "recipe.ingredients": "מרכיבים",
         "recipe.steps": "שלב-אחר-שלב",
+        "recipe.metadata": "נתוני בישול",
+        "recipe.chefTips": "טיפים מהשף",
+        "recipe.metaPrep": "הכנה",
+        "recipe.metaCook": "בישול",
+        "recipe.metaTotal": "סה״כ",
+        "recipe.metaDifficulty": "קושי",
+        "recipe.metaServings": "מנות",
         "recipe.aiPowered": "מופעל AI",
         "recipe.ingredientsMissing": "לא סופקו מרכיבים.",
         "recipe.stepsMissing": "לא סופקו שלבים.",
@@ -5514,8 +5528,16 @@ updateRecipeActionLabels();
         main: {
           title: parsed.title || t("recipe.fallbackTitle"),
           description: parsed.tips[0] || t("recipe.fallbackDescription"),
+          metadata: {
+            prep_time: "",
+            cook_time: "",
+            total_time: "",
+            difficulty: "",
+            servings: ""
+          },
           ingredients: parsed.ingredients.slice(0, 10),
-          steps: parsed.steps.slice(0, 8)
+          steps: parsed.steps.slice(0, 8),
+          chefTips: parsed.tips.slice(0, 4)
         },
         sauces: [
           {
@@ -5583,8 +5605,16 @@ updateRecipeActionLabels();
         main: {
           title: String(recipe?.main?.title || "").trim(),
           description: String(recipe?.main?.description || "").trim(),
+          metadata: {
+            prep_time: String(recipe?.main?.metadata?.prep_time || "").trim(),
+            cook_time: String(recipe?.main?.metadata?.cook_time || "").trim(),
+            total_time: String(recipe?.main?.metadata?.total_time || "").trim(),
+            difficulty: String(recipe?.main?.metadata?.difficulty || "").trim(),
+            servings: String(recipe?.main?.metadata?.servings || "").trim()
+          },
           ingredients: safeList(recipe?.main?.ingredients),
-          steps: safeList(recipe?.main?.steps)
+          steps: safeList(recipe?.main?.steps),
+          chefTips: safeList(recipe?.main?.chefTips)
         },
         sauces: safeSauces,
         sides: safeSides
@@ -5614,6 +5644,7 @@ updateRecipeActionLabels();
 
     function renderSmartRecipe(structuredRecipe, meta = {}) {
       const main = structuredRecipe?.main || {};
+      const metadata = main.metadata || {};
       const cutLabel = getRecipeCutLabel(meta.cut);
       const mainIngredients = (main.ingredients || []).length
         ? `<ul>${(main.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
@@ -5622,6 +5653,9 @@ updateRecipeActionLabels();
       const mainSteps = (main.steps || []).length
         ? `<ol>${(main.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
         : `<p>${escapeHtml(t("recipe.stepsMissing"))}</p>`;
+      const chefTips = (main.chefTips || []).length
+        ? `<ul>${(main.chefTips || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+        : `<p>${escapeHtml(t("recipe.defaultStep"))}</p>`;
 
       const sauceCards = (structuredRecipe.sauces || []).map((sauce, index) => `
         <article class="sauce-card" id="sauceCard${index}">
@@ -5681,8 +5715,24 @@ updateRecipeActionLabels();
               </div>
 
               <div class="ai-recipe-card">
+                <h4>${escapeHtml(t("recipe.metadata"))}</h4>
+                <ul>
+                  <li><strong>${escapeHtml(t("recipe.metaPrep"))}:</strong> ${escapeHtml(metadata.prep_time || "-")}</li>
+                  <li><strong>${escapeHtml(t("recipe.metaCook"))}:</strong> ${escapeHtml(metadata.cook_time || "-")}</li>
+                  <li><strong>${escapeHtml(t("recipe.metaTotal"))}:</strong> ${escapeHtml(metadata.total_time || "-")}</li>
+                  <li><strong>${escapeHtml(t("recipe.metaDifficulty"))}:</strong> ${escapeHtml(metadata.difficulty || "-")}</li>
+                  <li><strong>${escapeHtml(t("recipe.metaServings"))}:</strong> ${escapeHtml(metadata.servings || "-")}</li>
+                </ul>
+              </div>
+
+              <div class="ai-recipe-card">
                 <h4>${escapeHtml(t("recipe.steps"))}</h4>
                 ${mainSteps}
+              </div>
+
+              <div class="ai-recipe-card">
+                <h4>${escapeHtml(t("recipe.chefTips"))}</h4>
+                ${chefTips}
               </div>
             </div>
           </section>
