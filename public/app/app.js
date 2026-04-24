@@ -107,11 +107,13 @@ const state = {
   shopping: { meat: [], seasoning: [], sauceIngredients: [], sideIngredients: [], drinks: [] },
   shoppingChecks: {},
   butchers: [],
-  location: null
+  location: null,
+  variationCount: 0
 };
 
 const el = {
   appRoot: document.getElementById("app"),
+  openingSplash: document.getElementById("openingSplash"),
   header: document.getElementById("appHeader"),
   title: document.getElementById("screenTitle"),
   subtitle: document.getElementById("screenSubtitle"),
@@ -158,6 +160,9 @@ function render() {
   el.content.classList.remove("fade-in");
   void el.content.offsetWidth;
   el.content.classList.add("fade-in");
+  el.appRoot.classList.remove("screen-transition");
+  void el.appRoot.offsetWidth;
+  el.appRoot.classList.add("screen-transition");
 
   if (step === "landing") return renderLanding();
   if (step === "hot") return renderHotNow();
@@ -332,6 +337,7 @@ async function loadRecipe() {
     dietaryPreference: p.dietaryPreference,
     servings: String(p.servings),
     mode: "all",
+    variation: state.variationCount ? "1" : "0",
     r: String(Math.floor(Math.random() * 1000000))
   });
 
@@ -342,10 +348,7 @@ async function loadRecipe() {
 }
 
 function recipeHeroForCut() {
-  const cutId = state.preferences.cutId;
-  if (cutId === "brisket") return "url('/app/assets/recipe-brisket.jpg')";
-  if (cutId === "picanha") return "url('/app/assets/recipe-picanha.jpg')";
-  return "url('/app/assets/recipe-steak.jpg')";
+  return "url('/app/assets/recipe-card-bg.jpg')";
 }
 
 function renderRecipe() {
@@ -366,11 +369,23 @@ function renderRecipe() {
   const cook = main.cookTime || (state.lang === "he" ? "45 דקות" : "45 min");
   const total = main.totalTime || (state.lang === "he" ? "65 דקות" : "65 min");
   const difficulty = main.difficulty || (state.lang === "he" ? "בינוני" : "Medium");
+  const kosherLabel = state.preferences.dietaryPreference === "kosher" ? (state.lang === "he" ? "כשר" : "Kosher") : (state.lang === "he" ? "לא כשר" : "Non-kosher");
+  const badges = [
+    { label: state.lang === "he" ? "סה״כ זמן" : "Total Time", value: total },
+    { label: state.lang === "he" ? "קושי" : "Difficulty", value: difficulty },
+    { label: state.lang === "he" ? "מנות" : "Servings", value: state.preferences.servings },
+    { label: state.lang === "he" ? "כשרות" : "Diet", value: kosherLabel }
+  ];
+  const chefTips = getChefTips(state.preferences.cutId, state.preferences.methodId);
 
   el.content.innerHTML = `
     <div class="card recipe-hero" style="--recipe-image:${recipeHeroForCut()}">
       <h2>${main.title || (state.lang === "he" ? "מתכון פרימיום" : "Premium Recipe")}</h2>
       <p class="small">${main.description || ""}</p>
+    </div>
+
+    <div class="badges-row">
+      ${badges.map((badge) => `<span class="badge"><strong>${badge.label}</strong> ${badge.value}</span>`).join("")}
     </div>
 
     <div class="card meta-grid">
@@ -382,7 +397,7 @@ function renderRecipe() {
       <div class="meta-item"><strong>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</strong>${selectedMethod}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</strong>${selectedFlavor}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "מנות" : "Servings"}</strong>${state.preferences.servings}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "העדפת כשרות" : "Dietary preference"}</strong>${state.preferences.dietaryPreference === "kosher" ? (state.lang === "he" ? "כשר" : "Kosher") : (state.lang === "he" ? "לא כשר" : "Non-kosher")}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "העדפת כשרות" : "Dietary preference"}</strong>${kosherLabel}</div>
     </div>
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${i}</li>`).join("")}</ul></div>
@@ -390,14 +405,26 @@ function renderRecipe() {
     <div class="card"><h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3><ul class="list">${(r.sauces || []).map((s) => `<li>${s.name}</li>`).join("")}</ul></div>
     <div class="card"><h3>${state.lang === "he" ? "תוספות" : "Side Dishes"}</h3><ul class="list">${(r.sides || []).map((s) => `<li>${s.name}</li>`).join("")}</ul></div>
     <div class="card"><h3>${state.lang === "he" ? "שתייה מתאימה" : "Drink Pairings"}</h3><ul class="list">${(r.drinkPairings || []).map((d) => `<li>${d.name}</li>`).join("")}</ul></div>
+    <div class="card">
+      <h3>${state.lang === "he" ? "טיפים מהשף" : "Chef Tips"}</h3>
+      <ul class="list">${chefTips.map((tip) => `<li>${tip}</li>`).join("")}</ul>
+    </div>
 
     <div class="inline-actions">
+      <button class="btn btn-ghost" id="copyShoppingBtn">${state.lang === "he" ? "📋 העתק רשימת קניות" : "📋 Copy Shopping List"}</button>
+      <button class="btn btn-ghost" id="variationBtn">${state.lang === "he" ? "🔄 נסה וריאציה" : "🔄 Try Variation"}</button>
       <button class="btn btn-ghost" id="regenBtn">${state.lang === "he" ? "צור מתכון מחדש" : "Regenerate Recipe"}</button>
       <button class="btn btn-ghost" id="servingBtn">${state.lang === "he" ? "שנה מספר מנות" : "Change Servings"}</button>
       <button class="btn btn-primary" id="toShoppingBtn">${state.lang === "he" ? "המשך לרשימת קניות" : "Continue to Shopping List"}</button>
     </div>
   `;
 
+  document.getElementById("copyShoppingBtn").addEventListener("click", () => copyShoppingListToClipboard());
+  document.getElementById("variationBtn").addEventListener("click", async () => {
+    state.variationCount += 1;
+    state.recipe = null;
+    renderRecipe();
+  });
   document.getElementById("regenBtn").addEventListener("click", async () => {
     state.recipe = null;
     renderRecipe();
@@ -454,7 +481,7 @@ function renderShopping() {
         </div>`;
     }).join("")}
 
-    <button class="btn btn-ghost" id="copyList">${state.lang === "he" ? "העתק רשימה" : "Copy list"}</button>
+    <button class="btn btn-ghost" id="copyList">${state.lang === "he" ? "📋 העתק רשימת קניות" : "📋 Copy Shopping List"}</button>
     <button class="btn btn-primary" id="toButchers">${state.lang === "he" ? "המשך לאיתור קצביות" : "Continue to butcher finder"}</button>
   `;
 
@@ -464,15 +491,7 @@ function renderShopping() {
     });
   });
 
-  document.getElementById("copyList").addEventListener("click", async () => {
-    const list = Object.values(state.shopping).flat().join("\n");
-    try {
-      await navigator.clipboard.writeText(list);
-      alert(state.lang === "he" ? "הרשימה הועתקה" : "List copied");
-    } catch {
-      alert(state.lang === "he" ? "לא הצלחנו להעתיק" : "Copy failed");
-    }
-  });
+  document.getElementById("copyList").addEventListener("click", async () => copyShoppingListToClipboard());
   document.getElementById("toButchers").addEventListener("click", () => {
     currentStep = 6;
     render();
@@ -508,15 +527,28 @@ function renderButchers() {
     return;
   }
 
+  const distances = state.butchers.map((item) => getDistanceValue(item)).filter((v) => Number.isFinite(v));
+  const closestDistance = distances.length ? Math.min(...distances) : NaN;
+
   el.content.innerHTML = `
-    <div class="card visual-map"><h3>${state.lang === "he" ? "קצביות מומלצות באזור שלך" : "Top butcher shops near you"}</h3></div>
-    ${state.butchers.slice(0, 8).map((b) => {
+    <div class="card visual-map">
+      <h3>${state.lang === "he" ? "קצביות מומלצות באזור שלך" : "Top butcher shops near you"}</h3>
+      <p class="small">${state.lang === "he" ? "תצוגת מפה חכמה עם נקודות סימון כתומות." : "Smart map-style visual with orange location pins."}</p>
+    </div>
+    ${state.butchers.slice(0, 8).map((b, idx) => {
       const stars = "⭐".repeat(Math.max(1, Math.min(5, Math.round(b.rating || 4))));
+      const distance = getDistanceValue(b);
+      const isClosest = Number.isFinite(distance) && Number.isFinite(closestDistance) && distance === closestDistance;
+      const badges = [
+        idx === 0 ? (state.lang === "he" ? "מומלץ לידך" : "Recommended Near You") : "",
+        isClosest ? (state.lang === "he" ? "הכי קרוב" : "Closest") : ""
+      ].filter(Boolean);
       return `
-        <article class="card">
+        <article class="card butcher-card ${idx === 0 ? "featured" : ""}">
+          ${badges.length ? `<div class="badges-row">${badges.map((badge) => `<span class="badge badge-emphasis">${badge}</span>`).join("")}</div>` : ""}
           <strong>📍 ${b.name}</strong>
           <p class="small">${b.address || ""}</p>
-          <p class="small">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0})</p>
+          <p class="small">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0}) ${Number.isFinite(distance) ? `• ${distance.toFixed(1)} km` : ""}</p>
           <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
         </article>`;
     }).join("")}
@@ -538,4 +570,59 @@ async function handleNext() {
   }
 }
 
-render();
+function getDistanceValue(shop) {
+  const candidates = [shop.distanceKm, shop.distance_km, shop.distance, shop.distanceMeters ? shop.distanceMeters / 1000 : null];
+  const first = candidates.find((v) => typeof v === "number" && Number.isFinite(v));
+  if (Number.isFinite(first)) return first;
+  if (typeof shop.distanceText === "string") {
+    const parsed = Number(shop.distanceText.replace(/[^\d.]/g, ""));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return NaN;
+}
+
+function getChefTips(cutId, methodId) {
+  const tipBank = {
+    he: {
+      grill: ["חמם את הרשת היטב לפני שהבשר עולה עליה.", "הפוך את הנתח פעם אחת בלבד לקבלת צריבה טובה.", "תן לבשר לנוח 5–7 דקות לפני פריסה."],
+      smoker: ["שמור על טמפרטורה יציבה לאורך כל העישון.", "רסס מעט נוזלים כל שעה לשמירה על לחות.", "עטוף את הנתח כשהקליפה מתייצבת."],
+      cast_iron: ["ייבש את הנתח לפני הצריבה לקבלת קרסט מושלם.", "אל תעמיס מחבת — נתח אחד בכל פעם.", "סיים עם חמאה ועשבי תיבול בארבעים השניות האחרונות."],
+      default: ["תבל מראש ותן לבשר 20 דקות בטמפרטורת חדר.", "השתמש במדחום פנימי כדי לדייק בדרגת עשייה.", "מנוחה קצרה לפני חיתוך תשמור על עסיסיות."]
+    },
+    en: {
+      grill: ["Preheat the grates fully before adding the meat.", "Flip once for a stronger crust.", "Rest the meat 5–7 minutes before slicing."],
+      smoker: ["Keep smoker temperature steady throughout the cook.", "Spritz lightly every hour to maintain moisture.", "Wrap once bark sets to push through the stall."],
+      cast_iron: ["Pat the cut dry before searing for better crust.", "Avoid crowding the pan—one cut at a time.", "Finish with butter and herbs in the final 40 seconds."],
+      default: ["Season early and rest the meat 20 minutes at room temp.", "Use an internal thermometer for accurate doneness.", "A short rest before slicing keeps juices inside."]
+    }
+  };
+
+  const methodTips = tipBank[state.lang][methodId] || tipBank[state.lang].default;
+  if (cutId === "brisket" || cutId === "short_ribs") {
+    return state.lang === "he"
+      ? ["לנתחים קשים יותר תן זמן בישול ארוך ועדין.", "המתן עד לרכות לפני פריסה.", "פרוס נגד הסיבים להגשה רכה יותר."]
+      : ["For tougher cuts, give them low, steady time.", "Wait for tenderness before slicing.", "Slice against the grain for a softer bite."];
+  }
+  return methodTips.slice(0, 3);
+}
+
+async function copyShoppingListToClipboard() {
+  const list = Object.values(state.shopping).flat().join("\n");
+  try {
+    await navigator.clipboard.writeText(list);
+    alert(state.lang === "he" ? "הרשימה הועתקה" : "List copied");
+  } catch {
+    alert(state.lang === "he" ? "לא הצלחנו להעתיק" : "Copy failed");
+  }
+}
+
+function initOpeningAnimation() {
+  render();
+  if (!el.openingSplash) return;
+  const revealDelayMs = 950;
+  window.setTimeout(() => {
+    el.openingSplash.classList.add("is-hidden");
+  }, revealDelayMs);
+}
+
+initOpeningAnimation();
