@@ -686,9 +686,15 @@ app.get("/api/ai-recipe", async (req, res) => {
       sideDish: "Side dish",
       sideDescription: "Quick supporting side.",
       recipeTitle: "AI Recipe",
+      metadataLabel: "Metadata",
       ingredientsLabel: "Ingredients",
       stepsLabel: "Steps",
-      tipsLabel: "Tips",
+      tipsLabel: "Chef Tips",
+      prepTimeLabel: "Prep time",
+      cookTimeLabel: "Cook time",
+      totalTimeLabel: "Total time",
+      difficultyLabel: "Difficulty",
+      servingsLabel: "Serves",
       donenessLabel: "Target doneness",
       donenessText: "Use a thermometer and cook to preference."
     },
@@ -698,9 +704,15 @@ app.get("/api/ai-recipe", async (req, res) => {
       sideDish: "תוספת",
       sideDescription: "תוספת מהירה למנה.",
       recipeTitle: "מתכון AI",
+      metadataLabel: "נתוני מתכון",
       ingredientsLabel: "מרכיבים",
       stepsLabel: "שלבים",
-      tipsLabel: "טיפים",
+      tipsLabel: "טיפים מהשף",
+      prepTimeLabel: "זמן הכנה",
+      cookTimeLabel: "זמן בישול",
+      totalTimeLabel: "זמן כולל",
+      difficultyLabel: "רמת קושי",
+      servingsLabel: "כמות מנות",
       donenessLabel: "דרגת עשייה מומלצת",
       donenessText: "מומלץ להשתמש במדחום ולבשל לפי ההעדפה שלך."
     }
@@ -713,11 +725,11 @@ app.get("/api/ai-recipe", async (req, res) => {
         name: "Smoky Garlic Butter",
         description: "Rich and glossy, great for basting and finishing slices.",
         ingredients: [
-          "3 tbsp unsalted butter",
-          "1 minced garlic clove",
-          "1 tsp smoked paprika",
-          "Pinch of salt",
-          "1 tsp lemon juice"
+          "3 tablespoons unsalted butter",
+          "1 garlic clove, finely minced",
+          "1 teaspoon smoked paprika",
+          "1/4 teaspoon fine sea salt",
+          "1 teaspoon lemon juice"
         ],
         steps: [
           "Melt butter on low heat.",
@@ -732,7 +744,7 @@ app.get("/api/ai-recipe", async (req, res) => {
           "2 tbsp Dijon mustard",
           "1 tbsp honey",
           "1 tsp cracked black pepper",
-          "1 tsp apple cider vinegar"
+          "1 teaspoon apple cider vinegar"
         ],
         steps: [
           "Whisk all ingredients until smooth.",
@@ -744,11 +756,11 @@ app.get("/api/ai-recipe", async (req, res) => {
         name: "Herb Chimichurri",
         description: "Fresh, sharp, and bright to balance rich meat.",
         ingredients: [
-          "1 cup chopped parsley",
-          "2 tbsp chopped oregano",
-          "2 minced garlic cloves",
-          "3 tbsp red wine vinegar",
-          "1/3 cup olive oil"
+          "40 grams parsley, finely chopped",
+          "2 tablespoons oregano, finely chopped",
+          "2 garlic cloves, finely minced",
+          "3 tablespoons red wine vinegar",
+          "80 ml extra-virgin olive oil"
         ],
         steps: [
           "Mix herbs and garlic in a bowl.",
@@ -813,18 +825,57 @@ app.get("/api/ai-recipe", async (req, res) => {
         description: isHebrew
           ? `תוכנית בישול קצרה ומדויקת בסגנון ${flavor || "מאוזן"} לשיטת ${method || "בישול מהיר"}.`
           : `A concise ${flavor || "savory"} main recipe built for ${method || "high-heat cooking"}.`,
+        metadata: isHebrew
+          ? {
+              prep_time: "20 דקות",
+              cook_time: "2 שעות ו-30 דקות",
+              total_time: "2 שעות ו-50 דקות",
+              difficulty: "בינוני",
+              servings: "4"
+            }
+          : {
+              prep_time: "20 minutes",
+              cook_time: "2 hours 30 minutes",
+              total_time: "2 hours 50 minutes",
+              difficulty: "Medium",
+              servings: "4"
+            },
         ingredients: [
-          `${cut || "Main cut"} (about 2 lb)`,
-          "Kosher salt",
-          "Black pepper",
-          "2 tbsp neutral oil",
-          `1 tsp ${flavor || "signature"} seasoning`
+          isHebrew ? `1.2 ק״ג ${cut || "נתח מרכזי"} (חתוך ל-3–4 חתיכות גדולות)` : `1.2 kg ${cut || "main cut"} (cut into 3-4 large pieces)`,
+          isHebrew ? "1 כף שמן ניטרלי" : "1 tablespoon neutral oil",
+          isHebrew ? "2 כפיות מלח כשר" : "2 teaspoons kosher salt",
+          isHebrew ? "1 כפית פלפל שחור גרוס טרי" : "1 teaspoon freshly ground black pepper",
+          isHebrew ? `2 כפיות תערובת תיבול ${flavor || "ייחודית"}` : `2 teaspoons ${flavor || "signature"} seasoning blend`,
+          isHebrew ? "4 שיני שום, קצוצות דק" : "4 garlic cloves, finely minced"
         ],
         steps: [
-          `Preheat for ${method || "your method"} and season the meat evenly.`,
-          "Cook until crust forms, then manage heat to finish evenly.",
-          "Rest 8-10 minutes, slice, and serve."
-        ]
+          isHebrew
+            ? `חמם מראש לגריל/תנור לשיטת ${method || "הבישול שבחרת"}: 230°C לצריבה ראשונית למשך 10 דקות.`
+            : `Preheat for ${method || "your method"} to 450°F / 230°C for a 10-minute high-heat sear.`,
+          isHebrew
+            ? "ייבש את הנתח, ערבב שמן עם מלח, פלפל ותיבול, ומרח באופן אחיד. צרוב על חום גבוה 3-4 דקות מכל צד עד קרום כהה."
+            : "Pat the meat dry, rub with oil, salt, pepper, seasoning, and garlic, then sear over high heat for 3-4 minutes per side until a deep crust forms.",
+          isHebrew
+            ? "הנמך ל-150°C והמשך בישול 2-2.5 שעות (או עד טמפרטורה פנימית של 92-95°C לנתח מתפרק)."
+            : "Lower heat to 300°F / 150°C and continue cooking for 2-2.5 hours (or until internal temperature reaches 198-203°F / 92-95°C for pull-apart texture).",
+          isHebrew
+            ? "העבר למנוחה מכוסה חלקית ל-15 דקות לפני פריסה להגשה."
+            : "Rest the meat, loosely tented, for 15 minutes before slicing against the grain and serving.",
+          isHebrew
+            ? "פרוס נגד הסיבים והגש מיד."
+            : "Slice against the grain and serve immediately."
+        ].filter(Boolean),
+        chefTips: isHebrew
+          ? [
+              "אל תצופף את המחבת בזמן הצריבה כדי לשמור על קרמול עמוק.",
+              "השתמש בחום גבוה רק בתחילת הבישול, ולאחר מכן חום בינוני-נמוך לבישול אחיד.",
+              "אם הטמפרטורה הפנימית עולה מהר מדי, כסה חלקית בנייר אפייה."
+            ]
+          : [
+              "Do not overcrowd the pan during searing or you will steam instead of browning.",
+              "Use high heat only for crust development, then switch to low and steady heat.",
+              "If the internal temperature rises too fast, loosely tent with parchment or foil."
+            ]
       },
       sauces: [localizedSauces[sauceShift], localizedSauces[(sauceShift + 1) % localizedSauces.length], localizedSauces[(sauceShift + 2) % localizedSauces.length]],
       sides: [localizedSides[sideShift], localizedSides[(sideShift + 1) % localizedSides.length], localizedSides[(sideShift + 2) % localizedSides.length]]
@@ -835,8 +886,19 @@ app.get("/api/ai-recipe", async (req, res) => {
     const fallback = buildFallbackSmartRecipe(context);
     const copy = recipeTextByLanguage[context.language === "he" ? "he" : "en"];
     const normalized = payload && typeof payload === "object" ? payload : {};
+    const isHebrew = context.language === "he";
+    const hasNumericQuantity = (value) => /\d/.test(String(value || ""));
+    const isDetailedStep = (value) => {
+      const text = String(value || "");
+      const hasNumber = /\d/.test(text);
+      const hasHeat = isHebrew
+        ? /(חום|להבה|מעלות|°C|°F|בינוני|גבוה|נמוך)/i.test(text)
+        : /(heat|low|medium|high|°C|°F|temperature)/i.test(text);
+      return hasNumber && hasHeat;
+    };
 
     const main = normalized.main && typeof normalized.main === "object" ? normalized.main : {};
+    const metadata = main.metadata && typeof main.metadata === "object" ? main.metadata : {};
 
     const sauces = sanitizeObjectList(normalized.sauces).map((entry) => {
       const item = entry && typeof entry === "object" ? entry : {};
@@ -864,8 +926,20 @@ app.get("/api/ai-recipe", async (req, res) => {
       main: {
         title: String(main.title || fallback.main.title).trim(),
         description: String(main.description || fallback.main.description).trim(),
-        ingredients: sanitizeStringList(main.ingredients, fallback.main.ingredients).slice(0, 12),
-        steps: sanitizeStringList(main.steps, fallback.main.steps).slice(0, 8)
+        metadata: {
+          prep_time: String(metadata.prep_time || fallback.main.metadata.prep_time).trim(),
+          cook_time: String(metadata.cook_time || fallback.main.metadata.cook_time).trim(),
+          total_time: String(metadata.total_time || fallback.main.metadata.total_time).trim(),
+          difficulty: String(metadata.difficulty || fallback.main.metadata.difficulty).trim(),
+          servings: String(metadata.servings || fallback.main.metadata.servings).trim()
+        },
+        ingredients: sanitizeStringList(main.ingredients, fallback.main.ingredients)
+          .map((item, idx) => (hasNumericQuantity(item) ? item : fallback.main.ingredients[idx] || item))
+          .slice(0, 12),
+        steps: sanitizeStringList(main.steps, fallback.main.steps)
+          .map((item, idx) => (isDetailedStep(item) ? item : fallback.main.steps[idx] || item))
+          .slice(0, 10),
+        chefTips: sanitizeStringList(main.chefTips, fallback.main.chefTips).slice(0, 5)
       },
       sauces: safeSauces.map((item, idx) => ({
         name: item.name || fallback.sauces[idx]?.name || copy.saucePairing,
@@ -884,12 +958,21 @@ app.get("/api/ai-recipe", async (req, res) => {
   const structuredToLegacyText = (structuredRecipe, language = "en") => {
     const copy = recipeTextByLanguage[language === "he" ? "he" : "en"];
     const main = structuredRecipe?.main || {};
+    const metadata = main.metadata || {};
     const ingredients = (main.ingredients || []).map(item => `- ${item}`).join("\n");
     const steps = (main.steps || []).map((item, idx) => `${idx + 1}. ${item}`).join("\n");
+    const chefTips = (main.chefTips || []).map(item => `- ${item}`).join("\n");
     const sauceTips = (structuredRecipe?.sauces || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
     const sideTips = (structuredRecipe?.sides || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
+    const metadataBlock = [
+      `${copy.prepTimeLabel}: ${metadata.prep_time || ""}`,
+      `${copy.cookTimeLabel}: ${metadata.cook_time || ""}`,
+      `${copy.totalTimeLabel}: ${metadata.total_time || ""}`,
+      `${copy.difficultyLabel}: ${metadata.difficulty || ""}`,
+      `${copy.servingsLabel}: ${metadata.servings || ""}`
+    ].join("\n");
 
-    return `Title: ${main.title || copy.recipeTitle}\n${copy.ingredientsLabel}:\n${ingredients}\n\n${copy.stepsLabel}:\n${steps}\n\n${copy.tipsLabel}:\n${sauceTips}\n${sideTips}\n\n${copy.donenessLabel}:\n${copy.donenessText}`;
+    return `Title: ${main.title || copy.recipeTitle}\n${copy.metadataLabel}:\n${metadataBlock}\n\n${copy.ingredientsLabel}:\n${ingredients}\n\n${copy.stepsLabel}:\n${steps}\n\n${copy.tipsLabel}:\n${chefTips}\n${sauceTips}\n${sideTips}\n\n${copy.donenessLabel}:\n${copy.donenessText}`;
   };
 
   try {
@@ -905,7 +988,7 @@ app.get("/api/ai-recipe", async (req, res) => {
 const prompt = `
 You are a creative professional chef specializing in beef and meat dishes.
 
-Create a concise Smart Cooking Mode response.
+Create a detailed, practical, chef-level Smart Cooking Mode response.
 
 Cut: ${cut}
 Meat type: ${meatType}
@@ -916,19 +999,34 @@ Refresh mode: ${mode}
 Output language: ${outputLanguage === "he" ? "Hebrew" : "English"}
 
 Rules:
-- Keep copy concise and practical (no long paragraphs)
+- Keep copy practical and specific (short paragraphs are fine, but include operational detail)
 - Return exactly 2-3 sauces
 - Return exactly 2-3 sides
 - Always return valid JSON only, no markdown
 - Write every returned field in ${outputLanguage === "he" ? "Hebrew" : "English"}
+- Main recipe ingredients must include exact numeric quantity + explicit unit (g, kg, ml, tbsp, tsp; Hebrew: גרם, ק״ג, מ״ל, כף, כפית)
+- Avoid vague ingredients (forbidden examples: "salt to taste", "some oil")
+- Main steps must be actionable and include time and heat/temperature details in each step
+- Never use vague wording like "cook until ready"
+- Hebrew and English outputs must have the same structure and level of detail
+- Include metadata with prep/cook/total time, difficulty, and servings
+- Include chef tips that are practical and technique-focused
 
 JSON shape:
 {
   "main": {
     "title": "string",
     "description": "string",
+    "metadata": {
+      "prep_time": "string",
+      "cook_time": "string",
+      "total_time": "string",
+      "difficulty": "string",
+      "servings": "string"
+    },
     "ingredients": ["string"],
-    "steps": ["string"]
+    "steps": ["string"],
+    "chefTips": ["string"]
   },
   "sauces": [
     {
