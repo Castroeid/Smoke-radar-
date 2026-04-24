@@ -685,11 +685,17 @@ app.get("/api/ai-recipe", async (req, res) => {
       sauceDescription: "Complements the main recipe.",
       sideDish: "Side dish",
       sideDescription: "Quick supporting side.",
+      drinkPairing: "Drink pairing",
+      drinkDescription: "Balanced with the dish and cooking style.",
       recipeTitle: "AI Recipe",
       metadataLabel: "Metadata",
       ingredientsLabel: "Ingredients",
       stepsLabel: "Steps",
       tipsLabel: "Chef Tips",
+      drinkLabel: "Drink Pairings",
+      dietaryLabel: "Dietary preference",
+      kosherValue: "Kosher",
+      nonKosherValue: "Non-kosher",
       prepTimeLabel: "Prep time",
       cookTimeLabel: "Cook time",
       totalTimeLabel: "Total time",
@@ -703,11 +709,17 @@ app.get("/api/ai-recipe", async (req, res) => {
       sauceDescription: "משלים את המנה המרכזית.",
       sideDish: "תוספת",
       sideDescription: "תוספת מהירה למנה.",
+      drinkPairing: "שתייה מתאימה",
+      drinkDescription: "מאוזן למנה ולשיטת הבישול.",
       recipeTitle: "מתכון AI",
       metadataLabel: "נתוני מתכון",
       ingredientsLabel: "מרכיבים",
       stepsLabel: "שלבים",
       tipsLabel: "טיפים מהשף",
+      drinkLabel: "שתייה מתאימה",
+      dietaryLabel: "העדפת כשרות",
+      kosherValue: "כשר",
+      nonKosherValue: "לא כשר",
       prepTimeLabel: "זמן הכנה",
       cookTimeLabel: "זמן בישול",
       totalTimeLabel: "זמן כולל",
@@ -718,14 +730,24 @@ app.get("/api/ai-recipe", async (req, res) => {
     }
   };
 
-  const buildFallbackSmartRecipe = ({ cut, method, flavor, seed, language = "en" }) => {
+  const buildFallbackSmartRecipe = ({ cut, method, flavor, seed, language = "en", dietaryPreference = "non_kosher" }) => {
     const isHebrew = language === "he";
+    const isKosher = dietaryPreference === "kosher";
+    const normalizeKey = (value = "") => String(value || "").toLowerCase();
+    const cutKey = normalizeKey(cut);
+    const methodKey = normalizeKey(method);
+    const isRibeyeStyle = /ribeye|אנטריקוט|steak|סטייק/.test(cutKey);
+    const isAsadoStyle = /asado|short ribs|plate ribs|אסאדו|צלע/.test(cutKey) || /long cook|בישול ארוך|brais|smok/.test(methodKey);
+    const isBrisketStyle = /brisket|חזה/.test(cutKey);
+    const isPicanhaStyle = /picanha|פיקניה/.test(cutKey);
     const sauces = [
       {
-        name: "Smoky Garlic Butter",
-        description: "Rich and glossy, great for basting and finishing slices.",
+        name: isKosher ? "Smoky Garlic Olive Oil Drizzle" : "Smoky Garlic Butter",
+        description: isKosher
+          ? "Glossy olive-oil finish for brushing and serving."
+          : "Rich and glossy, great for basting and finishing slices.",
         ingredients: [
-          "3 tablespoons unsalted butter",
+          isKosher ? "3 tablespoons extra-virgin olive oil" : "3 tablespoons unsalted butter",
           "1 garlic clove, finely minced",
           "1 teaspoon smoked paprika",
           "1/4 teaspoon fine sea salt",
@@ -738,11 +760,11 @@ app.get("/api/ai-recipe", async (req, res) => {
         ]
       },
       {
-        name: "Pepper Mustard Glaze",
+        name: "Pepper Mustard Reduction",
         description: "Tangy with a little heat, ideal for bark-heavy cuts.",
         ingredients: [
           "2 tbsp Dijon mustard",
-          "1 tbsp honey",
+          "1 tbsp honey or date syrup",
           "1 tsp cracked black pepper",
           "1 teaspoon apple cider vinegar"
         ],
@@ -753,7 +775,7 @@ app.get("/api/ai-recipe", async (req, res) => {
         ]
       },
       {
-        name: "Herb Chimichurri",
+        name: isHebrew ? "Green Herb Sauce" : "Herb Chimichurri",
         description: "Fresh, sharp, and bright to balance rich meat.",
         ingredients: [
           "40 grams parsley, finely chopped",
@@ -771,48 +793,88 @@ app.get("/api/ai-recipe", async (req, res) => {
     ];
     const localizedSauces = isHebrew
       ? [
-          { ...sauces[0], name: "חמאת שום מעושנת", description: "עשיר ומבריק, מושלם להברשה וסיום." },
-          { ...sauces[1], name: "גלייז פלפל וחרדל", description: "חמצמץ ומעט חריף, מצוין לנתחים מעושנים." },
-          { ...sauces[2], name: "צ׳ימיצ׳ורי עשבים", description: "רענן וחד לאיזון טעמי בשר עשירים." }
+          { ...sauces[0], name: isKosher ? "רוטב שום מעושן ושמן זית" : "חמאת שום מעושנת", description: "עשיר ומבריק, מושלם להברשה וסיום." },
+          { ...sauces[1], name: "רוטב פלפל, חרדל ויין", description: "חמצמץ ומעט חריף, מצוין לנתחים מעושנים." },
+          { ...sauces[2], name: "טחינה ירוקה וצ׳ימיצ׳ורי", description: "רענן וחד לאיזון טעמי בשר עשירים." }
         ]
       : sauces;
 
-    const sides = [
-      {
-        name: "Charred Corn with Lime",
-        description: "Sweet smoky kernels with citrus lift.",
-        steps: [
-          "Char corn in a hot pan or grill until blistered.",
-          "Toss with butter, lime juice, and sea salt.",
-          "Finish with chopped cilantro."
-        ]
-      },
-      {
-        name: "Crispy Herb Potatoes",
-        description: "Golden bite-size potatoes with rosemary and sea salt.",
-        steps: [
-          "Parboil potato chunks until just tender.",
-          "Roast with oil, rosemary, and salt until crisp.",
-          "Serve with black pepper and lemon zest."
-        ]
-      },
-      {
-        name: "Grilled Asparagus",
-        description: "Quick blistered greens with olive oil and pepper.",
-        steps: [
-          "Coat asparagus with olive oil, salt, and pepper.",
-          "Grill 3-4 minutes until lightly charred.",
-          "Finish with lemon and shaved parmesan."
-        ]
-      }
-    ];
-    const localizedSides = isHebrew
+    let localizedSides;
+    if (isRibeyeStyle) {
+      localizedSides = isHebrew
+        ? [
+            { name: "ירקות קלויים על הגריל", description: "קישוא, פלפל ובצל סגול עם שמן זית.", steps: ["חתוך ירקות לנתחים גדולים ותבל ב-2 כפות שמן זית, 1 כפית מלח ו-1/2 כפית פלפל.", "צלה על גריל חם 8-10 דקות והפוך באמצע לקבלת חריכה אחידה.", "סיים עם מיץ לימון טרי ועלי פטרוזיליה קצוצים."] },
+            { name: "תפוחי אדמה צלויים בעשבים", description: "תוספת זהובה שמתאימה לסטייקים.", steps: ["בשל חצי בישול 700 גרם תפוחי אדמה 12 דקות במים מומלחים.", "ערבב עם 2 כפות שמן זית, רוזמרין ושום וצלֵה ב-210°C ל-30 דקות.", "הפוך פעם אחת באמצע והגש חם."] },
+            { name: "סלט ירוק רענן", description: "חסה, מלפפון ועגבניות ברוטב לימון.", steps: ["ערבב 4 כוסות חסה, 1 מלפפון ו-12 עגבניות שרי חצויות.", "טרוף 2 כפות שמן זית, 1 כף לימון, 1 כפית סילאן, מלח ופלפל.", "צוק את הרוטב ממש לפני ההגשה ושמור על פריכות."] }
+          ]
+        : [
+            { name: "Grilled Vegetables", description: "Zucchini, peppers, and red onion with olive oil.", steps: ["Slice vegetables thick and season with 2 tbsp olive oil, 1 tsp salt, and 1/2 tsp pepper.", "Grill on high heat for 8-10 minutes, turning halfway for even char.", "Finish with lemon juice and chopped parsley."] },
+            { name: "Roasted Potatoes", description: "Golden potatoes that match seared steak cuts.", steps: ["Parboil 700 g potatoes in salted water for 12 minutes.", "Toss with 2 tbsp olive oil, rosemary, and garlic, then roast at 410°F / 210°C for 30 minutes.", "Flip once halfway and serve hot."] },
+            { name: "Fresh Salad", description: "Crisp lettuce, cucumber, and tomato with lemon dressing.", steps: ["Combine 4 cups lettuce, 1 cucumber, and 12 halved cherry tomatoes.", "Whisk 2 tbsp olive oil, 1 tbsp lemon juice, 1 tsp honey, salt, and pepper.", "Dress right before serving to keep crunch."] }
+          ];
+    } else if (isAsadoStyle) {
+      localizedSides = isHebrew
+        ? [
+            { name: "אורז לבן עם עשבים", description: "אורז אוורירי שסופג רוטב בשר נהדר.", steps: ["שטוף 1.5 כוסות אורז ובשל עם 2.5 כוסות מים, 1 כפית מלח ו-1 כף שמן זית.", "בשל על להבה נמוכה 15 דקות ועוד 10 דקות מנוחה עם מכסה.", "אוורר במזלג וסיים בפטרוזיליה קצוצה."] },
+            { name: "ירקות שורש צלויים", description: "גזר, בטטה וסלק בצלייה איטית.", steps: ["חתוך 800 גרם ירקות שורש לקוביות אחידות.", "ערבב עם 3 כפות שמן זית, 1 כפית כמון, מלח ופלפל.", "צלֵה ב-200°C למשך 35-40 דקות עד השחמה."] },
+            { name: "ירקות חמוצים ביתיים", description: "חמיצות עדינה שמאזנת בישול ארוך.", steps: ["פרוס דק מלפפון, בצל סגול וגזר.", "ערבב עם 1/2 כוס חומץ, 1/2 כוס מים, 1 כף סוכר ו-1 כפית מלח.", "השהה 25 דקות לפני הגשה לקבלת כבישה מהירה."] }
+          ]
+        : [
+            { name: "Herbed Rice", description: "Fluffy rice that absorbs slow-cooked juices.", steps: ["Rinse 1.5 cups rice and cook with 2.5 cups water, 1 tsp salt, and 1 tbsp olive oil.", "Simmer over low heat for 15 minutes, then rest covered for 10 minutes.", "Fluff with a fork and finish with chopped parsley."] },
+            { name: "Roasted Root Vegetables", description: "Carrot, sweet potato, and beet cooked until caramelized.", steps: ["Cut 800 g mixed root vegetables into even cubes.", "Toss with 3 tbsp olive oil, 1 tsp cumin, salt, and pepper.", "Roast at 400°F / 200°C for 35-40 minutes until browned."] },
+            { name: "Quick Pickled Vegetables", description: "Bright acidity to balance rich slow-cooked beef.", steps: ["Thinly slice cucumber, red onion, and carrot.", "Mix with 1/2 cup vinegar, 1/2 cup water, 1 tbsp sugar, and 1 tsp salt.", "Rest 25 minutes before serving."] }
+          ];
+    } else if (isBrisketStyle) {
+      localizedSides = isHebrew
+        ? [
+            { name: "סלט כרוב קלאסי", description: "כרוב פריך עם רוטב לימון-מיונז קליל.", steps: ["קצוץ 1/2 כרוב לבן ו-1 גזר.", "ערבב עם 3 כפות מיונז, 1 כף לימון, 1 כפית חרדל, מלח ופלפל.", "השהה 10 דקות לספיגת טעמים והגש קר."] },
+            { name: "תפוחי אדמה מעוכים בתנור", description: "תוספת תפוחי אדמה פריכה מבחוץ ורכה בפנים.", steps: ["בשל 800 גרם תפוחי אדמה קטנים 18 דקות עד ריכוך חלקי.", "מעך קלות, מרח שמן זית ותבל במלח ופלפל.", "צלֵה ב-220°C ל-25 דקות עד זהוב."] },
+            { name: "קלחי תירס צלויים", description: "תירס מתקתק עם צריבה קלה.", steps: ["מרח 4 קלחי תירס בשמן זית ותבל במלח.", "צלֵה על גריל או מחבת פסים 10 דקות תוך סיבוב.", "הגש עם ליים וכוסברה קצוצה."] }
+          ]
+        : [
+            { name: "Coleslaw", description: "Crunchy slaw with bright lemon-mayo dressing.", steps: ["Shred 1/2 cabbage and 1 carrot.", "Mix with 3 tbsp mayo, 1 tbsp lemon juice, 1 tsp mustard, salt, and pepper.", "Rest 10 minutes and serve chilled."] },
+            { name: "Roasted Potatoes", description: "Crispy smashed potatoes for brisket juices.", steps: ["Boil 800 g baby potatoes for 18 minutes until partly tender.", "Lightly smash, coat with olive oil, salt, and pepper.", "Roast at 425°F / 220°C for 25 minutes until golden."] },
+            { name: "Grilled Corn", description: "Sweet grilled corn to cut through brisket richness.", steps: ["Brush 4 corn cobs with olive oil and season with salt.", "Grill 10 minutes while turning for even char.", "Finish with lime and chopped cilantro."] }
+          ];
+    } else if (isPicanhaStyle) {
+      localizedSides = isHebrew
+        ? [
+            { name: "סלט צ׳ימיצ׳ורי עשיר", description: "עגבניות, בצל ופטרוזיליה ברוטב צ׳ימיצ׳ורי.", steps: ["קצוץ 3 עגבניות, 1/2 בצל סגול ו-1/2 צרור פטרוזיליה.", "ערבב עם 2 כפות שמן זית, 1 כף חומץ יין, שום קצוץ וצ׳ילי.", "השהה 12 דקות והגש לצד הפיקניה."] },
+            { name: "תפוחי אדמה צלויים", description: "קוביות תפוחי אדמה זהובות ופריכות.", steps: ["חתוך 700 גרם תפוחי אדמה לקוביות אחידות.", "תבל ב-2 כפות שמן זית, פפריקה מעושנת, מלח ופלפל.", "צלֵה ב-210°C ל-30 דקות והפוך פעם אחת."] },
+            { name: "פלפלים קלויים", description: "פלפלים אדומים וצהובים בחריכה קלה.", steps: ["חתוך 3 פלפלים לרצועות עבות.", "צלה על גריל חם 7-8 דקות עם שמן זית ומלח.", "סיים בשום כתוש ומיץ לימון טרי."] }
+          ]
+        : [
+            { name: "Chimichurri-Style Salad", description: "Tomato, onion, and parsley in herb vinaigrette.", steps: ["Dice 3 tomatoes, 1/2 red onion, and 1/2 bunch parsley.", "Dress with 2 tbsp olive oil, 1 tbsp red wine vinegar, chopped garlic, and chili.", "Rest 12 minutes and serve alongside picanha."] },
+            { name: "Roasted Potatoes", description: "Crisp potato cubes with smoky paprika.", steps: ["Cut 700 g potatoes into even cubes.", "Season with 2 tbsp olive oil, smoked paprika, salt, and pepper.", "Roast at 410°F / 210°C for 30 minutes, turning once."] },
+            { name: "Grilled Peppers", description: "Sweet peppers blistered over high heat.", steps: ["Slice 3 peppers into thick strips.", "Grill for 7-8 minutes with olive oil and salt.", "Finish with crushed garlic and fresh lemon juice."] }
+          ];
+    }
+
+    if (!localizedSides) {
+      localizedSides = isHebrew
+        ? [
+            { name: "ירקות קלויים", description: "תוספת מאוזנת ומהירה עם שמן זית ועשבים.", steps: ["חתוך ירקות עונתיים גס ותבל בשמן זית, מלח ופלפל.", "צלֵה ב-205°C ל-22 דקות עד הזהבה.", "סיים במיץ לימון ועשבי תיבול קצוצים."] },
+            { name: "תפוחי אדמה צלויים", description: "תוספת קלאסית שמתאימה לרוב הנתחים.", steps: ["בשל חצי בישול תפוחי אדמה 10-12 דקות.", "צלֵה עם שמן זית ורוזמרין ב-210°C ל-28 דקות.", "הגש עם פלפל שחור טרי."] },
+            { name: "סלט עשבים ישראלי", description: "מלפפון, עגבנייה, בצל ופטרוזיליה קצוצה.", steps: ["קצוץ דק ירקות טריים לקערה גדולה.", "ערבב עם שמן זית, לימון, מלח ופלפל.", "הגש מיד כדי לשמור על רעננות."] }
+          ]
+        : [
+            { name: "Roasted Vegetables", description: "Balanced quick side with olive oil and herbs.", steps: ["Cut seasonal vegetables into large chunks and season with olive oil, salt, and pepper.", "Roast at 400°F / 205°C for 22 minutes until lightly caramelized.", "Finish with lemon juice and chopped herbs."] },
+            { name: "Roasted Potatoes", description: "Classic side for most beef cuts.", steps: ["Parboil potatoes for 10-12 minutes.", "Roast with olive oil and rosemary at 410°F / 210°C for 28 minutes.", "Serve with freshly cracked pepper."] },
+            { name: "Herb Salad", description: "Cucumber, tomato, onion, and fresh herbs.", steps: ["Finely chop fresh vegetables into a bowl.", "Dress with olive oil, lemon, salt, and pepper.", "Serve immediately for freshness."] }
+          ];
+    }
+
+    const drinks = isHebrew
       ? [
-          { ...sides[0], name: "תירס חרוך עם ליים", description: "תירס מתקתק ומעושן עם רעננות הדרית." },
-          { ...sides[1], name: "תפוחי אדמה פריכים בעשבים", description: "קוביות זהובות עם רוזמרין ומלח ים." },
-          { ...sides[2], name: "אספרגוס על הגריל", description: "תוספת מהירה עם שמן זית ופלפל." }
+          { name: "יין אדום יבש", description: "מתאים לנתחי בקר צלויים ועשירים." },
+          { name: "מים מוגזים עם לימון", description: "מרענן ומנקה חך בין ביסים." },
+          { name: "תה קר עם נענע", description: "אופציה קלילה ללא אלכוהול." }
         ]
-      : sides;
+      : [
+          { name: "Dry red wine", description: "Great with seared and rich beef cuts." },
+          { name: "Sparkling water with lemon", description: "Refreshing palate cleanser between bites." },
+          { name: "Iced tea", description: "Light non-alcoholic option for any method." }
+        ];
 
     const sauceShift = toSeedNumber(seed) % localizedSauces.length;
     const sideShift = toSeedNumber(seed) % localizedSides.length;
@@ -878,7 +940,9 @@ app.get("/api/ai-recipe", async (req, res) => {
             ]
       },
       sauces: [localizedSauces[sauceShift], localizedSauces[(sauceShift + 1) % localizedSauces.length], localizedSauces[(sauceShift + 2) % localizedSauces.length]],
-      sides: [localizedSides[sideShift], localizedSides[(sideShift + 1) % localizedSides.length], localizedSides[(sideShift + 2) % localizedSides.length]]
+      sides: [localizedSides[sideShift], localizedSides[(sideShift + 1) % localizedSides.length], localizedSides[(sideShift + 2) % localizedSides.length]],
+      drinkPairings: drinks.slice(0, 3),
+      dietaryPreference: isKosher ? "kosher" : "non_kosher"
     };
   };
 
@@ -918,6 +982,16 @@ app.get("/api/ai-recipe", async (req, res) => {
         steps: sanitizeStringList(item.steps)
       };
     }).filter(item => item.name);
+    const drinkPairings = sanitizeObjectList(normalized.drinkPairings).map((entry) => {
+      const item = entry && typeof entry === "object" ? entry : {};
+      return {
+        name: String(item.name || copy.drinkPairing).trim(),
+        description: String(item.description || copy.drinkDescription).trim()
+      };
+    }).filter(item => item.name);
+    const normalizedDietaryPreference = String(normalized.dietaryPreference || context.dietaryPreference || fallback.dietaryPreference || "non_kosher")
+      .trim()
+      .toLowerCase();
 
     const safeSauces = sauces.length >= 2 ? sauces.slice(0, 3) : fallback.sauces.slice(0, 3);
     const safeSides = sides.length >= 2 ? sides.slice(0, 3) : fallback.sides.slice(0, 3);
@@ -951,7 +1025,9 @@ app.get("/api/ai-recipe", async (req, res) => {
         name: item.name || fallback.sides[idx]?.name || copy.sideDish,
         description: item.description || fallback.sides[idx]?.description || copy.sideDescription,
         steps: sanitizeStringList(item.steps, fallback.sides[idx]?.steps || []).slice(0, 4)
-      }))
+      })),
+      drinkPairings: (drinkPairings.length ? drinkPairings : fallback.drinkPairings).slice(0, 3),
+      dietaryPreference: normalizedDietaryPreference === "kosher" ? "kosher" : "non_kosher"
     };
   };
 
@@ -964,6 +1040,8 @@ app.get("/api/ai-recipe", async (req, res) => {
     const chefTips = (main.chefTips || []).map(item => `- ${item}`).join("\n");
     const sauceTips = (structuredRecipe?.sauces || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
     const sideTips = (structuredRecipe?.sides || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
+    const drinkTips = (structuredRecipe?.drinkPairings || []).map(item => `- ${item.name}: ${item.description}`).join("\n");
+    const dietaryText = (structuredRecipe?.dietaryPreference || "non_kosher") === "kosher" ? copy.kosherValue : copy.nonKosherValue;
     const metadataBlock = [
       `${copy.prepTimeLabel}: ${metadata.prep_time || ""}`,
       `${copy.cookTimeLabel}: ${metadata.cook_time || ""}`,
@@ -972,14 +1050,17 @@ app.get("/api/ai-recipe", async (req, res) => {
       `${copy.servingsLabel}: ${metadata.servings || ""}`
     ].join("\n");
 
-    return `Title: ${main.title || copy.recipeTitle}\n${copy.metadataLabel}:\n${metadataBlock}\n\n${copy.ingredientsLabel}:\n${ingredients}\n\n${copy.stepsLabel}:\n${steps}\n\n${copy.tipsLabel}:\n${chefTips}\n${sauceTips}\n${sideTips}\n\n${copy.donenessLabel}:\n${copy.donenessText}`;
+    return `Title: ${main.title || copy.recipeTitle}\n${copy.dietaryLabel}: ${dietaryText}\n${copy.metadataLabel}:\n${metadataBlock}\n\n${copy.ingredientsLabel}:\n${ingredients}\n\n${copy.stepsLabel}:\n${steps}\n\n${copy.tipsLabel}:\n${chefTips}\n${sauceTips}\n${sideTips}\n\n${copy.drinkLabel}:\n${drinkTips}\n\n${copy.donenessLabel}:\n${copy.donenessText}`;
   };
 
   try {
-    const { cut, method, flavor, r, mode = "all", lang, meatType } = req.query;
+    const { cut, method, flavor, r, mode = "all", lang, meatType, dietaryPreference } = req.query;
     const outputLanguage = supportedRecipeLanguages.has(String(lang || "").toLowerCase())
       ? String(lang).toLowerCase()
       : "en";
+    const safeDietaryPreference = String(dietaryPreference || (outputLanguage === "he" ? "kosher" : "non_kosher")).toLowerCase() === "kosher"
+      ? "kosher"
+      : "non_kosher";
 
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
@@ -997,11 +1078,13 @@ Flavor profile: ${flavor}
 Variation seed: ${r}
 Refresh mode: ${mode}
 Output language: ${outputLanguage === "he" ? "Hebrew" : "English"}
+Dietary preference: ${safeDietaryPreference === "kosher" ? "Kosher" : "Non-kosher"}
 
 Rules:
 - Keep copy practical and specific (short paragraphs are fine, but include operational detail)
 - Return exactly 2-3 sauces
 - Return exactly 2-3 sides
+- Return exactly 2-3 drinkPairings
 - Always return valid JSON only, no markdown
 - Write every returned field in ${outputLanguage === "he" ? "Hebrew" : "English"}
 - Main recipe ingredients must include exact numeric quantity + explicit unit (g, kg, ml, tbsp, tsp; Hebrew: גרם, ק״ג, מ״ל, כף, כפית)
@@ -1011,9 +1094,14 @@ Rules:
 - Hebrew and English outputs must have the same structure and level of detail
 - Include metadata with prep/cook/total time, difficulty, and servings
 - Include chef tips that are practical and technique-focused
+- Side dishes must match the selected cut and method (e.g., ribeye/steak => grilled vegetables + potatoes + salad; asado/slow cook => rice + roasted root vegetables + pickled vegetables; brisket => coleslaw + potatoes + grilled corn; picanha => chimichurri-style salad + roasted potatoes + grilled peppers)
+- If output language is Hebrew, prefer Israeli/local sauces and sides where suitable (טחינה ירוקה, צ׳ימיצ׳ורי, סלסה עגבניות חריפה, רוטב שום ולימון, רוטב עשבי תיבול, עמבה עדינה)
+- If dietary preference is kosher: do not use butter/cream with meat, keep sauces and sides kosher-friendly, use olive oil/tahini/herbs/tomato and wine reductions without butter
+- If dietary preference is non-kosher: butter and cream-based pairings are allowed when relevant
 
 JSON shape:
 {
+  "dietaryPreference": "kosher | non_kosher",
   "main": {
     "title": "string",
     "description": "string",
@@ -1041,6 +1129,12 @@ JSON shape:
       "name": "string",
       "description": "string",
       "steps": ["string"]
+    }
+  ],
+  "drinkPairings": [
+    {
+      "name": "string",
+      "description": "string"
     }
   ]
 }
@@ -1073,7 +1167,8 @@ JSON shape:
       method,
       flavor,
       seed: r,
-      language: outputLanguage
+      language: outputLanguage,
+      dietaryPreference: safeDietaryPreference
     });
     const recipe = structuredToLegacyText(structuredRecipe, outputLanguage);
 
