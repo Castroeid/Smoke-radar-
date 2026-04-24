@@ -1,0 +1,15 @@
+{
+  "name": "Smoke Radar",
+  "short_name": "SmokeRadar",
+  "start_url": "/app/",
+  "display": "standalone",
+  "background_color": "#080b10",
+  "theme_color": "#080b10",
+  "icons": [
+    {
+      "src": "/og-preview.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
