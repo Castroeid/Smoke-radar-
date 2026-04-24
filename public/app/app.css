@@ -24,6 +24,33 @@ body {
   color: var(--text);
 }
 
+.opening-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 52% 46%, rgba(255, 132, 73, 0.24), transparent 42%),
+    radial-gradient(circle at 40% 38%, rgba(255, 89, 0, 0.24), transparent 36%),
+    repeating-radial-gradient(circle at center, rgba(255, 125, 66, 0.11) 0 1px, transparent 1px 11px),
+    linear-gradient(180deg, #050506 0%, #0d0e12 100%);
+  transition: opacity .35s ease, visibility .35s ease;
+}
+
+.opening-logo {
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  font-weight: 900;
+  color: #ffd3b7;
+  text-shadow: 0 0 8px rgba(255, 128, 64, .48), 0 0 28px rgba(255, 81, 0, .5);
+  animation: splashPulse .95s ease-out;
+}
+
+.opening-splash.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .app-shell {
   min-height: 100vh;
   max-width: 520px;
@@ -72,6 +99,7 @@ body {
   border-radius: 18px;
   padding: 12px;
   background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
 }
 
 .visual-card {
@@ -80,7 +108,7 @@ body {
   background:
     linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.72)),
     radial-gradient(circle at 80% 20%, rgba(255, 123, 62, 0.35), transparent 45%),
-    url('/app/assets/hot-trends.jpg');
+    url('/app/assets/hot-trends-bg.jpg');
   background-size: cover;
   background-position: center;
 }
@@ -88,10 +116,14 @@ body {
 .visual-map {
   min-height: 145px;
   background:
-    linear-gradient(180deg, rgba(6,9,12,.16), rgba(8,8,8,.76)),
-    repeating-linear-gradient(45deg, rgba(255,111,52,.12), rgba(255,111,52,.12) 1px, transparent 1px, transparent 11px),
-    url('/app/assets/butcher-map.jpg');
+    radial-gradient(circle at 18% 68%, rgba(255,111,52,.34) 0 6px, transparent 8px),
+    radial-gradient(circle at 58% 32%, rgba(255,111,52,.32) 0 5px, transparent 7px),
+    radial-gradient(circle at 80% 52%, rgba(255,111,52,.32) 0 5px, transparent 7px),
+    repeating-linear-gradient(25deg, rgba(255,255,255,.06), rgba(255,255,255,.06) 1px, transparent 1px, transparent 13px),
+    linear-gradient(180deg, rgba(6,9,12,.28), rgba(8,8,8,.86)),
+    url('/app/assets/butcher-map-bg.jpg');
   background-size: cover;
+  background-position: center;
 }
 
 .recipe-hero {
@@ -102,10 +134,21 @@ body {
   background:
     linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.84)),
     radial-gradient(circle at 85% 12%, rgba(255, 124, 66, 0.34), transparent 45%),
-    var(--recipe-image, url('/app/assets/recipe-steak.jpg'));
+    var(--recipe-image, url('/app/assets/recipe-card-bg.jpg'));
   background-size: cover;
   background-position: center;
 }
+
+.badges-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 162, 120, 0.38);
+  border-radius: 999px;
+  font-size: .78rem;
+  background: rgba(255, 255, 255, .04);
+}
+.badge strong { color: var(--accent-soft); }
+.badge-emphasis { background: rgba(255, 107, 44, .2); border-color: rgba(255, 107, 44, .66); }
 
 .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .meta-item { border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: rgba(255,255,255,.02); }
@@ -119,11 +162,13 @@ body {
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
+  transition: transform .12s ease, box-shadow .18s ease, filter .18s ease;
 }
 .btn-primary {
   color: white;
   background: linear-gradient(135deg, #ff9b61 0%, #ff6b2c 50%, #df3f00 100%);
   box-shadow: 0 0 0 1px rgba(255,121,56,.34), 0 12px 24px rgba(255,92,26,.36);
+  animation: ctaGlow 2.6s ease-in-out infinite;
 }
 .btn-ghost { background: rgba(255,255,255,.03); color: var(--text); border-color: var(--line); }
 .btn-choice {
@@ -133,6 +178,12 @@ body {
   text-align: start;
 }
 .btn-choice.active { border-color: rgba(255,117,49,.65); box-shadow: inset 0 0 0 1px rgba(255,117,49,.45); }
+.btn:active { transform: translateY(1px) scale(.99); filter: brightness(.98); }
+.btn:hover { transform: translateY(-1px); }
+.card:hover { transform: translateY(-1px); border-color: rgba(255, 141, 89, .3); }
+.butcher-card.featured { border-color: rgba(255, 139, 81, .55); box-shadow: inset 0 0 0 1px rgba(255, 139, 81, .2); }
+
+.screen-transition { animation: stepShift .24s ease; }
 
 .app-nav { display: grid; gap: 10px; grid-template-columns: 1fr 1.2fr; }
 .small { color: var(--muted); font-size: .88rem; margin: 0; }
@@ -157,6 +208,18 @@ select, input {
 .fade-in { animation: fadeIn .28s ease; }
 
 @keyframes fadeIn { from { opacity: .15; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes splashPulse {
+  from { opacity: .4; transform: scale(.96); filter: blur(.4px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes stepShift {
+  from { opacity: .75; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,121,56,.34), 0 12px 24px rgba(255,92,26,.26); }
+  50% { box-shadow: 0 0 0 1px rgba(255,121,56,.5), 0 14px 30px rgba(255,92,26,.42); }
+}
 
 @media (min-width: 700px) {
   .app-shell { margin-top: 16px; border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
