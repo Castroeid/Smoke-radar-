@@ -479,7 +479,7 @@ function renderHotNow() {
   el.content.innerHTML = `
     <div class="card visual-card">
       <h3>${state.lang === "he" ? "Smoke Index™" : "Smoke Index™"}</h3>
-      <p class="small">${state.lang === "he" ? "בחר טרנד כדי להתחיל את המתכון." : "Pick a trend to start your recipe."}</p>
+      <p class="small">${state.lang === "he" ? "מתכונים ורעיונות בהשראת סרטונים חמים עם הרבה צפיות" : "Recipes and ideas inspired by trending high-view meat videos"}</p>
     </div>
     ${state.hotList.map((item, idx) => {
       const cut = getCutById(item.cutId);
@@ -567,8 +567,8 @@ function buildIdeas() {
 function renderCookIdeas() {
   state.mealIdeas = buildIdeas();
   el.content.innerHTML = `
-    <div class="card">
-      <h3>${state.lang === "he" ? "Smart Cooking Mode™" : "Smart Cooking Mode™"}</h3>
+    <div class="card cook-mode-header">
+      <h3 class="cook-mode-title">${state.lang === "he" ? "Smart Cooking Mode™" : "Smart Cooking Mode™"}</h3>
       <p class="small">${state.lang === "he" ? "בחר סגנון בישול והמשך למתכון מותאם." : "Choose your cooking style and continue to a tailored recipe."}</p>
     </div>
     ${state.mealIdeas.map((idea, idx) => `
@@ -607,7 +607,7 @@ async function loadRecipe() {
 
   const res = await fetch(`/api/ai-recipe?${query.toString()}`);
   const data = await res.json();
-  state.recipe = data.structuredRecipe || null;
+  state.recipe = enhanceRecipeQuality(data.structuredRecipe || null);
   state.shopping = buildShoppingList(state.recipe);
 }
 
@@ -794,7 +794,6 @@ function renderButchers() {
     el.content.innerHTML = `
       <div class="card visual-map">
         <h3>${state.lang === "he" ? "Butcher Radar™" : "Butcher Radar™"}</h3>
-        <p class="small">${state.lang === "he" ? "ויזואל מפה עם נקודות חמות סביבך." : "Map-like discovery with orange location pins."}</p>
       </div>
       <button id="findButchers" class="btn btn-primary">${state.lang === "he" ? "📍 מצא קצביות קרובות" : "📍 Find nearby butcher shops"}</button>
     `;
@@ -819,7 +818,6 @@ function renderButchers() {
   el.content.innerHTML = `
     <div class="card visual-map">
       <h3>${state.lang === "he" ? "Butcher Radar™" : "Butcher Radar™"}</h3>
-      <p class="small">${state.lang === "he" ? "תצוגת מפה חכמה עם נקודות סימון כתומות." : "Smart map-style visual with orange location pins."}</p>
     </div>
     ${state.butchers.slice(0, 8).map((b, idx) => {
       const stars = "⭐".repeat(Math.max(1, Math.min(5, Math.round(b.rating || 4))));
@@ -834,7 +832,7 @@ function renderButchers() {
           ${badges.length ? `<div class="badges-row">${badges.map((badge) => `<span class="badge badge-emphasis">${badge}</span>`).join("")}</div>` : ""}
           <strong>📍 ${b.name}</strong>
           <p class="small">${b.address || ""}</p>
-          <p class="small">${state.lang === "he" ? "מרחק ממך" : "Distance"}: ${Number.isFinite(distance) ? formatDistance(distance) : "-"}</p>
+          ${Number.isFinite(distance) ? `<p class="small">${state.lang === "he" ? "מרחק ממך" : "Distance"}: ${formatDistance(distance)}</p>` : ""}
           <div class="butcher-footer">
             <p class="small butcher-rating">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0})</p>
             <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
@@ -925,11 +923,14 @@ async function handleNext() {
 
 function getDistanceValue(shop) {
   const candidates = [shop.distanceKm, shop.distance_km, shop.distance, shop.distanceMeters ? shop.distanceMeters / 1000 : null];
-  const first = candidates.find((v) => typeof v === "number" && Number.isFinite(v));
+  const first = candidates.find((v) => typeof v === "number" && Number.isFinite(v) && v >= 0);
   if (Number.isFinite(first)) return first;
   if (typeof shop.distanceText === "string") {
     const parsed = Number(shop.distanceText.replace(/[^\d.]/g, ""));
-    if (Number.isFinite(parsed)) return parsed;
+    if (Number.isFinite(parsed)) {
+      if (/mi|miles?/i.test(shop.distanceText)) return parsed * 1.60934;
+      return parsed;
+    }
   }
   if (state.location && Number.isFinite(shop?.lat) && Number.isFinite(shop?.lng)) {
     return haversineDistanceKm(state.location.lat, state.location.lng, shop.lat, shop.lng);
@@ -972,6 +973,204 @@ function getChefTips(cutId, methodId) {
       : ["For tougher cuts, give them low, steady time.", "Wait for tenderness before slicing.", "Slice against the grain for a softer bite."];
   }
   return methodTips.slice(0, 3);
+}
+
+function enhanceRecipeQuality(recipe) {
+  if (!recipe || typeof recipe !== "object") return recipe;
+  const methodId = state.preferences.methodId;
+  const cutId = state.preferences.cutId;
+  const lang = state.lang;
+  const kosherMode = state.preferences.dietaryPreference === "kosher";
+  const main = recipe.main || {};
+  const ingredients = Array.isArray(main.ingredients) ? [...main.ingredients] : [];
+  const steps = Array.isArray(main.steps) ? [...main.steps] : [];
+
+  const enrichedMain = { ...main, ingredients, steps };
+  alignTechniqueAndTiming(enrichedMain, methodId, cutId, lang);
+  ensureDefinitionsInSteps(enrichedMain, lang);
+  ensureMarinadeSupport(enrichedMain, methodId, cutId, lang);
+  if (kosherMode) applyKosherAdjustments(enrichedMain, lang);
+  if (lang === "he") enforceHebrewOnlyRecipe(enrichedMain);
+
+  const recipeCopy = {
+    ...recipe,
+    main: enrichedMain,
+    sauces: normalizeSubRecipes(recipe.sauces, "sauce"),
+    sides: normalizeSubRecipes(recipe.sides, "side"),
+    drinkPairings: Array.isArray(recipe.drinkPairings) ? recipe.drinkPairings.map((d) => ({ ...d })) : []
+  };
+
+  recipeCopy.sauces = recipeCopy.sauces.map((item) => enhanceSubRecipe(item, "sauce", { kosherMode, lang }));
+  recipeCopy.sides = recipeCopy.sides.map((item) => enhanceSubRecipe(item, "side", { kosherMode, lang }));
+  recipeCopy.drinkPairings = recipeCopy.drinkPairings.map((d) => {
+    const value = d?.name || "";
+    return { name: lang === "he" ? normalizeHebrewCookingText(value) : value };
+  });
+
+  if (lang === "he") {
+    recipeCopy.main.title = normalizeHebrewCookingText(recipeCopy.main.title || "");
+    recipeCopy.main.description = normalizeHebrewCookingText(recipeCopy.main.description || "");
+  }
+
+  return recipeCopy;
+}
+
+function enhanceSubRecipe(item, type, { kosherMode, lang }) {
+  const sub = {
+    title: item?.title || defaultSubRecipe(type).title,
+    ingredients: Array.isArray(item?.ingredients) ? [...item.ingredients] : [],
+    steps: Array.isArray(item?.steps) ? [...item.steps] : []
+  };
+
+  if (kosherMode && type === "sauce") {
+    sub.ingredients = sub.ingredients.map((line) => line.replace(/butter|cream/ig, lang === "he" ? "שמן זית" : "olive oil"));
+    sub.steps = sub.steps.map((line) => line.replace(/butter|cream/ig, lang === "he" ? "שמן זית" : "olive oil"));
+  }
+  if (lang === "he") {
+    sub.title = normalizeHebrewCookingText(sub.title);
+    sub.ingredients = sub.ingredients.map(normalizeHebrewCookingText);
+    sub.steps = sub.steps.map(normalizeHebrewCookingText);
+  }
+  return sub;
+}
+
+function alignTechniqueAndTiming(main, methodId, cutId, lang) {
+  const smoking = ["smoker", "smoking", "low_slow"].includes(methodId);
+  if (!smoking) {
+    if (cutId === "ribeye" || cutId === "striploin") {
+      setFallbackTimes(main, {
+        prep: lang === "he" ? "15 דקות" : "15 min",
+        cook: lang === "he" ? "10–14 דקות" : "10–14 min",
+        total: lang === "he" ? "30 דקות" : "30 min"
+      });
+      appendStep(main.steps, lang === "he"
+        ? "חממו גריל לחום גבוה וצרבו 2–3 דקות מכל צד, ואז העבירו לאזור חום בינוני עד דרגת העשייה הרצויה."
+        : "Preheat the grill to high heat, sear 2–3 minutes per side, then finish over medium heat to target doneness.");
+      appendStep(main.steps, lang === "he"
+        ? "תנו לנתח מנוחה 5–7 דקות לפני פריסה כדי שהמיצים יתייצבו בתוך הבשר."
+        : "Rest the steak 5–7 minutes before slicing so juices redistribute.");
+    }
+    return;
+  }
+
+  if (lang === "he") {
+    appendStep(main.steps, "חממו מעשנה ל-107–120 מעלות צלזיוס ושמרו על טמפרטורה יציבה לאורך כל העישון.");
+    appendStep(main.steps, "השתמשו בעץ עישון עדין כמו אלון או היקורי לפי הטעם לעומק עשן מאוזן.");
+    appendStep(main.steps, "רססו בעדינות תפוחים/מים כל 45–60 דקות אחרי שהקליפה מתחילה להתייצב כדי לשמור על לחות.");
+  } else {
+    appendStep(main.steps, "Preheat the smoker to 225–250°F (107–120°C) and hold that temperature steady.");
+    appendStep(main.steps, "Use mild smoking wood such as oak or hickory for balanced smoke flavor.");
+    appendStep(main.steps, "Spritz lightly with apple juice or water every 45–60 minutes once bark begins to set.");
+  }
+
+  if (cutId === "brisket") {
+    setFallbackTimes(main, {
+      prep: lang === "he" ? "35 דקות" : "35 min",
+      cook: lang === "he" ? "8–12 שעות" : "8–12 hours",
+      total: lang === "he" ? "10–14 שעות (כולל מנוחה)" : "10–14 hours (including rest)"
+    });
+    appendStep(main.steps, lang === "he"
+      ? "כאשר הטמפרטורה הפנימית מגיעה ל-74–78 מעלות והבארק יציב, עטפו בנייר קצבים או נייר כסף."
+      : "When internal temperature reaches 165–172°F and bark is set, wrap in butcher paper or foil.");
+  } else if (cutId === "asado" || cutId === "short_ribs") {
+    setFallbackTimes(main, {
+      prep: lang === "he" ? "25 דקות" : "25 min",
+      cook: lang === "he" ? "6–8 שעות" : "6–8 hours",
+      total: lang === "he" ? "7–9 שעות (כולל מנוחה)" : "7–9 hours (including rest)"
+    });
+  } else {
+    setFallbackTimes(main, {
+      prep: lang === "he" ? "20 דקות" : "20 min",
+      cook: lang === "he" ? "2–4 שעות" : "2–4 hours",
+      total: lang === "he" ? "3–5 שעות" : "3–5 hours"
+    });
+  }
+
+  appendStep(main.steps, lang === "he"
+    ? "המשיכו עד טמפרטורה פנימית של 93–96 מעלות או עד שהמדחום נכנס כמו חמאה (Probe Tender)."
+    : "Continue until 200–205°F internal temp or until a probe slides in with little resistance (probe tender).");
+  appendStep(main.steps, lang === "he"
+    ? "הניחו למנוחה עטופה 45–90 דקות לפני פריסה להגשה עסיסית."
+    : "Rest wrapped for 45–90 minutes before slicing for juicier results.");
+}
+
+function ensureDefinitionsInSteps(main, lang) {
+  const explanations = lang === "he"
+    ? [
+      "לייבש = לטפוח על הנתח עם נייר סופג עד שהחלק החיצוני יבש כדי לקבל צריבה טובה יותר.",
+      "מנוחה = להניח לבשר אחרי הבישול בלי לחתוך, כדי שהמיצים יתפזרו מחדש בבשר.",
+      "עיטוף = לעטוף בנייר קצבים או בנייר כסף כשהבארק יציב כדי להתגבר על הסטול.",
+      "ריסוס = התזה עדינה של מים/מיץ תפוחים על פני הבשר לשמירה על לחות.",
+      "רך לבדיקה = כשהמדחום נכנס ויוצא כמעט בלי התנגדות."
+    ]
+    : [
+      "Dry = pat the cut with paper towels until the surface is dry for better sear.",
+      "Rest = let the meat sit after cooking before slicing so juices redistribute.",
+      "Wrap = wrap with butcher paper or foil once bark is set to push through the stall.",
+      "Spritz = lightly mist the meat surface with water or apple juice to retain moisture.",
+      "Probe tender = the probe should slide in with very little resistance."
+    ];
+  explanations.forEach((line) => appendStep(main.steps, line));
+}
+
+function ensureMarinadeSupport(main, methodId, cutId, lang) {
+  const needsMarinade = ["flank", "sirloin", "chuck", "asado", "short_ribs"].includes(cutId) || methodId === "grill";
+  if (!needsMarinade) return;
+  appendStep(main.steps, lang === "he"
+    ? "אפשר להשרות במרינדה (שמן זית, שום כתוש, פפריקה, פלפל שחור ומעט חומץ) במקרר 4–12 שעות. לא להשאיר בחוץ."
+    : "Optional marinade: olive oil, crushed garlic, paprika, black pepper, and a little vinegar. Refrigerate 4–12 hours; do not leave meat out.");
+}
+
+function applyKosherAdjustments(main, lang) {
+  main.ingredients = main.ingredients.map((line) => line.replace(/butter|cream|yogurt|parmesan/ig, lang === "he" ? "שמן זית" : "olive oil"));
+  main.steps = main.steps.map((line) => line.replace(/butter|cream|yogurt|parmesan/ig, lang === "he" ? "שמן זית" : "olive oil"));
+}
+
+function enforceHebrewOnlyRecipe(main) {
+  main.ingredients = main.ingredients.map(normalizeHebrewCookingText);
+  main.steps = main.steps.map(normalizeHebrewCookingText);
+  main.title = normalizeHebrewCookingText(main.title || "");
+  main.description = normalizeHebrewCookingText(main.description || "");
+}
+
+function normalizeHebrewCookingText(text) {
+  if (!text) return text;
+  const replacements = [
+    [/tablespoons?/ig, "כפות"],
+    [/teaspoons?/ig, "כפיות"],
+    [/\bgrams?\b/ig, "גרם"],
+    [/\bml\b/ig, "מ״ל"],
+    [/cloves?/ig, "שיני"],
+    [/finely chopped/ig, "קצוץ דק"],
+    [/smoker/ig, "מעשנה"],
+    [/smoking/ig, "עישון"],
+    [/grill/ig, "גריל"],
+    [/oven/ig, "תנור"],
+    [/rest/ig, "מנוחה"],
+    [/spritz/ig, "ריסוס"],
+    [/wrap/ig, "עיטוף"],
+    [/dry/ig, "לייבש"],
+    [/\bmin\b/ig, "דקות"],
+    [/\bhours?\b/ig, "שעות"]
+  ];
+  return replacements.reduce((acc, [pattern, value]) => acc.replace(pattern, value), text)
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function setFallbackTimes(main, times) {
+  const hasCook = typeof main.cookTime === "string" && main.cookTime.trim();
+  const hasTotal = typeof main.totalTime === "string" && main.totalTime.trim();
+  const hasPrep = typeof main.prepTime === "string" && main.prepTime.trim();
+  if (!hasPrep) main.prepTime = times.prep;
+  if (!hasCook || /(\d{1,3}\s*(min|דקות))$/i.test(main.cookTime)) main.cookTime = times.cook;
+  if (!hasTotal || /(\d{1,3}\s*(min|דקות))$/i.test(main.totalTime)) main.totalTime = times.total;
+}
+
+function appendStep(steps, text) {
+  if (!Array.isArray(steps) || !text) return;
+  const exists = steps.some((line) => String(line).includes(text.slice(0, 20)));
+  if (!exists) steps.push(text);
 }
 
 async function copyShoppingListToClipboard() {
@@ -1176,7 +1375,9 @@ function renderRecipeLoadingCard(message) {
   return `
     <div class="card branded-loader">
       <div class="opening-radar-loader loading-radar" aria-hidden="true"><span></span></div>
-      <strong>${message}</strong>
+      <strong class="loading-message">${message}</strong>
+      <p class="small loading-dots"><span>.</span><span>.</span><span>.</span></p>
+      <div class="loading-progress-pulse" aria-hidden="true"><span></span></div>
     </div>
   `;
 }
@@ -1186,12 +1387,22 @@ function startRecipeLoadingState() {
   let i = 0;
   const print = () => {
     const msg = messages[i % messages.length] || (state.lang === "he" ? "בונה מתכון..." : "Building recipe...");
-    el.content.innerHTML = renderRecipeLoadingCard(msg);
+    const messageEl = el.content.querySelector(".loading-message");
+    if (messageEl) {
+      messageEl.classList.add("is-swapping");
+      window.setTimeout(() => {
+        messageEl.textContent = msg;
+        messageEl.classList.remove("is-swapping");
+      }, 120);
+    } else {
+      el.content.innerHTML = renderRecipeLoadingCard(msg);
+    }
     i += 1;
   };
-  print();
+  el.content.innerHTML = renderRecipeLoadingCard(messages[0] || (state.lang === "he" ? "בונה מתכון..." : "Building recipe..."));
+  i = 1;
   if (recipeLoadingInterval) window.clearInterval(recipeLoadingInterval);
-  recipeLoadingInterval = window.setInterval(print, 850);
+  recipeLoadingInterval = window.setInterval(print, 900);
 }
 
 function stopRecipeLoadingState() {
