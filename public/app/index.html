@@ -10,7 +10,18 @@
 </head>
 <body>
   <div id="openingSplash" class="opening-splash" aria-hidden="true">
-    <div class="opening-logo">🔥 Smoke Radar</div>
+    <div class="opening-splash-overlay"></div>
+    <div class="opening-splash-content">
+      <div class="opening-logo">🔥 Smoke Radar</div>
+      <div class="opening-radar-loader" aria-hidden="true">
+        <span></span>
+      </div>
+      <p id="openingMessage" class="opening-message"></p>
+      <ol id="openingSteps" class="opening-steps"></ol>
+      <div class="opening-progress" aria-hidden="true">
+        <span id="openingProgressFill" class="opening-progress-fill"></span>
+      </div>
+    </div>
   </div>
 
   <main id="app" class="app-shell" data-step="landing">
