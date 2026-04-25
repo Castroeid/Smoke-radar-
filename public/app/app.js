@@ -117,6 +117,7 @@ const el = {
   header: document.getElementById("appHeader"),
   title: document.getElementById("screenTitle"),
   subtitle: document.getElementById("screenSubtitle"),
+  progressWrap: document.querySelector(".progress-wrap"),
   content: document.getElementById("screenContent"),
   nextBtn: document.getElementById("nextBtn"),
   backBtn: document.getElementById("backBtn"),
@@ -148,8 +149,10 @@ function render() {
   document.documentElement.lang = state.lang;
   document.documentElement.dir = t("dir");
   el.appRoot.dataset.step = step;
-  el.title.textContent = t(`titles.${step}`);
-  el.subtitle.textContent = step === "landing" ? t("landingSubtitle") : "";
+  el.title.textContent = step === "landing" ? "" : t(`titles.${step}`);
+  el.subtitle.textContent = "";
+  el.header.classList.toggle("landing-minimal", step === "landing");
+  el.progressWrap?.classList.toggle("hidden", step === "landing");
   el.progressFill.style.width = `${progress}%`;
   el.progressText.textContent = `${t("stepLabel")} ${Math.max(currentStep, 1)}/${totalFlowSteps}`;
   el.backBtn.textContent = t("back");
@@ -377,6 +380,8 @@ function renderRecipe() {
     { label: state.lang === "he" ? "כשרות" : "Diet", value: kosherLabel }
   ];
   const chefTips = getChefTips(state.preferences.cutId, state.preferences.methodId);
+  const sauces = normalizeSubRecipes(r.sauces, "sauce");
+  const sides = normalizeSubRecipes(r.sides, "side");
 
   el.content.innerHTML = `
     <div class="card recipe-hero" style="--recipe-image:${recipeHeroForCut()}">
@@ -402,8 +407,14 @@ function renderRecipe() {
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${i}</li>`).join("")}</ul></div>
     <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s) => `<li>${s}</li>`).join("")}</ol></div>
-    <div class="card"><h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3><ul class="list">${(r.sauces || []).map((s) => `<li>${s.name}</li>`).join("")}</ul></div>
-    <div class="card"><h3>${state.lang === "he" ? "תוספות" : "Side Dishes"}</h3><ul class="list">${(r.sides || []).map((s) => `<li>${s.name}</li>`).join("")}</ul></div>
+    <div class="card">
+      <h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3>
+      ${renderSubRecipeDetails(sauces)}
+    </div>
+    <div class="card">
+      <h3>${state.lang === "he" ? "תוספות" : "Side Dishes"}</h3>
+      ${renderSubRecipeDetails(sides)}
+    </div>
     <div class="card"><h3>${state.lang === "he" ? "שתייה מתאימה" : "Drink Pairings"}</h3><ul class="list">${(r.drinkPairings || []).map((d) => `<li>${d.name}</li>`).join("")}</ul></div>
     <div class="card">
       <h3>${state.lang === "he" ? "טיפים מהשף" : "Chef Tips"}</h3>
@@ -446,8 +457,8 @@ function renderRecipe() {
 
 function buildShoppingList(recipe) {
   const mainIng = recipe?.main?.ingredients || [];
-  const sauces = (recipe?.sauces || []).flatMap((s) => s.ingredients || [s.name]).filter(Boolean);
-  const sides = (recipe?.sides || []).flatMap((s) => s.ingredients || [s.name]).filter(Boolean);
+  const sauces = normalizeSubRecipes(recipe?.sauces, "sauce").flatMap((s) => s.ingredients);
+  const sides = normalizeSubRecipes(recipe?.sides, "side").flatMap((s) => s.ingredients);
   const drinks = (recipe?.drinkPairings || []).map((d) => d.name).filter(Boolean);
 
   return {
@@ -476,7 +487,7 @@ function renderShopping() {
           <h3 class="group-title">${group[state.lang]}</h3>
           ${items.length ? items.map((item, idx) => {
             const id = `${group.key}-${idx}`;
-            return `<label class="check-item"><input type="checkbox" data-check="${id}" ${state.shoppingChecks[id] ? "checked" : ""} /> <span>${item}</span></label>`;
+            return `<label class="check-item"><span>${item}</span><input type="checkbox" data-check="${id}" ${state.shoppingChecks[id] ? "checked" : ""} /></label>`;
           }).join("") : `<p class="small">${state.lang === "he" ? "לא נוספו פריטים" : "No items added"}</p>`}
         </div>`;
     }).join("")}
@@ -548,11 +559,78 @@ function renderButchers() {
           ${badges.length ? `<div class="badges-row">${badges.map((badge) => `<span class="badge badge-emphasis">${badge}</span>`).join("")}</div>` : ""}
           <strong>📍 ${b.name}</strong>
           <p class="small">${b.address || ""}</p>
-          <p class="small">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0}) ${Number.isFinite(distance) ? `• ${distance.toFixed(1)} km` : ""}</p>
-          <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
+          <div class="butcher-meta-row">
+            <p class="small butcher-rating">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0}) ${Number.isFinite(distance) ? `• ${distance.toFixed(1)} km` : ""}</p>
+          </div>
+          <div class="butcher-action-row">
+            <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
+          </div>
         </article>`;
     }).join("")}
   `;
+}
+
+function normalizeSubRecipes(items, type) {
+  const list = Array.isArray(items) ? items : [];
+  const normalized = list.map((item) => ({
+    title: item?.name || defaultSubRecipe(type).title,
+    ingredients: (item?.ingredients || []).filter(Boolean),
+    steps: (item?.steps || []).filter(Boolean)
+  }));
+
+  if (!normalized.length) return [defaultSubRecipe(type)];
+
+  return normalized.map((item) => {
+    const fallback = defaultSubRecipe(type, item.title);
+    return {
+      title: item.title || fallback.title,
+      ingredients: item.ingredients.length ? item.ingredients : fallback.ingredients,
+      steps: item.steps.length ? item.steps : fallback.steps
+    };
+  });
+}
+
+function defaultSubRecipe(type, explicitTitle) {
+  if (state.lang === "he") {
+    if (type === "sauce") {
+      return {
+        title: explicitTitle || "צ'ימיצ'ורי קלאסי",
+        ingredients: ["1/2 כוס פטרוזיליה קצוצה", "2 שיני שום כתושות", "3 כפות שמן זית", "1 כף חומץ יין אדום", "מלח ופלפל לפי הטעם"],
+        steps: ["מערבבים בקערה את כל המרכיבים.", "טועמים ומאזנים מלח/חומץ.", "מגישים לצד הבשר או מעליו."]
+      };
+    }
+    return {
+      title: explicitTitle || "תפוחי אדמה מעושנים",
+      ingredients: ["4 תפוחי אדמה בינוניים חתוכים", "2 כפות שמן זית", "1 כפית פפריקה מעושנת", "1/2 כפית מלח", "1/4 כפית פלפל שחור"],
+      steps: ["מערבבים את תפוחי האדמה עם התיבול.", "צולים בתנור או על הגריל עד הזהבה.", "מגישים חם לצד המנה העיקרית."]
+    };
+  }
+
+  if (type === "sauce") {
+    return {
+      title: explicitTitle || "Classic Chimichurri",
+      ingredients: ["1/2 cup chopped parsley", "2 minced garlic cloves", "3 tbsp olive oil", "1 tbsp red wine vinegar", "Salt and pepper to taste"],
+      steps: ["Combine all ingredients in a bowl.", "Adjust seasoning and acidity.", "Serve over or beside the meat."]
+    };
+  }
+  return {
+    title: explicitTitle || "Smoky Roasted Potatoes",
+    ingredients: ["4 medium potatoes, cubed", "2 tbsp olive oil", "1 tsp smoked paprika", "1/2 tsp salt", "1/4 tsp black pepper"],
+    steps: ["Toss potatoes with oil and seasoning.", "Roast or grill until golden and tender.", "Serve hot next to the main dish."]
+  };
+}
+
+function renderSubRecipeDetails(items) {
+  if (!items.length) return `<p class="small">${state.lang === "he" ? "לא נוספו פריטים" : "No items added"}</p>`;
+  return items.map((item) => `
+    <div class="sub-recipe-block">
+      <h4>${item.title}</h4>
+      <p class="small">${state.lang === "he" ? "מרכיבים" : "Ingredients"}</p>
+      <ul class="list">${item.ingredients.map((ingredient) => `<li>${ingredient}</li>`).join("")}</ul>
+      <p class="small">${state.lang === "he" ? "הכנה" : "Instructions"}</p>
+      <ol class="list">${item.steps.map((step) => `<li>${step}</li>`).join("")}</ol>
+    </div>
+  `).join("");
 }
 
 async function handleNext() {
