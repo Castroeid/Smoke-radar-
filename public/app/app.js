@@ -2,6 +2,15 @@ const STEPS = ["landing", "saved", "hot", "preferences", "cook", "recipe", "shop
 let currentStep = 0;
 const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
 const SHARE_TEXT = "Check out Smoke Radar — meat trends, recipes, and butcher discovery in one radar-style app.";
+const INTRO_MIN_DURATION_MS = 1800;
+
+const assetCandidates = {
+  appBg: ["/app/assets/app-bg-smoke.jpg", "/app/assets/app-bg-smoke.jpg.png"],
+  hero: ["/app/assets/hero-steak.jpg", "/app/assets/hero-steak.jpg.png"],
+  hot: ["/app/assets/hot-trends.jpg", "/app/assets/hot-trends-bg.jpg", "/app/assets/hot-trends.jpg.png", "/app/assets/hot-trends1.jpg.PNG"],
+  recipe: ["/app/assets/recipe-card-bg.jpg", "/app/assets/recipe-bg.jpg", "/app/assets/recipe-card-bg.jpg.png", "/app/assets/recipe-bg.jpg.png"],
+  butcher: ["/app/assets/butcher-map-bg.jpg", "/app/assets/butcher-map-bg.jpg.png"]
+};
 
 const cutsCatalog = [
   { id: "ribeye", labels: { he: "אנטריקוט", en: "Ribeye" }, aliases: ["ribeye", "אנטריקוט"] },
@@ -188,6 +197,40 @@ function getCutById(id) { return cutsCatalog.find((c) => c.id === id) || cutsCat
 function getMethodById(id) { return methods.find((m) => m.id === id) || methods[0]; }
 function getFlavorById(id) { return flavorProfiles.find((f) => f.id === id) || flavorProfiles[0]; }
 
+async function findFirstExistingAsset(candidates = []) {
+  for (const src of candidates) {
+    try {
+      const ok = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = src;
+      });
+      if (ok) return src;
+    } catch {
+      // Ignore and continue trying fallbacks.
+    }
+  }
+  return "";
+}
+
+async function applyResolvedAssets() {
+  const [appBg, hero, hot, recipe, butcher] = await Promise.all([
+    findFirstExistingAsset(assetCandidates.appBg),
+    findFirstExistingAsset(assetCandidates.hero),
+    findFirstExistingAsset(assetCandidates.hot),
+    findFirstExistingAsset(assetCandidates.recipe),
+    findFirstExistingAsset(assetCandidates.butcher)
+  ]);
+
+  const root = document.documentElement;
+  if (appBg) root.style.setProperty("--asset-app-bg", `url('${appBg}')`);
+  if (hero) root.style.setProperty("--asset-hero", `url('${hero}')`);
+  if (hot) root.style.setProperty("--asset-hot", `url('${hot}')`);
+  if (recipe) root.style.setProperty("--asset-recipe", `url('${recipe}')`);
+  if (butcher) root.style.setProperty("--asset-butcher", `url('${butcher}')`);
+}
+
 function render() {
   const step = STEPS[currentStep];
   const totalFlowSteps = STEPS.length - 1;
@@ -299,20 +342,20 @@ function stopOpeningExperience() {
 function renderLanding() {
   const latest = state.savedRecipes[0];
   el.content.innerHTML = `
-    <div class="card recipe-hero" style="--recipe-image:url('/app/assets/hero-steak.jpg')">
+    <div class="card recipe-hero hero-card" style="--recipe-image:var(--asset-hero)">
       <p class="small">${state.lang === "he" ? "Smoke Radar Premium" : "Smoke Radar Premium"}</p>
       <h2>${t("landingTitle")}</h2>
       <p class="small">${t("landingSubtitle")}</p>
     </div>
-    <button class="btn btn-choice" data-choice="hot">${t("hotAction")}</button>
-    <button class="btn btn-choice" data-choice="feel">${t("knowAction")}</button>
+    <button class="btn btn-choice btn-choice-hot" data-choice="hot">${t("hotAction")}</button>
+    <button class="btn btn-choice btn-choice-know" data-choice="feel">${t("knowAction")}</button>
     ${latest ? `
       <div class="card last-recipe-prompt">
         <p>${state.lang === "he" ? "להמשיך מהמתכון האחרון?" : "Continue your last recipe?"}</p>
         <button class="btn btn-ghost" id="openLastRecipeBtn">${state.lang === "he" ? "פתח מתכון אחרון" : "Open Last Recipe"}</button>
       </div>
     ` : ""}
-    <button class="btn btn-ghost" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
+    <button class="btn btn-choice btn-choice-saved" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
     <section class="card legal-menu">
       <h3>${state.lang === "he" ? "תפריט Smoke Radar" : "Smoke Radar Menu"}</h3>
       <button class="btn btn-ghost" id="aboutBtn">${state.lang === "he" ? "About Smoke Radar" : "About Smoke Radar"}</button>
@@ -536,7 +579,7 @@ async function loadRecipe() {
 }
 
 function recipeHeroForCut() {
-  return "url('/app/assets/recipe-card-bg.jpg')";
+  return "var(--asset-recipe)";
 }
 
 function renderRecipe() {
@@ -883,15 +926,16 @@ async function copyShoppingListToClipboard() {
 }
 
 function initOpeningAnimation() {
+  applyResolvedAssets();
   loadSavedRecipes();
   startOpeningExperience();
   render();
   if (!el.openingSplash) return;
-  window.requestAnimationFrame(() => {
+  window.setTimeout(() => {
     updateOpeningProgress(100);
     el.openingSplash.classList.add("is-hidden");
     stopOpeningExperience();
-  });
+  }, INTRO_MIN_DURATION_MS);
 }
 
 function saveCurrentRecipe() {
