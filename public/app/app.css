@@ -7,6 +7,11 @@
   --line: rgba(255, 255, 255, 0.11);
   --accent: #ff6b2c;
   --accent-soft: #ffb07c;
+  --asset-app-bg: none;
+  --asset-hero: none;
+  --asset-hot: none;
+  --asset-recipe: none;
+  --asset-butcher: none;
 }
 
 * { box-sizing: border-box; }
@@ -18,7 +23,7 @@ body {
     radial-gradient(circle at 10% 8%, rgba(255, 115, 40, 0.22), transparent 35%),
     radial-gradient(circle at 80% 20%, rgba(255, 69, 0, 0.15), transparent 30%),
     linear-gradient(180deg, #050506 0%, #0a0b0f 45%, #090909 100%),
-    url('/app/assets/app-bg-smoke.jpg');
+    var(--asset-app-bg);
   background-size: cover, cover, cover, cover;
   background-position: center;
   color: var(--text);
@@ -36,7 +41,7 @@ body {
     radial-gradient(circle at 40% 38%, rgba(255, 89, 0, 0.24), transparent 36%),
     repeating-radial-gradient(circle at center, rgba(255, 125, 66, 0.11) 0 1px, transparent 1px 11px),
     linear-gradient(180deg, #050506 0%, #0d0e12 100%),
-    url('/app/assets/app-bg-smoke.jpg');
+    var(--asset-app-bg);
   background-size: cover;
   background-position: center;
   transition: opacity .35s ease, visibility .35s ease;
@@ -184,8 +189,9 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   border-radius: 24px;
   padding: 16px;
   background:
-    linear-gradient(180deg, rgba(10, 10, 12, 0.9), rgba(18, 12, 8, 0.82)),
-    url('/app/assets/hero-steak.jpg');
+    linear-gradient(180deg, rgba(7, 7, 9, 0.58), rgba(10, 8, 7, 0.88)),
+    radial-gradient(circle at 78% 20%, rgba(255, 111, 43, 0.35), transparent 45%),
+    var(--asset-hero);
   background-size: cover;
   background-position: center;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), inset 0 0 80px rgba(0,0,0,0.42);
@@ -234,7 +240,7 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   background:
     linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.72)),
     radial-gradient(circle at 80% 20%, rgba(255, 123, 62, 0.35), transparent 45%),
-    url('/app/assets/hot-trends-bg.jpg');
+    var(--asset-hot);
   background-size: cover;
   background-position: center;
 }
@@ -247,7 +253,7 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
     radial-gradient(circle at 80% 52%, rgba(255,111,52,.32) 0 5px, transparent 7px),
     repeating-linear-gradient(25deg, rgba(255,255,255,.06), rgba(255,255,255,.06) 1px, transparent 1px, transparent 13px),
     linear-gradient(180deg, rgba(6,9,12,.28), rgba(8,8,8,.86)),
-    url('/app/assets/butcher-map-bg.jpg');
+    var(--asset-butcher);
   background-size: cover;
   background-position: center;
 }
@@ -260,7 +266,7 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   background:
     linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.84)),
     radial-gradient(circle at 85% 12%, rgba(255, 124, 66, 0.34), transparent 45%),
-    var(--recipe-image, url('/app/assets/recipe-card-bg.jpg'));
+    var(--recipe-image, var(--asset-recipe));
   background-size: cover;
   background-position: center;
 }
@@ -304,6 +310,22 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   text-align: start;
 }
 .btn-choice.active { border-color: rgba(255,117,49,.65); box-shadow: inset 0 0 0 1px rgba(255,117,49,.45); }
+.btn-choice-hot {
+  background: linear-gradient(135deg, #ffb177 0%, #ff7a33 45%, #cc3300 100%);
+  border-color: rgba(255, 137, 78, 0.7);
+  box-shadow: 0 12px 24px rgba(255, 89, 31, 0.35);
+}
+.btn-choice-know {
+  background: linear-gradient(180deg, rgba(255, 141, 84, 0.22), rgba(255, 141, 84, 0.08));
+  border-color: rgba(255, 150, 96, 0.32);
+}
+.btn-choice-saved {
+  padding-block: 11px;
+  font-size: .95rem;
+  background: rgba(255,255,255,.025);
+  border-color: rgba(255,255,255,.14);
+  color: #d7d0c4;
+}
 .btn:active { transform: translateY(1px) scale(.99); filter: brightness(.98); }
 .btn:hover { transform: translateY(-1px); }
 .card:hover { transform: translateY(-1px); border-color: rgba(255, 141, 89, .3); }
@@ -352,14 +374,21 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
 .legal-menu {
   display: grid;
   gap: 8px;
+  margin-top: 2px;
+  padding: 10px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
 }
 .legal-menu h3 {
   margin: 0 0 2px;
-  color: var(--accent-soft);
+  color: #c8b7a4;
+  font-size: .9rem;
+  font-weight: 700;
 }
 .footer-note {
   margin-top: 4px;
   opacity: 0.9;
+  font-size: .76rem;
 }
 .sub-recipe-block + .sub-recipe-block {
   border-top: 1px dashed rgba(255, 255, 255, .15);
@@ -370,8 +399,26 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   margin: 0 0 8px;
   color: #ffd5bb;
 }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.03); font-size: .82rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; opacity: .95; }
+.chip {
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.02);
+  font-size: .74rem;
+}
+.chip:nth-child(3n) {
+  border-color: rgba(255, 140, 84, 0.35);
+  color: #f2d7bf;
+}
+.hero-card h2 {
+  font-size: clamp(1.45rem, 5.6vw, 2.25rem);
+  margin: 0;
+  text-shadow: 0 6px 24px rgba(0,0,0,.58);
+}
+.hero-card .small {
+  color: #f3dbca;
+}
 .field { display: grid; gap: 5px; }
 label { color: var(--muted); font-size: .88rem; }
 select, input {
