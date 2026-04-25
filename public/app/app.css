@@ -231,6 +231,18 @@ body {
   margin: 0 0 8px;
   font-weight: 700;
 }
+.legal-menu {
+  display: grid;
+  gap: 8px;
+}
+.legal-menu h3 {
+  margin: 0 0 2px;
+  color: var(--accent-soft);
+}
+.footer-note {
+  margin-top: 4px;
+  opacity: 0.9;
+}
 .sub-recipe-block + .sub-recipe-block {
   border-top: 1px dashed rgba(255, 255, 255, .15);
   margin-top: 10px;
@@ -255,6 +267,52 @@ select, input {
 
 .hidden { display: none !important; }
 .fade-in { animation: fadeIn .28s ease; }
+
+.legal-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.legal-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+.legal-sheet {
+  position: absolute;
+  inset-inline: 10px;
+  bottom: 10px;
+  max-height: min(78vh, 620px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(16, 16, 19, 0.98), rgba(8, 8, 10, 0.98));
+}
+.legal-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.legal-sheet-header h3 {
+  margin: 0;
+  color: #ffd5bb;
+}
+.legal-close {
+  width: auto;
+  min-width: 42px;
+  padding: 8px 12px;
+}
+.legal-sheet-body {
+  display: grid;
+  gap: 10px;
+}
+.legal-sheet-body p {
+  margin: 0;
+  line-height: 1.5;
+}
 
 html[dir="rtl"] .group-title,
 html[dir="rtl"] .check-item {

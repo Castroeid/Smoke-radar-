@@ -1,6 +1,7 @@
 const STEPS = ["landing", "saved", "hot", "preferences", "cook", "recipe", "shopping", "butcher"];
 let currentStep = 0;
 const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
+const SHARE_TEXT = "Check out Smoke Radar — meat trends, recipes, and butcher discovery in one radar-style app.";
 
 const cutsCatalog = [
   { id: "ribeye", labels: { he: "אנטריקוט", en: "Ribeye" }, aliases: ["ribeye", "אנטריקוט"] },
@@ -59,12 +60,12 @@ const copy = {
     titles: {
       landing: "מה בא לך להכין היום?",
       saved: "המתכונים שלי",
-      hot: "מה חם עכשיו",
+      hot: "Smoke Index™",
       preferences: "מה לבשל",
-      cook: "איך לבשל",
+      cook: "Smart Cooking Mode™",
       recipe: "מתכון מלא",
       shopping: "רשימת קניות",
-      butcher: "איפה לקנות"
+      butcher: "Butcher Radar™"
     }
   },
   en: {
@@ -81,12 +82,12 @@ const copy = {
     titles: {
       landing: "What do you want to cook today?",
       saved: "My Recipes",
-      hot: "What’s Hot Now",
+      hot: "Smoke Index™",
       preferences: "What to cook",
-      cook: "How to cook",
+      cook: "Smart Cooking Mode™",
       recipe: "Cooking Guide",
       shopping: "Shopping List",
-      butcher: "Where to buy"
+      butcher: "Butcher Radar™"
     }
   }
 };
@@ -199,6 +200,14 @@ function renderLanding() {
       </div>
     ` : ""}
     <button class="btn btn-ghost" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
+    <section class="card legal-menu">
+      <h3>${state.lang === "he" ? "תפריט Smoke Radar" : "Smoke Radar Menu"}</h3>
+      <button class="btn btn-ghost" id="aboutBtn">${state.lang === "he" ? "About Smoke Radar" : "About Smoke Radar"}</button>
+      <button class="btn btn-ghost" id="termsBtn">${state.lang === "he" ? "Terms of Use" : "Terms of Use"}</button>
+      <button class="btn btn-ghost" id="privacyBtn">${state.lang === "he" ? "Privacy Policy" : "Privacy Policy"}</button>
+      <button class="btn btn-ghost" id="shareBtn">${state.lang === "he" ? "Share Smoke Radar" : "Share Smoke Radar"}</button>
+      <p class="small footer-note">© 2026 Smoke Radar. All rights reserved.</p>
+    </section>
     <div class="chips">${cutsCatalog.slice(0, 6).map((cut) => `<span class="chip">${cut.labels[state.lang]}</span>`).join("")}</div>
   `;
 
@@ -223,6 +232,10 @@ function renderLanding() {
     if (!latest) return;
     openSavedRecipe(latest.id);
   });
+  document.getElementById("aboutBtn")?.addEventListener("click", () => openLegalModal("about"));
+  document.getElementById("termsBtn")?.addEventListener("click", () => openLegalModal("terms"));
+  document.getElementById("privacyBtn")?.addEventListener("click", () => openLegalModal("privacy"));
+  document.getElementById("shareBtn")?.addEventListener("click", () => shareSmokeRadar());
 }
 
 function renderSavedRecipes() {
@@ -285,7 +298,7 @@ function renderHotNow() {
 
   el.content.innerHTML = `
     <div class="card visual-card">
-      <h3>${state.lang === "he" ? "טרנדים מעושנים מהקהילה" : "Smoky Community Trends"}</h3>
+      <h3>${state.lang === "he" ? "Smoke Index™" : "Smoke Index™"}</h3>
       <p class="small">${state.lang === "he" ? "בחר טרנד כדי להתחיל את המתכון." : "Pick a trend to start your recipe."}</p>
     </div>
     ${state.hotList.map((item, idx) => {
@@ -365,6 +378,10 @@ function buildIdeas() {
 function renderCookIdeas() {
   state.mealIdeas = buildIdeas();
   el.content.innerHTML = `
+    <div class="card">
+      <h3>${state.lang === "he" ? "Smart Cooking Mode™" : "Smart Cooking Mode™"}</h3>
+      <p class="small">${state.lang === "he" ? "בחר סגנון בישול והמשך למתכון מותאם." : "Choose your cooking style and continue to a tailored recipe."}</p>
+    </div>
     ${state.mealIdeas.map((idea, idx) => `
       <button class="btn btn-choice ${state.selectedMealIdea === idx ? "active" : ""}" data-idea="${idx}">
         <strong>${idea.title}</strong>
@@ -580,7 +597,7 @@ function renderButchers() {
   if (!state.butchers.length && !state.location) {
     el.content.innerHTML = `
       <div class="card visual-map">
-        <h3>${state.lang === "he" ? "איתור קצביה קרובה" : "Find nearby butcher"}</h3>
+        <h3>${state.lang === "he" ? "Butcher Radar™" : "Butcher Radar™"}</h3>
         <p class="small">${state.lang === "he" ? "ויזואל מפה עם נקודות חמות סביבך." : "Map-like discovery with orange location pins."}</p>
       </div>
       <button id="findButchers" class="btn btn-primary">${state.lang === "he" ? "📍 מצא קצביות קרובות" : "📍 Find nearby butcher shops"}</button>
@@ -602,7 +619,7 @@ function renderButchers() {
 
   el.content.innerHTML = `
     <div class="card visual-map">
-      <h3>${state.lang === "he" ? "קצביות מומלצות באזור שלך" : "Top butcher shops near you"}</h3>
+      <h3>${state.lang === "he" ? "Butcher Radar™" : "Butcher Radar™"}</h3>
       <p class="small">${state.lang === "he" ? "תצוגת מפה חכמה עם נקודות סימון כתומות." : "Smart map-style visual with orange location pins."}</p>
     </div>
     ${state.butchers.slice(0, 8).map((b, idx) => {
@@ -826,6 +843,95 @@ function formatSavedDate(dateString) {
     hour: "2-digit",
     minute: "2-digit"
   }).format(date);
+}
+
+function getLegalContent(type) {
+  const legalBody = {
+    about: {
+      title: "About Smoke Radar",
+      paragraphs: [
+        "Smoke Radar is an independent meat intelligence product that helps users discover meat trends, recipes, butcher options, and cooking inspiration through a fast radar-style experience.",
+        "All content, design, feature logic, product names, UI flow, and product experience are owned by Smoke Radar. Unauthorized copying, cloning, or redistribution is prohibited.",
+        "© 2026 Smoke Radar. All rights reserved."
+      ]
+    },
+    terms: {
+      title: "Terms of Use",
+      paragraphs: [
+        "Smoke Radar owns the app concept, interface, feature logic, content structure, and branded product names.",
+        "Users may not copy, clone, redistribute, reverse engineer, or commercially reuse the app experience without permission.",
+        "The app is provided as an experimental and independent tool.",
+        "External content and links may come from third-party sources."
+      ]
+    },
+    privacy: {
+      title: "Privacy Policy",
+      paragraphs: [
+        "The app may collect anonymous usage analytics.",
+        "Location, if used, is only for nearby butcher and search results.",
+        "No sensitive personal data should be collected intentionally.",
+        "Analytics are used to improve the app experience."
+      ]
+    }
+  };
+  return legalBody[type] || legalBody.about;
+}
+
+function ensureLegalModal() {
+  let modal = document.getElementById("legalModal");
+  if (modal) return modal;
+  modal = document.createElement("div");
+  modal.id = "legalModal";
+  modal.className = "legal-modal hidden";
+  modal.innerHTML = `
+    <div class="legal-modal-backdrop" data-close-legal="true"></div>
+    <article class="legal-sheet" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+      <header class="legal-sheet-header">
+        <h3 id="legalTitle"></h3>
+        <button class="btn btn-ghost legal-close" id="legalCloseBtn" type="button">✕</button>
+      </header>
+      <div id="legalBody" class="legal-sheet-body"></div>
+    </article>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener("click", (event) => {
+    if (event.target?.dataset?.closeLegal === "true") closeLegalModal();
+  });
+  modal.querySelector("#legalCloseBtn")?.addEventListener("click", closeLegalModal);
+  return modal;
+}
+
+function openLegalModal(type) {
+  const modal = ensureLegalModal();
+  const content = getLegalContent(type);
+  const titleEl = modal.querySelector("#legalTitle");
+  const bodyEl = modal.querySelector("#legalBody");
+  if (!titleEl || !bodyEl) return;
+  titleEl.textContent = content.title;
+  bodyEl.innerHTML = content.paragraphs.map((text) => `<p class="small">${text}</p>`).join("");
+  modal.classList.remove("hidden");
+}
+
+function closeLegalModal() {
+  document.getElementById("legalModal")?.classList.add("hidden");
+}
+
+async function shareSmokeRadar() {
+  const shareData = { title: "Smoke Radar", text: SHARE_TEXT, url: window.location.href };
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData);
+      return;
+    }
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(`${SHARE_TEXT}\n${window.location.href}`);
+      alert(state.lang === "he" ? "הקישור הועתק" : "Link copied");
+      return;
+    }
+    alert(SHARE_TEXT);
+  } catch {
+    alert(state.lang === "he" ? "לא הצלחנו לשתף כרגע" : "Could not share right now");
+  }
 }
 
 initOpeningAnimation();
