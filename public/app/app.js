@@ -1,5 +1,6 @@
-const STEPS = ["landing", "hot", "preferences", "cook", "recipe", "shopping", "butcher"];
+const STEPS = ["landing", "saved", "hot", "preferences", "cook", "recipe", "shopping", "butcher"];
 let currentStep = 0;
+const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
 
 const cutsCatalog = [
   { id: "ribeye", labels: { he: "אנטריקוט", en: "Ribeye" }, aliases: ["ribeye", "אנטריקוט"] },
@@ -57,6 +58,7 @@ const copy = {
     stepLabel: "שלב",
     titles: {
       landing: "מה בא לך להכין היום?",
+      saved: "המתכונים שלי",
       hot: "מה חם עכשיו",
       preferences: "מה לבשל",
       cook: "איך לבשל",
@@ -78,6 +80,7 @@ const copy = {
     stepLabel: "Step",
     titles: {
       landing: "What do you want to cook today?",
+      saved: "My Recipes",
       hot: "What’s Hot Now",
       preferences: "What to cook",
       cook: "How to cook",
@@ -108,7 +111,9 @@ const state = {
   shoppingChecks: {},
   butchers: [],
   location: null,
-  variationCount: 0
+  variationCount: 0,
+  savedRecipes: [],
+  lastOpenedRecipeId: null
 };
 
 const el = {
@@ -151,14 +156,14 @@ function render() {
   el.appRoot.dataset.step = step;
   el.title.textContent = step === "landing" ? "" : t(`titles.${step}`);
   el.subtitle.textContent = "";
-  el.header.classList.toggle("landing-minimal", step === "landing");
-  el.progressWrap?.classList.toggle("hidden", step === "landing");
+  el.header.classList.toggle("landing-minimal", step === "landing" || step === "saved");
+  el.progressWrap?.classList.toggle("hidden", step === "landing" || step === "saved");
   el.progressFill.style.width = `${progress}%`;
   el.progressText.textContent = `${t("stepLabel")} ${Math.max(currentStep, 1)}/${totalFlowSteps}`;
   el.backBtn.textContent = t("back");
   el.nextBtn.textContent = currentStep === STEPS.length - 1 ? t("finish") : t("next");
   el.backBtn.classList.toggle("hidden", currentStep === 0);
-  el.nextBtn.classList.toggle("hidden", step === "landing");
+  el.nextBtn.classList.toggle("hidden", step === "landing" || step === "saved");
 
   el.content.classList.remove("fade-in");
   void el.content.offsetWidth;
@@ -168,6 +173,7 @@ function render() {
   el.appRoot.classList.add("screen-transition");
 
   if (step === "landing") return renderLanding();
+  if (step === "saved") return renderSavedRecipes();
   if (step === "hot") return renderHotNow();
   if (step === "preferences") return renderPreferences();
   if (step === "cook") return renderCookIdeas();
@@ -177,6 +183,7 @@ function render() {
 }
 
 function renderLanding() {
+  const latest = state.savedRecipes[0];
   el.content.innerHTML = `
     <div class="card recipe-hero" style="--recipe-image:url('/app/assets/hero-steak.jpg')">
       <p class="small">${state.lang === "he" ? "Smoke Radar Premium" : "Smoke Radar Premium"}</p>
@@ -185,6 +192,13 @@ function renderLanding() {
     </div>
     <button class="btn btn-choice" data-choice="hot">${t("hotAction")}</button>
     <button class="btn btn-choice" data-choice="feel">${t("knowAction")}</button>
+    ${latest ? `
+      <div class="card last-recipe-prompt">
+        <p>${state.lang === "he" ? "להמשיך מהמתכון האחרון?" : "Continue your last recipe?"}</p>
+        <button class="btn btn-ghost" id="openLastRecipeBtn">${state.lang === "he" ? "פתח מתכון אחרון" : "Open Last Recipe"}</button>
+      </div>
+    ` : ""}
+    <button class="btn btn-ghost" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
     <div class="chips">${cutsCatalog.slice(0, 6).map((cut) => `<span class="chip">${cut.labels[state.lang]}</span>`).join("")}</div>
   `;
 
@@ -193,11 +207,52 @@ function renderLanding() {
       state.homeChoice = btn.dataset.choice;
       if (state.homeChoice === "hot") {
         await loadHotNow();
-        currentStep = 1;
+        currentStep = STEPS.indexOf("hot");
       } else {
-        currentStep = 2;
+        currentStep = STEPS.indexOf("preferences");
       }
       render();
+    });
+  });
+
+  document.getElementById("openSavedRecipesBtn")?.addEventListener("click", () => {
+    currentStep = STEPS.indexOf("saved");
+    render();
+  });
+  document.getElementById("openLastRecipeBtn")?.addEventListener("click", () => {
+    if (!latest) return;
+    openSavedRecipe(latest.id);
+  });
+}
+
+function renderSavedRecipes() {
+  const cards = state.savedRecipes.map((item) => {
+    const cut = getCutById(item.preferences?.cutId || "ribeye").labels[state.lang];
+    const method = getMethodById(item.preferences?.methodId || "grill").labels[state.lang];
+    const date = formatSavedDate(item.createdAt);
+    return `
+      <article class="card saved-recipe-card">
+        <h3>${item.title || (state.lang === "he" ? "מתכון שמור" : "Saved Recipe")}</h3>
+        <p class="small">${state.lang === "he" ? "נתח" : "Cut"}: ${cut}</p>
+        <p class="small">${state.lang === "he" ? "שיטת בישול" : "Cooking method"}: ${method}</p>
+        <p class="small">${state.lang === "he" ? "נשמר בתאריך" : "Saved on"}: ${date}</p>
+        <div class="saved-recipe-actions">
+          <button class="btn btn-primary" data-open-recipe="${item.id}">${state.lang === "he" ? "פתח מתכון" : "Open Recipe"}</button>
+          <button class="btn btn-ghost" data-delete-recipe="${item.id}">${state.lang === "he" ? "מחק" : "Delete"}</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  el.content.innerHTML = cards || `<div class="card"><p class="small">${state.lang === "he" ? "עדיין אין מתכונים שמורים." : "No saved recipes yet."}</p></div>`;
+
+  el.content.querySelectorAll("[data-open-recipe]").forEach((btn) => {
+    btn.addEventListener("click", () => openSavedRecipe(btn.dataset.openRecipe));
+  });
+  el.content.querySelectorAll("[data-delete-recipe]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      deleteSavedRecipe(btn.dataset.deleteRecipe);
+      renderSavedRecipes();
     });
   });
 }
@@ -422,6 +477,7 @@ function renderRecipe() {
     </div>
 
     <div class="inline-actions">
+      <button class="btn btn-ghost" id="saveRecipeBtn">${state.lang === "he" ? "שמור מתכון" : "Save Recipe"}</button>
       <button class="btn btn-ghost" id="copyShoppingBtn">${state.lang === "he" ? "📋 העתק רשימת קניות" : "📋 Copy Shopping List"}</button>
       <button class="btn btn-ghost" id="variationBtn">${state.lang === "he" ? "🔄 נסה וריאציה" : "🔄 Try Variation"}</button>
       <button class="btn btn-ghost" id="regenBtn">${state.lang === "he" ? "צור מתכון מחדש" : "Regenerate Recipe"}</button>
@@ -430,6 +486,9 @@ function renderRecipe() {
     </div>
   `;
 
+  document.getElementById("saveRecipeBtn").addEventListener("click", () => {
+    saveCurrentRecipe();
+  });
   document.getElementById("copyShoppingBtn").addEventListener("click", () => copyShoppingListToClipboard());
   document.getElementById("variationBtn").addEventListener("click", async () => {
     state.variationCount += 1;
@@ -450,7 +509,7 @@ function renderRecipe() {
     }
   });
   document.getElementById("toShoppingBtn").addEventListener("click", () => {
-    currentStep = 5;
+    currentStep = STEPS.indexOf("shopping");
     render();
   });
 }
@@ -504,7 +563,7 @@ function renderShopping() {
 
   document.getElementById("copyList").addEventListener("click", async () => copyShoppingListToClipboard());
   document.getElementById("toButchers").addEventListener("click", () => {
-    currentStep = 6;
+    currentStep = STEPS.indexOf("butcher");
     render();
   });
 }
@@ -559,10 +618,8 @@ function renderButchers() {
           ${badges.length ? `<div class="badges-row">${badges.map((badge) => `<span class="badge badge-emphasis">${badge}</span>`).join("")}</div>` : ""}
           <strong>📍 ${b.name}</strong>
           <p class="small">${b.address || ""}</p>
-          <div class="butcher-meta-row">
+          <div class="butcher-footer">
             <p class="small butcher-rating">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0}) ${Number.isFinite(distance) ? `• ${distance.toFixed(1)} km` : ""}</p>
-          </div>
-          <div class="butcher-action-row">
             <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
           </div>
         </article>`;
@@ -635,6 +692,7 @@ function renderSubRecipeDetails(items) {
 
 async function handleNext() {
   const step = STEPS[currentStep];
+  if (step === "saved") return;
   if (step === "hot" && state.homeChoice === "hot" && state.selectedHot === null) return;
   if (step === "cook" && state.selectedMealIdea === null) return;
 
@@ -695,12 +753,79 @@ async function copyShoppingListToClipboard() {
 }
 
 function initOpeningAnimation() {
+  loadSavedRecipes();
   render();
   if (!el.openingSplash) return;
   const revealDelayMs = 950;
   window.setTimeout(() => {
     el.openingSplash.classList.add("is-hidden");
   }, revealDelayMs);
+}
+
+function saveCurrentRecipe() {
+  if (!state.recipe) return;
+  const main = state.recipe.main || {};
+  const savedRecipe = {
+    id: String(Date.now()),
+    title: main.title || (state.lang === "he" ? "מתכון ללא שם" : "Untitled Recipe"),
+    preferences: { ...state.preferences },
+    main: state.recipe.main || {},
+    sauces: state.recipe.sauces || [],
+    sides: state.recipe.sides || [],
+    drinks: state.recipe.drinkPairings || [],
+    shopping: state.shopping || {},
+    createdAt: new Date().toISOString()
+  };
+  const withoutDupes = state.savedRecipes.filter((item) => item.id !== savedRecipe.id);
+  state.savedRecipes = [savedRecipe, ...withoutDupes];
+  persistSavedRecipes();
+  alert(state.lang === "he" ? "המתכון נשמר" : "Recipe saved");
+}
+
+function openSavedRecipe(id) {
+  const saved = state.savedRecipes.find((item) => item.id === id);
+  if (!saved) return;
+  state.preferences = { ...state.preferences, ...(saved.preferences || {}) };
+  state.recipe = {
+    main: saved.main || {},
+    sauces: saved.sauces || [],
+    sides: saved.sides || [],
+    drinkPairings: saved.drinks || []
+  };
+  state.shopping = saved.shopping || buildShoppingList(state.recipe);
+  state.lastOpenedRecipeId = saved.id;
+  currentStep = STEPS.indexOf("recipe");
+  render();
+}
+
+function deleteSavedRecipe(id) {
+  state.savedRecipes = state.savedRecipes.filter((item) => item.id !== id);
+  persistSavedRecipes();
+}
+
+function persistSavedRecipes() {
+  localStorage.setItem(SAVED_RECIPES_KEY, JSON.stringify(state.savedRecipes));
+}
+
+function loadSavedRecipes() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SAVED_RECIPES_KEY) || "[]");
+    state.savedRecipes = Array.isArray(parsed) ? parsed.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)) : [];
+  } catch {
+    state.savedRecipes = [];
+  }
+}
+
+function formatSavedDate(dateString) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat(state.lang === "he" ? "he-IL" : "en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
 }
 
 initOpeningAnimation();
