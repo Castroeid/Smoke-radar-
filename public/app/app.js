@@ -57,6 +57,20 @@ const copy = {
     finish: "סיום",
     back: "חזרה",
     stepLabel: "שלב",
+    loadingMessages: [
+      "מנתחים את הנתונים...",
+      "מחפשים השראה חמה 🔥",
+      "מרכיבים לך מתכון מושלם...",
+      "בודקים מה הכי טרנדי עכשיו...",
+      "כמעט שם..."
+    ],
+    loadingSteps: [
+      "🔥 מזהים טרנדים",
+      "🥩 בוחרים נתח מושלם",
+      "🍳 מתאימים שיטת בישול",
+      "🧂 מוסיפים טעמים",
+      "📋 בונים מתכון"
+    ],
     titles: {
       landing: "מה בא לך להכין היום?",
       saved: "המתכונים שלי",
@@ -79,6 +93,20 @@ const copy = {
     finish: "Finish",
     back: "Back",
     stepLabel: "Step",
+    loadingMessages: [
+      "Analyzing trends...",
+      "Finding something hot 🔥",
+      "Crafting your perfect recipe...",
+      "Scanning what's trending...",
+      "Almost ready..."
+    ],
+    loadingSteps: [
+      "🔥 מזהים טרנדים",
+      "🥩 בוחרים נתח מושלם",
+      "🍳 מתאימים שיטת בישול",
+      "🧂 מוסיפים טעמים",
+      "📋 בונים מתכון"
+    ],
     titles: {
       landing: "What do you want to cook today?",
       saved: "My Recipes",
@@ -128,7 +156,20 @@ const el = {
   nextBtn: document.getElementById("nextBtn"),
   backBtn: document.getElementById("backBtn"),
   progressFill: document.getElementById("progressFill"),
-  progressText: document.getElementById("progressText")
+  progressText: document.getElementById("progressText"),
+  openingMessage: document.getElementById("openingMessage"),
+  openingSteps: document.getElementById("openingSteps"),
+  openingProgressFill: document.getElementById("openingProgressFill")
+};
+
+const openingExperience = {
+  messageIndex: 0,
+  stepIndex: 0,
+  progress: 0,
+  rafId: null,
+  messageTimer: null,
+  stepTimer: null,
+  running: false
 };
 
 el.backBtn.addEventListener("click", () => {
@@ -181,6 +222,78 @@ function render() {
   if (step === "recipe") return renderRecipe();
   if (step === "shopping") return renderShopping();
   if (step === "butcher") return renderButchers();
+}
+
+function renderOpeningStepList() {
+  if (!el.openingSteps) return;
+  const steps = t("loadingSteps") || [];
+  el.openingSteps.innerHTML = steps.map((step, index) => {
+    const isActive = index === openingExperience.stepIndex ? "active" : "";
+    return `<li class="opening-step ${isActive}">${step}</li>`;
+  }).join("");
+}
+
+function updateOpeningMessage() {
+  if (!el.openingMessage) return;
+  const messages = t("loadingMessages") || [];
+  if (!messages.length) return;
+  el.openingMessage.classList.add("is-swapping");
+  window.setTimeout(() => {
+    el.openingMessage.textContent = messages[openingExperience.messageIndex % messages.length];
+    el.openingMessage.classList.remove("is-swapping");
+  }, 140);
+}
+
+function updateOpeningProgress(value) {
+  if (!el.openingProgressFill) return;
+  el.openingProgressFill.style.width = `${Math.min(99, Math.max(0, value))}%`;
+}
+
+function tickOpeningProgress() {
+  if (!openingExperience.running) return;
+  const activeStep = openingExperience.stepIndex + 1;
+  const stepsCount = Math.max((t("loadingSteps") || []).length, 1);
+  const targetByStep = (activeStep / stepsCount) * 92 + 4;
+  openingExperience.progress += (targetByStep - openingExperience.progress) * 0.08;
+  updateOpeningProgress(openingExperience.progress);
+  openingExperience.rafId = window.requestAnimationFrame(tickOpeningProgress);
+}
+
+function startOpeningExperience() {
+  if (!el.openingSplash || openingExperience.running) return;
+  openingExperience.running = true;
+  openingExperience.messageIndex = 0;
+  openingExperience.stepIndex = 0;
+  openingExperience.progress = 4;
+  updateOpeningMessage();
+  renderOpeningStepList();
+  updateOpeningProgress(openingExperience.progress);
+
+  openingExperience.messageTimer = window.setInterval(() => {
+    const messages = t("loadingMessages") || [];
+    if (!messages.length) return;
+    openingExperience.messageIndex = (openingExperience.messageIndex + 1) % messages.length;
+    updateOpeningMessage();
+  }, 1250);
+
+  openingExperience.stepTimer = window.setInterval(() => {
+    const steps = t("loadingSteps") || [];
+    if (!steps.length) return;
+    openingExperience.stepIndex = (openingExperience.stepIndex + 1) % steps.length;
+    renderOpeningStepList();
+  }, 1200);
+
+  openingExperience.rafId = window.requestAnimationFrame(tickOpeningProgress);
+}
+
+function stopOpeningExperience() {
+  openingExperience.running = false;
+  if (openingExperience.messageTimer) window.clearInterval(openingExperience.messageTimer);
+  if (openingExperience.stepTimer) window.clearInterval(openingExperience.stepTimer);
+  if (openingExperience.rafId) window.cancelAnimationFrame(openingExperience.rafId);
+  openingExperience.messageTimer = null;
+  openingExperience.stepTimer = null;
+  openingExperience.rafId = null;
 }
 
 function renderLanding() {
@@ -771,12 +884,14 @@ async function copyShoppingListToClipboard() {
 
 function initOpeningAnimation() {
   loadSavedRecipes();
+  startOpeningExperience();
   render();
   if (!el.openingSplash) return;
-  const revealDelayMs = 950;
-  window.setTimeout(() => {
+  window.requestAnimationFrame(() => {
+    updateOpeningProgress(100);
     el.openingSplash.classList.add("is-hidden");
-  }, revealDelayMs);
+    stopOpeningExperience();
+  });
 }
 
 function saveCurrentRecipe() {
