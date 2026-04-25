@@ -508,6 +508,149 @@
       opacity: 1;
     }
 
+    .hero-utility-row {
+      margin: 10px 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand-powered {
+      font-size: 11px;
+      letter-spacing: 0.24px;
+      color: var(--muted);
+      opacity: 0.9;
+    }
+
+    .inline-toast {
+      font-size: 12px;
+      color: var(--accent-soft);
+      margin-top: 8px;
+      min-height: 16px;
+    }
+
+    .legal-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 8, 14, 0.72);
+      backdrop-filter: blur(6px);
+      z-index: 2500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 14px;
+    }
+
+    .legal-modal.is-open {
+      display: flex;
+    }
+
+    .legal-modal-content {
+      width: min(760px, 96vw);
+      max-height: 88vh;
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .legal-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .legal-modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .legal-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .legal-list li + li {
+      margin-top: 8px;
+    }
+
+    .send-link-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 132px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .send-link-qr {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      border-radius: 12px;
+      padding: 8px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .send-link-qr img {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto 6px;
+      background: #fff;
+      padding: 4px;
+    }
+
+    .site-footer {
+      margin-top: 18px;
+      padding: 14px 4px 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .footer-link-btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .footer-link-btn:hover {
+      color: var(--text-primary);
+      border-color: rgba(255,154,104,0.55);
+    }
+
+    @media (max-width: 720px) {
+      .send-link-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .pill-btn:hover,
     .small-btn:hover,
     .quick-nav a:hover {
@@ -2650,14 +2793,19 @@
     <img class="hero-banner" src="/assets/banner-hero.png" alt="Smoke Radar hero banner image" />
   </div>
 
+    <div class="hero-utility-row app-enter app-enter-delay-2">
+      <div class="brand-powered" data-i18n="brand.poweredBy">Powered by Smoke Radar</div>
+      <button class="small-btn" id="sendAppLinkBtn" type="button" data-i18n="actions.sendAppLink">Send app link to my phone</button>
+    </div>
+
     <div class="meta-strip app-enter app-enter-delay-1" id="metaStrip"></div>
     <div class="status app-enter app-enter-delay-1" id="status"></div>
     <div class="app-enter app-enter-delay-1" id="errorMount"></div>
     <div class="first-run-hint hidden app-enter app-enter-delay-1" id="firstRunHint">
       <div class="first-run-hint-content">
-        <span data-i18n="hint.tryStart">Try starting with Smoke Index or Beef Cuts Explorer 🔥</span>
+        <span data-i18n="hint.tryStart">Try starting with Smoke Index™ or Beef Cuts Explorer 🔥</span>
         <div class="first-run-hint-actions">
-          <button class="first-run-hint-cta" id="hintSmokeIndexBtn" type="button" data-i18n="hint.openSmokeIndex">Open Smoke Index</button>
+          <button class="first-run-hint-cta" id="hintSmokeIndexBtn" type="button" data-i18n="hint.openSmokeIndex">Open Smoke Index™</button>
           <button class="first-run-hint-cta" id="hintBeefCutsBtn" type="button" data-i18n="hint.openBeefCuts">Open Beef Cuts</button>
         </div>
       </div>
@@ -2668,7 +2816,7 @@
   <div class="smoke-index-top">
     <div class="smoke-title-wrap">
       <div class="smoke-index-heading-row">
-        <span class="smoke-title" data-i18n="sections.smokeIndex">🔥 Smoke Index</span>
+        <span class="smoke-title" data-i18n="sections.smokeIndex">🔥 Smoke Index™</span>
         <span class="smoke-tier-badge" id="smokeTierBadge">🔥 WARMING</span>
       </div>
 
@@ -2948,7 +3096,7 @@
         <h2 class="recipe-generator-title" data-i18n="sections.recipeGenerator">🥘 Recipe Generator</h2>
         <button type="button" class="info-btn" data-i18n-popover-title="popover.recipe.title" data-i18n-popover-text="popover.recipe.text">i</button>
       </div>
-      <div class="subtle" data-i18n="recipe.helper">Build a premium Smart Cooking Mode plan by cut, method, and flavor profile</div>
+      <div class="subtle" data-i18n="recipe.helper">Build a premium Smart Cooking Mode™ plan by cut, method, and flavor profile</div>
 
       <div class="recipe-grid">
         <div class="recipe-field">
@@ -2992,7 +3140,7 @@
 
     <div class="panel app-enter app-enter-delay-4" id="butchers">
       <div class="panel-heading">
-        <h2 data-i18n="sections.butcherFinder">📍 Butcher Finder</h2>
+        <h2 data-i18n="sections.butcherFinder">📍 Butcher Radar™</h2>
         <button type="button" class="info-btn" data-i18n-popover-title="popover.butchers.title" data-i18n-popover-text="popover.butchers.text">i</button>
       </div>
       <div class="subtle" data-i18n="butchers.helper">Locate nearby butcher shops and open them directly in Google Maps</div>
@@ -3087,6 +3235,70 @@
         </div>
       </div>
     </div>
+
+    <footer class="site-footer">
+      <div data-i18n="footer.copyright">© 2026 Smoke Radar. All rights reserved.</div>
+      <div class="footer-links">
+        <span data-i18n="brand.poweredBy">Powered by Smoke Radar</span>
+        <button class="footer-link-btn" id="openTermsBtn" type="button" data-i18n="footer.terms">Terms of Use</button>
+        <button class="footer-link-btn" id="openPrivacyBtn" type="button" data-i18n="footer.privacy">Privacy Policy</button>
+      </div>
+    </footer>
+  </div>
+
+  <div class="legal-modal" id="sendLinkModal" aria-hidden="true">
+    <div class="legal-modal-content">
+      <div class="legal-modal-header">
+        <h3 data-i18n="sendLink.title">Send app link to your phone</h3>
+        <button class="small-btn" type="button" data-close-modal="sendLinkModal" data-i18n="common.close">Close</button>
+      </div>
+      <div class="send-link-grid">
+        <div>
+          <div class="subtle" data-i18n="sendLink.helper">Enter your phone number and we'll prepare the app link.</div>
+          <label for="phoneInput" class="subtle" style="display:block; margin:12px 0 6px;" data-i18n="sendLink.phoneLabel">Phone number (optional)</label>
+          <input id="phoneInput" type="tel" class="feedback-input" data-i18n-placeholder="sendLink.phonePlaceholder" placeholder="+1 555 123 4567" />
+          <div style="margin-top:10px;">
+            <button class="pill-btn" id="sendLinkSubmitBtn" type="button" data-i18n="sendLink.submit">Send app link to my phone</button>
+          </div>
+          <div class="inline-toast" id="sendLinkStatus"></div>
+        </div>
+        <div class="send-link-qr">
+          <img id="appLinkQr" alt="Smoke Radar app QR code" />
+          <span data-i18n="sendLink.qrLabel">Scan to open the app</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legal-modal" id="termsModal" aria-hidden="true">
+    <div class="legal-modal-content">
+      <div class="legal-modal-header">
+        <h3 data-i18n="terms.title">Terms of Use</h3>
+        <button class="small-btn" type="button" data-close-modal="termsModal" data-i18n="common.close">Close</button>
+      </div>
+      <ul class="legal-list">
+        <li data-i18n="terms.item1">Smoke Radar owns the content, design, UI/UX, code structure, feature logic, product concept, data presentation, and product names.</li>
+        <li data-i18n="terms.item2">Copying, cloning, redistributing, or recreating this product without permission is prohibited.</li>
+        <li data-i18n="terms.item3">This product is provided as an experimental and independent tool.</li>
+        <li data-i18n="terms.item4">Data shown may be sourced from public information and external APIs.</li>
+        <li data-i18n="terms.item5">Smoke Radar is not responsible for third-party content or external links.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="legal-modal" id="privacyModal" aria-hidden="true">
+    <div class="legal-modal-content">
+      <div class="legal-modal-header">
+        <h3 data-i18n="privacy.title">Privacy Policy</h3>
+        <button class="small-btn" type="button" data-close-modal="privacyModal" data-i18n="common.close">Close</button>
+      </div>
+      <ul class="legal-list">
+        <li data-i18n="privacy.item1">The site may use analytics tools such as PostHog.</li>
+        <li data-i18n="privacy.item2">We may collect anonymous usage data including page views, clicks, feature usage, and device/browser information.</li>
+        <li data-i18n="privacy.item3">No sensitive personal data is intentionally collected.</li>
+        <li data-i18n="privacy.item4">If location is used for Butcher Finder, it is used only to provide nearby results.</li>
+      </ul>
+    </div>
   </div>
 
   <div class="popover" id="infoPopover">
@@ -3141,6 +3353,7 @@
         "actions.smokeFxOff": "💨 Smoke FX Off",
         "actions.langHebrew": "Hebrew",
         "actions.langEnglish": "English",
+        "actions.sendAppLink": "Send app link to my phone",
         "feedback.title": "💬 Feedback",
         "feedback.subtitle": "Found something interesting? Missing feature? Send me your thoughts 🙌",
         "feedback.placeholderText": "Write your feedback here...",
@@ -3149,19 +3362,19 @@
         "nav.overview": "Overview",
         "nav.cuts": "Cuts",
         "nav.recipes": "Recipes",
-        "nav.butchers": "Butchers",
+        "nav.butchers": "Butcher Radar™",
         "nav.feed": "Feed",
         "nav.about": "About",
-        "hint.tryStart": "Try starting with Smoke Index or Beef Cuts Explorer 🔥",
-        "hint.openSmokeIndex": "Open Smoke Index",
+        "hint.tryStart": "Try starting with Smoke Index™ or Beef Cuts Explorer 🔥",
+        "hint.openSmokeIndex": "Open Smoke Index™",
         "hint.openBeefCuts": "Open Beef Cuts",
         "common.close": "Close",
         "sections.exploreCuts": "EXPLORE CUTS",
         "sections.toolsGenerators": "TOOLS & GENERATORS",
-        "sections.smokeIndex": "🔥 Smoke Index",
+        "sections.smokeIndex": "🔥 Smoke Index™",
         "sections.beefCutsExplorer": "🥩 Beef Cuts Explorer",
         "sections.recipeGenerator": "🥘 Recipe Generator",
-        "sections.butcherFinder": "📍 Butcher Finder",
+        "sections.butcherFinder": "📍 Butcher Radar™",
         "sections.topChannels": "🎥 Top Channels",
         "sections.hotKeywords": "🔥 Hot Keywords",
         "channels.subtitle": "Top creators in the current data snapshot",
@@ -3194,7 +3407,7 @@
         "cuts.locationTitle": "Location on the cow",
         "cuts.stylesTitle": "Best cooking styles",
         "cuts.tipTitle": "Tip",
-        "recipe.helper": "Build a premium Smart Cooking Mode plan by cut, method, and flavor profile",
+        "recipe.helper": "Build a premium Smart Cooking Mode™ plan by cut, method, and flavor profile",
         "recipe.placeholder": "Choose your cut, cooking method, and flavor profile — or cook directly from the current trend.",
         "recipe.labels.meatType": "Meat Type",
         "recipe.labels.cut": "Cut",
@@ -3247,7 +3460,7 @@
         "recipe.ctaDescription": "Find butcher shops near you for this recipe.",
         "recipe.ctaLookingFor": ({ cut }) => `Looking for ${cut} nearby?`,
         "recipe.ctaFindButchers": "Find Butchers Near Me",
-        "recipe.fallbackTitle": "Smart Cooking Mode",
+        "recipe.fallbackTitle": "Smart Cooking Mode™",
         "recipe.fallbackDescription": "Quick and balanced cook plan.",
         "recipe.cut.shortRibs": "short ribs",
         "recipe.fallbackSauce1Name": "Classic Pan Sauce",
@@ -3291,9 +3504,31 @@
         "about.pill2": "☕ Coffee-fueled building",
         "about.pill3": "🔥 Trend-driven radar",
         "about.pill4": "🎯 Curious, original, useful",
+        "brand.poweredBy": "Powered by Smoke Radar",
+        "footer.copyright": "© 2026 Smoke Radar. All rights reserved.",
+        "footer.terms": "Terms of Use",
+        "footer.privacy": "Privacy Policy",
+        "sendLink.title": "Send app link to your phone",
+        "sendLink.helper": "Enter your phone number and we'll prepare the app link.",
+        "sendLink.phoneLabel": "Phone number (optional)",
+        "sendLink.phonePlaceholder": "+1 555 123 4567",
+        "sendLink.submit": "Send app link to my phone",
+        "sendLink.success": "App link copied. You can send it to your phone.",
+        "sendLink.qrLabel": "Scan to open the app",
+        "terms.title": "Terms of Use",
+        "terms.item1": "Smoke Radar owns the content, design, UI/UX, code structure, feature logic, product concept, data presentation, and product names.",
+        "terms.item2": "Copying, cloning, redistributing, or recreating this product without permission is prohibited.",
+        "terms.item3": "This product is provided as an experimental and independent tool.",
+        "terms.item4": "Data shown may be sourced from public information and external APIs.",
+        "terms.item5": "Smoke Radar is not responsible for third-party content or external links.",
+        "privacy.title": "Privacy Policy",
+        "privacy.item1": "The site may use analytics tools such as PostHog.",
+        "privacy.item2": "We may collect anonymous usage data including page views, clicks, feature usage, and device/browser information.",
+        "privacy.item3": "No sensitive personal data is intentionally collected.",
+        "privacy.item4": "If location is used for Butcher Finder, it is used only to provide nearby results.",
         "popover.recipe.title": "Recipe Generator",
         "popover.recipe.text": "Builds structured recipes by cut, method, and flavor profile.",
-        "popover.butchers.title": "Butcher Finder",
+        "popover.butchers.title": "Butcher Radar™",
         "popover.butchers.text": "Finds nearby butcher shops based on your location.",
         "popover.feed.title": "Video Radar",
         "popover.feed.text": "A compact feed of trending videos in real time.",
@@ -3381,7 +3616,7 @@
         "feed.smokeLabel": "Smoke",
         "chart.dataset.viewsPerHour": "Views / Hour",
         "chart.dataset.smokeScore": "Smoke Score",
-        "popover.smoke.title": "Smoke Index",
+        "popover.smoke.title": "Smoke Index™",
         "popover.smoke.text": "Live heat score for the current radar feed.",
         "popover.momentum.title": "Momentum",
         "popover.momentum.text": "Comparison of top-performing videos in the current feed.",
@@ -3418,6 +3653,7 @@
         "actions.smokeFxOff": "💨 אפקט עשן כבוי",
         "actions.langHebrew": "עברית",
         "actions.langEnglish": "אנגלית",
+        "actions.sendAppLink": "שלחו לי קישור לאפליקציה",
         "feedback.title": "💬 משוב",
         "feedback.subtitle": "מצאת משהו מעניין? חסרה יכולת? נשמח לשמוע ממך 🙌",
         "feedback.placeholderText": "כתוב את המשוב שלך כאן...",
@@ -3426,7 +3662,7 @@
         "nav.overview": "סקירה",
         "nav.cuts": "נתחים",
         "nav.recipes": "מתכונים",
-        "nav.butchers": "קצבים",
+        "nav.butchers": "Butcher Radar™",
         "nav.feed": "פיד",
         "nav.about": "אודות",
         "hint.tryStart": "מומלץ להתחיל עם מדד העשן או סייר הנתחים 🔥",
@@ -3435,10 +3671,10 @@
         "common.close": "סגירה",
         "sections.exploreCuts": "חוקרים נתחים",
         "sections.toolsGenerators": "כלים ומחוללים",
-        "sections.smokeIndex": "🔥 מדד עשן",
+        "sections.smokeIndex": "🔥 Smoke Index™",
         "sections.beefCutsExplorer": "🥩 סייר נתחי בקר",
         "sections.recipeGenerator": "🥘 מחולל מתכונים",
-        "sections.butcherFinder": "📍 איתור קצבים",
+        "sections.butcherFinder": "📍 Butcher Radar™",
         "sections.topChannels": "🎥 ערוצים מובילים",
         "sections.hotKeywords": "🔥 מילות מפתח חמות",
         "channels.subtitle": "יוצרים מובילים בדאטה הנוכחי",
@@ -3471,7 +3707,7 @@
         "cuts.locationTitle": "מיקום על הבקר",
         "cuts.stylesTitle": "שיטות בישול מומלצות",
         "cuts.tipTitle": "טיפ",
-        "recipe.helper": "בנה תוכנית Smart Cooking Mode לפי נתח, שיטת בישול ופרופיל טעמים",
+        "recipe.helper": "בנה תוכנית Smart Cooking Mode™ לפי נתח, שיטת בישול ופרופיל טעמים",
         "recipe.placeholder": "בחר נתח, שיטת בישול ופרופיל טעמים — או בשל ישירות לפי הטרנד הנוכחי.",
         "recipe.labels.meatType": "סוג בשר",
         "recipe.labels.cut": "נתח",
@@ -3568,9 +3804,31 @@
         "about.pill2": "☕ נבנה על קפה",
         "about.pill3": "🔥 רדאר שמבוסס טרנדים",
         "about.pill4": "🎯 קצר, חד ושימושי",
+        "brand.poweredBy": "Powered by Smoke Radar",
+        "footer.copyright": "© 2026 Smoke Radar. All rights reserved.",
+        "footer.terms": "תנאי שימוש",
+        "footer.privacy": "מדיניות פרטיות",
+        "sendLink.title": "שלחו קישור לאפליקציה",
+        "sendLink.helper": "הזינו מספר טלפון ונכין את קישור האפליקציה.",
+        "sendLink.phoneLabel": "מספר טלפון (אופציונלי)",
+        "sendLink.phonePlaceholder": "+972 50 123 4567",
+        "sendLink.submit": "שלחו לי קישור לאפליקציה",
+        "sendLink.success": "App link copied. You can send it to your phone.",
+        "sendLink.qrLabel": "סרקו לפתיחת האפליקציה",
+        "terms.title": "תנאי שימוש",
+        "terms.item1": "Smoke Radar שומרת על זכויות בתוכן, בעיצוב, במבנה הקוד, בלוגיקת הפיצ'רים, בקונספט המוצר, בהצגת הנתונים ובשמות המוצר.",
+        "terms.item2": "חל איסור להעתיק, לשכפל, להפיץ מחדש או לשחזר את המוצר ללא אישור מפורש.",
+        "terms.item3": "המוצר מסופק ככלי ניסיוני ועצמאי.",
+        "terms.item4": "הנתונים המוצגים עשויים להגיע ממקורות ציבוריים ומ-API חיצוניים.",
+        "terms.item5": "Smoke Radar אינה אחראית לתוכן צד שלישי או לקישורים חיצוניים.",
+        "privacy.title": "מדיניות פרטיות",
+        "privacy.item1": "האתר עשוי להשתמש בכלי אנליטיקה כגון PostHog.",
+        "privacy.item2": "ייתכן שייאספו נתוני שימוש אנונימיים כמו צפיות בדפים, לחיצות, שימוש בפיצ'רים ומידע על מכשיר/דפדפן.",
+        "privacy.item3": "לא נאסף במכוון מידע אישי רגיש.",
+        "privacy.item4": "אם נעשה שימוש במיקום עבור Butcher Finder, הוא משמש רק להצגת תוצאות קרובות.",
         "popover.recipe.title": "מחולל מתכונים",
         "popover.recipe.text": "בונה מתכונים מובנים לפי נתח, שיטה ופרופיל טעמים.",
-        "popover.butchers.title": "איתור קצביות",
+        "popover.butchers.title": "Butcher Radar™",
         "popover.butchers.text": "מאתר קצביות קרובות על בסיס המיקום שלך.",
         "popover.feed.title": "רדאר סרטונים",
         "popover.feed.text": "פיד קומפקטי של סרטונים חמים בזמן אמת.",
@@ -3658,7 +3916,7 @@
         "feed.smokeLabel": "סמואקיות",
         "chart.dataset.viewsPerHour": "צפיות לשעה",
         "chart.dataset.smokeScore": "מדד עשן",
-        "popover.smoke.title": "מדד עשן",
+        "popover.smoke.title": "Smoke Index™",
         "popover.smoke.text": "מדד חום בזמן אמת לפי ביצועי הפיד הנוכחי.",
         "popover.momentum.title": "מומנטום",
         "popover.momentum.text": "השוואת הסרטונים החזקים כרגע בפיד.",
@@ -6061,6 +6319,62 @@ const data = isJson ? await res.json() : null;
       });
     }
 
+    function setupLegalAndSendLinkUI() {
+      const APP_LINK_URL = `${window.location.origin}/app/`;
+      const sendAppLinkBtn = document.getElementById("sendAppLinkBtn");
+      const sendLinkModal = document.getElementById("sendLinkModal");
+      const sendLinkSubmitBtn = document.getElementById("sendLinkSubmitBtn");
+      const sendLinkStatus = document.getElementById("sendLinkStatus");
+      const appLinkQr = document.getElementById("appLinkQr");
+      const openTermsBtn = document.getElementById("openTermsBtn");
+      const openPrivacyBtn = document.getElementById("openPrivacyBtn");
+      const termsModal = document.getElementById("termsModal");
+      const privacyModal = document.getElementById("privacyModal");
+
+      if (appLinkQr) {
+        appLinkQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(APP_LINK_URL)}`;
+      }
+
+      const closeAllModals = () => {
+        document.querySelectorAll(".legal-modal").forEach((modal) => modal.classList.remove("is-open"));
+      };
+
+      const openModal = (modal) => {
+        if (!modal) return;
+        closeAllModals();
+        modal.classList.add("is-open");
+      };
+
+      sendAppLinkBtn?.addEventListener("click", () => openModal(sendLinkModal));
+      openTermsBtn?.addEventListener("click", () => openModal(termsModal));
+      openPrivacyBtn?.addEventListener("click", () => openModal(privacyModal));
+
+      document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+        btn.addEventListener("click", closeAllModals);
+      });
+
+      document.querySelectorAll(".legal-modal").forEach((modal) => {
+        modal.addEventListener("click", (event) => {
+          if (event.target === modal) closeAllModals();
+        });
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeAllModals();
+      });
+
+      sendLinkSubmitBtn?.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(APP_LINK_URL);
+          if (sendLinkStatus) sendLinkStatus.textContent = t("sendLink.success");
+          posthog.capture("send_app_link_clicked", { mode: "clipboard_fallback" });
+        } catch (error) {
+          console.warn("Failed to copy app link", error);
+          if (sendLinkStatus) sendLinkStatus.textContent = t("status.unavailable");
+        }
+      });
+    }
+
 
     function applyTheme(theme = "dark") {
       const isLight = theme === "light";
@@ -6106,6 +6420,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupFirstRunHint();
   setupFloatingFeedbackButton();
   setupShareButton();
+  setupLegalAndSendLinkUI();
   renderIsraeliCreatorsCard();
   attachInteractiveCards();
   attachBeefMapInteractions();
