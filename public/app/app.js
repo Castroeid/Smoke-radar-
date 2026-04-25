@@ -2,7 +2,7 @@ const STEPS = ["landing", "saved", "hot", "preferences", "cook", "recipe", "shop
 let currentStep = 0;
 const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
 const SHARE_TEXT = "Check out Smoke Radar — meat trends, recipes, and butcher discovery in one radar-style app.";
-const INTRO_MIN_DURATION_MS = 1800;
+const INTRO_MIN_DURATION_MS = 2600;
 
 const assetCandidates = {
   appBg: ["/app/assets/app-bg-smoke.jpg", "/app/assets/app-bg-smoke.jpg.png"],
@@ -73,6 +73,12 @@ const copy = {
       "בודקים מה הכי טרנדי עכשיו...",
       "כמעט שם..."
     ],
+    recipeLoadingMessages: [
+      "מחממים את הרדאר 🔥",
+      "מוצאים את השילוב המושלם...",
+      "בונים לך מתכון מדויק..."
+    ],
+    butcherLoadingMessage: "מחפש קצביות באזור שלך...",
     loadingSteps: [
       "🔥 מזהים טרנדים",
       "🥩 בוחרים נתח מושלם",
@@ -109,6 +115,12 @@ const copy = {
       "Scanning what's trending...",
       "Almost ready..."
     ],
+    recipeLoadingMessages: [
+      "Warming up the radar 🔥",
+      "Finding the perfect pairing...",
+      "Building your precise recipe..."
+    ],
+    butcherLoadingMessage: "Searching butcher shops near you...",
     loadingSteps: [
       "🔥 מזהים טרנדים",
       "🥩 בוחרים נתח מושלם",
@@ -151,7 +163,9 @@ const state = {
   location: null,
   variationCount: 0,
   savedRecipes: [],
-  lastOpenedRecipeId: null
+  lastOpenedRecipeId: null,
+  recipeLoading: false,
+  butcherLoading: false
 };
 
 const el = {
@@ -168,7 +182,8 @@ const el = {
   progressText: document.getElementById("progressText"),
   openingMessage: document.getElementById("openingMessage"),
   openingSteps: document.getElementById("openingSteps"),
-  openingProgressFill: document.getElementById("openingProgressFill")
+  openingProgressFill: document.getElementById("openingProgressFill"),
+  toast: document.getElementById("appToast")
 };
 
 const openingExperience = {
@@ -178,8 +193,12 @@ const openingExperience = {
   rafId: null,
   messageTimer: null,
   stepTimer: null,
-  running: false
+  running: false,
+  startTs: 0
 };
+
+let recipeLoadingInterval = null;
+let toastTimer = null;
 
 el.backBtn.addEventListener("click", () => {
   if (currentStep > 0) {
@@ -307,7 +326,8 @@ function startOpeningExperience() {
   openingExperience.running = true;
   openingExperience.messageIndex = 0;
   openingExperience.stepIndex = 0;
-  openingExperience.progress = 4;
+  openingExperience.progress = 1;
+  openingExperience.startTs = performance.now();
   updateOpeningMessage();
   renderOpeningStepList();
   updateOpeningProgress(openingExperience.progress);
@@ -317,14 +337,14 @@ function startOpeningExperience() {
     if (!messages.length) return;
     openingExperience.messageIndex = (openingExperience.messageIndex + 1) % messages.length;
     updateOpeningMessage();
-  }, 1250);
+  }, 820);
 
   openingExperience.stepTimer = window.setInterval(() => {
     const steps = t("loadingSteps") || [];
     if (!steps.length) return;
-    openingExperience.stepIndex = (openingExperience.stepIndex + 1) % steps.length;
+    openingExperience.stepIndex = Math.min(steps.length - 1, openingExperience.stepIndex + 1);
     renderOpeningStepList();
-  }, 1200);
+  }, Math.max(500, Math.round(INTRO_MIN_DURATION_MS / 4)));
 
   openingExperience.rafId = window.requestAnimationFrame(tickOpeningProgress);
 }
@@ -399,8 +419,11 @@ function renderSavedRecipes() {
     const cut = getCutById(item.preferences?.cutId || "ribeye").labels[state.lang];
     const method = getMethodById(item.preferences?.methodId || "grill").labels[state.lang];
     const date = formatSavedDate(item.createdAt);
+    const thumbnail = item.thumbnail || recipeThumbnailForCut(item.preferences?.cutId || "ribeye");
     return `
       <article class="card saved-recipe-card">
+        <img class="saved-thumb" src="${thumbnail}" alt="${item.title || "recipe"}" />
+        <div class="saved-recipe-content">
         <h3>${item.title || (state.lang === "he" ? "מתכון שמור" : "Saved Recipe")}</h3>
         <p class="small">${state.lang === "he" ? "נתח" : "Cut"}: ${cut}</p>
         <p class="small">${state.lang === "he" ? "שיטת בישול" : "Cooking method"}: ${method}</p>
@@ -408,6 +431,7 @@ function renderSavedRecipes() {
         <div class="saved-recipe-actions">
           <button class="btn btn-primary" data-open-recipe="${item.id}">${state.lang === "he" ? "פתח מתכון" : "Open Recipe"}</button>
           <button class="btn btn-ghost" data-delete-recipe="${item.id}">${state.lang === "he" ? "מחק" : "Delete"}</button>
+        </div>
         </div>
       </article>
     `;
@@ -500,16 +524,25 @@ function renderPreferences() {
           <option value="non_kosher">${state.lang === "he" ? "לא כשר" : "Non-kosher"}</option>
         </select>
       </div>
-      <div class="field"><label>${state.lang === "he" ? "מספר מנות" : "Servings"}</label><input type="number" min="1" max="20" id="servings" value="${state.preferences.servings}" /></div>
+      <div class="field">
+        <label>${state.lang === "he" ? "מנות" : "Servings"}</label>
+        <div class="servings-inline">
+          <button class="btn btn-ghost servings-btn" type="button" id="servingsMinus">−</button>
+          <strong id="servingsValue">${state.preferences.servings}</strong>
+          <button class="btn btn-ghost servings-btn" type="button" id="servingsPlus">+</button>
+        </div>
+      </div>
     </div>
   `;
 
-  ["meatType", "cutId", "methodId", "flavorId", "dietaryPreference", "servings"].forEach((id) => {
+  ["meatType", "cutId", "methodId", "flavorId", "dietaryPreference"].forEach((id) => {
     const input = document.getElementById(id);
     input.value = state.preferences[id];
     input.addEventListener("change", collectPreferences);
     input.addEventListener("input", collectPreferences);
   });
+  document.getElementById("servingsMinus")?.addEventListener("click", () => updateServings(-1, false));
+  document.getElementById("servingsPlus")?.addEventListener("click", () => updateServings(1, false));
 }
 
 function collectPreferences() {
@@ -518,7 +551,7 @@ function collectPreferences() {
   state.preferences.methodId = document.getElementById("methodId").value;
   state.preferences.flavorId = document.getElementById("flavorId").value;
   state.preferences.dietaryPreference = document.getElementById("dietaryPreference").value === "kosher" ? "kosher" : "non_kosher";
-  state.preferences.servings = Number(document.getElementById("servings").value || 1);
+  state.preferences.servings = Number(state.preferences.servings || 1);
 }
 
 function buildIdeas() {
@@ -584,10 +617,19 @@ function recipeHeroForCut() {
 
 function renderRecipe() {
   if (!state.recipe) {
-    el.content.innerHTML = `<div class="card">${state.lang === "he" ? "בונה מדריך בישול מלא..." : "Building your complete cooking guide..."}</div>`;
-    loadRecipe().then(renderRecipe).catch(() => {
-      el.content.innerHTML = `<div class="card">${state.lang === "he" ? "לא הצלחנו לטעון מתכון כרגע." : "Could not load recipe right now."}</div>`;
-    });
+    startRecipeLoadingState();
+    if (!state.recipeLoading) {
+      state.recipeLoading = true;
+      loadRecipe().then(() => {
+        stopRecipeLoadingState();
+        state.recipeLoading = false;
+        renderRecipe();
+      }).catch(() => {
+        stopRecipeLoadingState();
+        state.recipeLoading = false;
+        el.content.innerHTML = `<div class="card">${state.lang === "he" ? "לא הצלחנו לטעון מתכון כרגע." : "Could not load recipe right now."}</div>`;
+      });
+    }
     return;
   }
 
@@ -654,7 +696,12 @@ function renderRecipe() {
       <button class="btn btn-ghost" id="copyShoppingBtn">${state.lang === "he" ? "📋 העתק רשימת קניות" : "📋 Copy Shopping List"}</button>
       <button class="btn btn-ghost" id="variationBtn">${state.lang === "he" ? "🔄 נסה וריאציה" : "🔄 Try Variation"}</button>
       <button class="btn btn-ghost" id="regenBtn">${state.lang === "he" ? "צור מתכון מחדש" : "Regenerate Recipe"}</button>
-      <button class="btn btn-ghost" id="servingBtn">${state.lang === "he" ? "שנה מספר מנות" : "Change Servings"}</button>
+      <div class="servings-inline recipe-servings-inline">
+        <span class="small servings-label">${state.lang === "he" ? "מנות" : "Servings"}</span>
+        <button class="btn btn-ghost servings-btn" type="button" id="recipeServingsMinus">−</button>
+        <strong id="recipeServingsValue">${state.preferences.servings}</strong>
+        <button class="btn btn-ghost servings-btn" type="button" id="recipeServingsPlus">+</button>
+      </div>
       <button class="btn btn-primary" id="toShoppingBtn">${state.lang === "he" ? "המשך לרשימת קניות" : "Continue to Shopping List"}</button>
     </div>
   `;
@@ -672,15 +719,8 @@ function renderRecipe() {
     state.recipe = null;
     renderRecipe();
   });
-  document.getElementById("servingBtn").addEventListener("click", () => {
-    const v = window.prompt(state.lang === "he" ? "כמה מנות?" : "How many servings?", String(state.preferences.servings));
-    const servings = Number(v);
-    if (Number.isFinite(servings) && servings > 0 && servings <= 20) {
-      state.preferences.servings = servings;
-      state.recipe = null;
-      renderRecipe();
-    }
-  });
+  document.getElementById("recipeServingsMinus")?.addEventListener("click", () => updateServings(-1, true));
+  document.getElementById("recipeServingsPlus")?.addEventListener("click", () => updateServings(1, true));
   document.getElementById("toShoppingBtn").addEventListener("click", () => {
     currentStep = STEPS.indexOf("shopping");
     render();
@@ -719,7 +759,7 @@ function renderShopping() {
           <h3 class="group-title">${group[state.lang]}</h3>
           ${items.length ? items.map((item, idx) => {
             const id = `${group.key}-${idx}`;
-            return `<label class="check-item"><span>${item}</span><input type="checkbox" data-check="${id}" ${state.shoppingChecks[id] ? "checked" : ""} /></label>`;
+            return `<label class="check-item"><input type="checkbox" data-check="${id}" ${state.shoppingChecks[id] ? "checked" : ""} /><span>${item}</span></label>`;
           }).join("") : `<p class="small">${state.lang === "he" ? "לא נוספו פריטים" : "No items added"}</p>`}
         </div>`;
     }).join("")}
@@ -759,11 +799,14 @@ function renderButchers() {
       <button id="findButchers" class="btn btn-primary">${state.lang === "he" ? "📍 מצא קצביות קרובות" : "📍 Find nearby butcher shops"}</button>
     `;
     document.getElementById("findButchers").addEventListener("click", async () => {
-      el.content.innerHTML = `<div class="card">${state.lang === "he" ? "מאתר מיקום וקצביות..." : "Fetching your location and butcher shops..."}</div>`;
+      state.butcherLoading = true;
+      el.content.innerHTML = renderButcherLoading();
       try {
         await loadButchers();
+        state.butcherLoading = false;
         renderButchers();
       } catch {
+        state.butcherLoading = false;
         el.content.innerHTML = `<div class="card">${state.lang === "he" ? "נדרשת הרשאת מיקום כדי לאתר קצביות." : "Location permission is required to find butcher shops."}</div>`;
       }
     });
@@ -791,8 +834,9 @@ function renderButchers() {
           ${badges.length ? `<div class="badges-row">${badges.map((badge) => `<span class="badge badge-emphasis">${badge}</span>`).join("")}</div>` : ""}
           <strong>📍 ${b.name}</strong>
           <p class="small">${b.address || ""}</p>
+          <p class="small">${state.lang === "he" ? "מרחק ממך" : "Distance"}: ${Number.isFinite(distance) ? formatDistance(distance) : "-"}</p>
           <div class="butcher-footer">
-            <p class="small butcher-rating">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0}) ${Number.isFinite(distance) ? `• ${distance.toFixed(1)} km` : ""}</p>
+            <p class="small butcher-rating">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0})</p>
             <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
           </div>
         </article>`;
@@ -887,7 +931,22 @@ function getDistanceValue(shop) {
     const parsed = Number(shop.distanceText.replace(/[^\d.]/g, ""));
     if (Number.isFinite(parsed)) return parsed;
   }
+  if (state.location && Number.isFinite(shop?.lat) && Number.isFinite(shop?.lng)) {
+    return haversineDistanceKm(state.location.lat, state.location.lng, shop.lat, shop.lng);
+  }
+  if (state.location && Number.isFinite(shop?.latitude) && Number.isFinite(shop?.longitude)) {
+    return haversineDistanceKm(state.location.lat, state.location.lng, shop.latitude, shop.longitude);
+  }
   return NaN;
+}
+
+function haversineDistanceKm(lat1, lon1, lat2, lon2) {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
 function getChefTips(cutId, methodId) {
@@ -934,7 +993,7 @@ function initOpeningAnimation() {
   window.setTimeout(() => {
     updateOpeningProgress(100);
     el.openingSplash.classList.add("is-hidden");
-    stopOpeningExperience();
+    window.setTimeout(() => stopOpeningExperience(), 380);
   }, INTRO_MIN_DURATION_MS);
 }
 
@@ -950,12 +1009,13 @@ function saveCurrentRecipe() {
     sides: state.recipe.sides || [],
     drinks: state.recipe.drinkPairings || [],
     shopping: state.shopping || {},
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    thumbnail: recipeThumbnailForCut(state.preferences.cutId)
   };
   const withoutDupes = state.savedRecipes.filter((item) => item.id !== savedRecipe.id);
   state.savedRecipes = [savedRecipe, ...withoutDupes];
   persistSavedRecipes();
-  alert(state.lang === "he" ? "המתכון נשמר" : "Recipe saved");
+  showToast(state.lang === "he" ? "המתכון נשמר" : "Recipe saved");
 }
 
 function openSavedRecipe(id) {
@@ -1091,6 +1151,77 @@ async function shareSmokeRadar() {
   } catch {
     alert(state.lang === "he" ? "לא הצלחנו לשתף כרגע" : "Could not share right now");
   }
+}
+
+function recipeThumbnailForCut(cutId) {
+  if (["brisket", "short_ribs", "chuck"].includes(cutId)) return "/app/assets/recipe-bg.jpg.png";
+  return "/app/assets/hero-steak.jpg.png";
+}
+
+function updateServings(delta, rerenderRecipe) {
+  const next = Math.max(1, Math.min(20, Number(state.preferences.servings || 1) + delta));
+  if (next === state.preferences.servings) return;
+  state.preferences.servings = next;
+  const prefValue = document.getElementById("servingsValue");
+  if (prefValue) prefValue.textContent = String(next);
+  const recipeValue = document.getElementById("recipeServingsValue");
+  if (recipeValue) recipeValue.textContent = String(next);
+  if (rerenderRecipe) {
+    state.recipe = null;
+    renderRecipe();
+  }
+}
+
+function renderRecipeLoadingCard(message) {
+  return `
+    <div class="card branded-loader">
+      <div class="opening-radar-loader loading-radar" aria-hidden="true"><span></span></div>
+      <strong>${message}</strong>
+    </div>
+  `;
+}
+
+function startRecipeLoadingState() {
+  const messages = t("recipeLoadingMessages") || [];
+  let i = 0;
+  const print = () => {
+    const msg = messages[i % messages.length] || (state.lang === "he" ? "בונה מתכון..." : "Building recipe...");
+    el.content.innerHTML = renderRecipeLoadingCard(msg);
+    i += 1;
+  };
+  print();
+  if (recipeLoadingInterval) window.clearInterval(recipeLoadingInterval);
+  recipeLoadingInterval = window.setInterval(print, 850);
+}
+
+function stopRecipeLoadingState() {
+  if (recipeLoadingInterval) window.clearInterval(recipeLoadingInterval);
+  recipeLoadingInterval = null;
+}
+
+function renderButcherLoading() {
+  return `
+    <div class="card branded-loader">
+      <div class="opening-radar-loader loading-radar loading-radar-small" aria-hidden="true"><span></span></div>
+      <strong>${t("butcherLoadingMessage")}</strong>
+      <p class="small loading-dots"><span>.</span><span>.</span><span>.</span></p>
+    </div>
+  `;
+}
+
+function formatDistance(distanceKm) {
+  const formatted = distanceKm.toFixed(1);
+  return state.lang === "he" ? `${formatted} ק״מ` : `${formatted} km`;
+}
+
+function showToast(message) {
+  if (!el.toast) return;
+  el.toast.textContent = message;
+  el.toast.classList.add("is-visible");
+  if (toastTimer) window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => {
+    el.toast.classList.remove("is-visible");
+  }, 1800);
 }
 
 initOpeningAnimation();
