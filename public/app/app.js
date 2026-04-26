@@ -213,7 +213,11 @@ const state = {
   savedRecipes: [],
   lastOpenedRecipeId: null,
   recipeLoading: false,
-  butcherLoading: false
+  butcherLoading: false,
+  navigation: {
+    generatorMode: true,
+    askExpertMode: false
+  }
 };
 
 const el = {
@@ -313,7 +317,11 @@ function render() {
   el.progressFill.style.width = `${progress}%`;
   el.progressText.textContent = `${t("stepLabel")} ${Math.max(currentStep, 1)}/${totalFlowSteps}`;
   el.backBtn.textContent = t("back");
-  el.nextBtn.textContent = currentStep === STEPS.length - 1 ? t("finish") : t("next");
+  el.nextBtn.textContent = currentStep === STEPS.length - 1
+    ? t("finish")
+    : step === "preferences"
+      ? (state.lang === "he" ? "צור מתכון" : "Generate Recipe")
+      : t("next");
   el.backBtn.classList.toggle("hidden", currentStep === 0);
   el.nextBtn.classList.toggle("hidden", step === "landing" || step === "saved");
 
@@ -589,6 +597,7 @@ function renderPreferences() {
         <input id="userQuestion" type="text" maxlength="220" placeholder="${state.lang === "he" ? "שאלה או בקשה מיוחדת? למשל: איזה בשר מתאים לבישול ארוך בקדירה?" : "Any question or special request? Example: what cut works best for long braising?"}" />
       </div>
       <button type="button" class="btn btn-ghost" id="toExpertBtn">${state.lang === "he" ? "שאל את המומחים" : "Ask the Experts"}</button>
+      <button type="button" class="btn btn-primary" id="generateRecipeBtn">${state.lang === "he" ? "צור מתכון" : "Generate Recipe"}</button>
     </div>
   `;
 
@@ -607,8 +616,18 @@ function renderPreferences() {
   document.getElementById("cutId")?.addEventListener("change", () => { updateCutHelperText(); setupMethodOptions(); updateMethodHelperText(); });
   document.getElementById("methodId")?.addEventListener("change", updateMethodHelperText);
   document.getElementById("toExpertBtn")?.addEventListener("click", () => {
+    state.navigation.askExpertMode = true;
+    state.navigation.generatorMode = false;
     expertState.returnToStep = "preferences";
     currentStep = STEPS.indexOf("expert");
+    render();
+  });
+  document.getElementById("generateRecipeBtn")?.addEventListener("click", () => {
+    collectPreferences();
+    state.navigation.generatorMode = true;
+    state.navigation.askExpertMode = false;
+    state.recipe = null;
+    currentStep = STEPS.indexOf("recipe");
     render();
   });
   document.getElementById("servingsMinus")?.addEventListener("click", () => updateServings(-1, false));
@@ -673,6 +692,7 @@ function renderAskExpert() {
       <div class="inline-actions">
         <button class="btn btn-primary" id="expertUseBtn">${state.lang === "he" ? "להכין מתכון על בסיס זה" : "Generate Recipe from This"}</button>
         <button class="btn btn-ghost" id="expertAnotherBtn">${state.lang === "he" ? "יש לי שאלה נוספת" : "Ask Another Question"}</button>
+        <button class="btn btn-ghost" id="expertBackBtn">${state.lang === "he" ? "חזרה למחולל" : "Back to Generator"}</button>
       </div>
     </div>` : "";
 
@@ -711,13 +731,23 @@ function renderAskExpert() {
     if (expertState.suggestedCutId) state.preferences.cutId = expertState.suggestedCutId;
     if (expertState.suggestedMethodId) state.preferences.methodId = expertState.suggestedMethodId;
     state.preferences.userQuestion = expertState.question || state.preferences.userQuestion;
+    state.navigation.askExpertMode = false;
+    state.navigation.generatorMode = true;
     currentStep = STEPS.indexOf("preferences");
     render();
   });
   document.getElementById("expertAnotherBtn")?.addEventListener("click", () => {
     expertState.answer = null;
     expertState.question = "";
+    expertState.suggestedCutId = null;
+    expertState.suggestedMethodId = null;
     renderAskExpert();
+  });
+  document.getElementById("expertBackBtn")?.addEventListener("click", () => {
+    state.navigation.askExpertMode = false;
+    state.navigation.generatorMode = true;
+    currentStep = STEPS.indexOf(expertState.returnToStep || "preferences");
+    render();
   });
 }
 
@@ -779,6 +809,8 @@ function renderCookIdeas() {
   `;
 
   document.getElementById("cookExpertBtn")?.addEventListener("click", () => {
+    state.navigation.askExpertMode = true;
+    state.navigation.generatorMode = false;
     expertState.returnToStep = "cook";
     currentStep = STEPS.indexOf("expert");
     render();
@@ -1131,7 +1163,34 @@ async function handleNext() {
   if (step === "hot" && state.homeChoice === "hot" && state.selectedHot === null) return;
   if (step === "cook" && state.selectedMealIdea === null) return;
   if (step === "expert") {
+    state.navigation.askExpertMode = false;
+    state.navigation.generatorMode = true;
     currentStep = STEPS.indexOf(expertState.returnToStep || "preferences");
+    render();
+    return;
+  }
+  if (step === "preferences") {
+    collectPreferences();
+    state.navigation.generatorMode = true;
+    state.navigation.askExpertMode = false;
+    state.recipe = null;
+    currentStep = STEPS.indexOf("recipe");
+    render();
+    return;
+  }
+  if (step === "recipe") {
+    currentStep = STEPS.indexOf("shopping");
+    render();
+    return;
+  }
+  if (step === "shopping") {
+    currentStep = STEPS.indexOf("butcher");
+    render();
+    return;
+  }
+  if (step === "butcher") {
+    currentStep = 0;
+    state.recipe = null;
     render();
     return;
   }
