@@ -3,6 +3,7 @@ let currentStep = 0;
 const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
 const SHARE_TEXT = "Check out Smoke Radar — meat trends, recipes, and butcher discovery in one radar-style app.";
 const INTRO_MIN_DURATION_MS = 2600;
+const INTRO_FINAL_HOLD_MS = 850;
 
 const assetCandidates = {
   appBg: ["/app/assets/app-bg-smoke.jpg", "/app/assets/app-bg-smoke.jpg.png"],
@@ -49,6 +50,26 @@ const flavorProfiles = [
   { id: "sweet_smoky", labels: { he: "מתוק-מעושן", en: "Sweet & Smoky" } },
   { id: "israeli_style", labels: { he: "ישראלי", en: "Israeli Style" } }
 ];
+
+const cutHelperText = {
+  ribeye: {
+    he: "מתאים לצריבה במחבת, גריל, ריברס סיר.",
+    en: "Best for pan sear, grill, and reverse sear."
+  },
+  brisket: {
+    he: "מתאים לעישון ארוך / Low & Slow.",
+    en: "Best for long smoking / low and slow."
+  },
+  asado: {
+    he: "מתאים לקדירה, תנור ארוך, עישון.",
+    en: "Best for braising, long oven roast, or smoking."
+  },
+  picanha: {
+    he: "מתאים לגריל, רוטיסרי, צריבה הפוכה.",
+    en: "Best for grill, rotisserie, and reverse sear."
+  }
+};
+
 
 function defaultDietaryPreference(lang) {
   return lang === "he" ? "kosher" : "non_kosher";
@@ -152,7 +173,8 @@ const state = {
     methodId: "grill",
     flavorId: "smoky",
     dietaryPreference: defaultDietaryPreference(document.documentElement.lang === "en" ? "en" : "he"),
-    servings: 4
+    servings: 4,
+    userQuestion: ""
   },
   mealIdeas: [],
   selectedMealIdea: null,
@@ -376,6 +398,7 @@ function renderLanding() {
       </div>
     ` : ""}
     <button class="btn btn-choice btn-choice-saved" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
+    <div class="footer-separator" aria-hidden="true"></div>
     <section class="card legal-menu">
       <h3>${state.lang === "he" ? "תפריט Smoke Radar" : "Smoke Radar Menu"}</h3>
       <button class="btn btn-ghost" id="aboutBtn">${state.lang === "he" ? "About Smoke Radar" : "About Smoke Radar"}</button>
@@ -511,6 +534,7 @@ function renderPreferences() {
       </div>
       <div class="field"><label>${state.lang === "he" ? "נתח" : "Cut"}</label>
         <select id="cutId">${cutsCatalog.map((cut) => `<option value="${cut.id}">${cut.labels[state.lang]}</option>`).join("")}</select>
+        <p class="small cut-helper-text" id="cutHelperText"></p>
       </div>
       <div class="field"><label>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</label>
         <select id="methodId">${methods.map((m) => `<option value="${m.id}">${m.labels[state.lang]}</option>`).join("")}</select>
@@ -532,6 +556,10 @@ function renderPreferences() {
           <button class="btn btn-ghost servings-btn" type="button" id="servingsPlus">+</button>
         </div>
       </div>
+      <div class="field">
+        <label>${state.lang === "he" ? "שאלה או בקשה מיוחדת" : "Question or special request"}</label>
+        <input id="userQuestion" type="text" maxlength="220" placeholder="${state.lang === "he" ? "שאלה או בקשה מיוחדת? למשל: איזה בשר מתאים לבישול ארוך בקדירה?" : "Any question or special request? Example: what cut works best for long braising?"}" />
+      </div>
     </div>
   `;
 
@@ -541,6 +569,11 @@ function renderPreferences() {
     input.addEventListener("change", collectPreferences);
     input.addEventListener("input", collectPreferences);
   });
+  const questionInput = document.getElementById("userQuestion");
+  questionInput.value = state.preferences.userQuestion || "";
+  questionInput.addEventListener("input", collectPreferences);
+  updateCutHelperText();
+  document.getElementById("cutId")?.addEventListener("change", updateCutHelperText);
   document.getElementById("servingsMinus")?.addEventListener("click", () => updateServings(-1, false));
   document.getElementById("servingsPlus")?.addEventListener("click", () => updateServings(1, false));
 }
@@ -551,7 +584,18 @@ function collectPreferences() {
   state.preferences.methodId = document.getElementById("methodId").value;
   state.preferences.flavorId = document.getElementById("flavorId").value;
   state.preferences.dietaryPreference = document.getElementById("dietaryPreference").value === "kosher" ? "kosher" : "non_kosher";
+  state.preferences.userQuestion = String(document.getElementById("userQuestion")?.value || "").trim();
   state.preferences.servings = Number(state.preferences.servings || 1);
+}
+
+function updateCutHelperText() {
+  const helperEl = document.getElementById("cutHelperText");
+  if (!helperEl) return;
+  const cutId = document.getElementById("cutId")?.value || state.preferences.cutId;
+  const helper = cutHelperText[cutId]?.[state.lang] || (state.lang === "he"
+    ? "טיפ: בחר שיטת בישול שתואמת את מאפייני הנתח."
+    : "Tip: choose a method that matches your selected cut.");
+  helperEl.textContent = helper;
 }
 
 function buildIdeas() {
@@ -600,6 +644,7 @@ async function loadRecipe() {
     flavor,
     dietaryPreference: p.dietaryPreference,
     servings: String(p.servings),
+    userQuestion: p.userQuestion || "",
     mode: "all",
     variation: state.variationCount ? "1" : "0",
     r: String(Math.floor(Math.random() * 1000000))
@@ -652,6 +697,8 @@ function renderRecipe() {
   const chefTips = getChefTips(state.preferences.cutId, state.preferences.methodId);
   const sauces = normalizeSubRecipes(r.sauces, "sauce");
   const sides = normalizeSubRecipes(r.sides, "side");
+  const glossaryTitle = state.lang === "he" ? "מקרא פעולות" : "Technique Glossary";
+  const glossary = Array.isArray(main.techniqueGlossary) ? main.techniqueGlossary.filter(Boolean) : [];
 
   el.content.innerHTML = `
     <div class="card recipe-hero" style="--recipe-image:${recipeHeroForCut()}">
@@ -677,6 +724,7 @@ function renderRecipe() {
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${i}</li>`).join("")}</ul></div>
     <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s) => `<li>${s}</li>`).join("")}</ol></div>
+    ${glossary.length ? `<div class="card"><h3>${glossaryTitle}</h3><ul class="list">${glossary.map((item) => `<li>${item}</li>`).join("")}</ul></div>` : ""}
     <div class="card">
       <h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3>
       ${renderSubRecipeDetails(sauces)}
@@ -814,12 +862,18 @@ function renderButchers() {
 
   const distances = state.butchers.map((item) => getDistanceValue(item)).filter((v) => Number.isFinite(v));
   const closestDistance = distances.length ? Math.min(...distances) : NaN;
+  const rankedButchers = [...state.butchers]
+    .map((shop) => {
+      const distanceKm = getDistanceValue(shop);
+      return { ...shop, distanceKm, rankingScore: getButcherRankingScore(shop, distanceKm) };
+    })
+    .sort((a, b) => b.rankingScore - a.rankingScore);
 
   el.content.innerHTML = `
     <div class="card visual-map">
       <h3>${state.lang === "he" ? "Butcher Radar™" : "Butcher Radar™"}</h3>
     </div>
-    ${state.butchers.slice(0, 8).map((b, idx) => {
+    ${rankedButchers.slice(0, 8).map((b, idx) => {
       const stars = "⭐".repeat(Math.max(1, Math.min(5, Math.round(b.rating || 4))));
       const distance = getDistanceValue(b);
       const isClosest = Number.isFinite(distance) && Number.isFinite(closestDistance) && distance === closestDistance;
@@ -846,6 +900,7 @@ function normalizeSubRecipes(items, type) {
   const list = Array.isArray(items) ? items : [];
   const normalized = list.map((item) => ({
     title: item?.name || defaultSubRecipe(type).title,
+    description: item?.description || "",
     ingredients: (item?.ingredients || []).filter(Boolean),
     steps: (item?.steps || []).filter(Boolean)
   }));
@@ -856,6 +911,7 @@ function normalizeSubRecipes(items, type) {
     const fallback = defaultSubRecipe(type, item.title);
     return {
       title: item.title || fallback.title,
+      description: item.description || fallback.description,
       ingredients: item.ingredients.length ? item.ingredients : fallback.ingredients,
       steps: item.steps.length ? item.steps : fallback.steps
     };
@@ -867,12 +923,14 @@ function defaultSubRecipe(type, explicitTitle) {
     if (type === "sauce") {
       return {
         title: explicitTitle || "צ'ימיצ'ורי קלאסי",
+        description: "רוטב עשבים טרי שמוסיף חומציות ורעננות.",
         ingredients: ["1/2 כוס פטרוזיליה קצוצה", "2 שיני שום כתושות", "3 כפות שמן זית", "1 כף חומץ יין אדום", "מלח ופלפל לפי הטעם"],
         steps: ["מערבבים בקערה את כל המרכיבים.", "טועמים ומאזנים מלח/חומץ.", "מגישים לצד הבשר או מעליו."]
       };
     }
     return {
       title: explicitTitle || "תפוחי אדמה מעושנים",
+      description: "תוספת אדמתית עם קראסט עדין ועשן מאוזן.",
       ingredients: ["4 תפוחי אדמה בינוניים חתוכים", "2 כפות שמן זית", "1 כפית פפריקה מעושנת", "1/2 כפית מלח", "1/4 כפית פלפל שחור"],
       steps: ["מערבבים את תפוחי האדמה עם התיבול.", "צולים בתנור או על הגריל עד הזהבה.", "מגישים חם לצד המנה העיקרית."]
     };
@@ -881,12 +939,14 @@ function defaultSubRecipe(type, explicitTitle) {
   if (type === "sauce") {
     return {
       title: explicitTitle || "Classic Chimichurri",
+      description: "Fresh herb sauce with balanced acidity.",
       ingredients: ["1/2 cup chopped parsley", "2 minced garlic cloves", "3 tbsp olive oil", "1 tbsp red wine vinegar", "Salt and pepper to taste"],
       steps: ["Combine all ingredients in a bowl.", "Adjust seasoning and acidity.", "Serve over or beside the meat."]
     };
   }
   return {
     title: explicitTitle || "Smoky Roasted Potatoes",
+    description: "Earthy potatoes with light smoke and crisp edges.",
     ingredients: ["4 medium potatoes, cubed", "2 tbsp olive oil", "1 tsp smoked paprika", "1/2 tsp salt", "1/4 tsp black pepper"],
     steps: ["Toss potatoes with oil and seasoning.", "Roast or grill until golden and tender.", "Serve hot next to the main dish."]
   };
@@ -897,6 +957,7 @@ function renderSubRecipeDetails(items) {
   return items.map((item) => `
     <div class="sub-recipe-block">
       <h4>${item.title}</h4>
+      <p class="small">${item.description || (state.lang === "he" ? "תוספת מומלצת למנה." : "Recommended side pairing.")}</p>
       <p class="small">${state.lang === "he" ? "מרכיבים" : "Ingredients"}</p>
       <ul class="list">${item.ingredients.map((ingredient) => `<li>${ingredient}</li>`).join("")}</ul>
       <p class="small">${state.lang === "he" ? "הכנה" : "Instructions"}</p>
@@ -932,11 +993,10 @@ function getDistanceValue(shop) {
       return parsed;
     }
   }
-  if (state.location && Number.isFinite(shop?.lat) && Number.isFinite(shop?.lng)) {
-    return haversineDistanceKm(state.location.lat, state.location.lng, shop.lat, shop.lng);
-  }
-  if (state.location && Number.isFinite(shop?.latitude) && Number.isFinite(shop?.longitude)) {
-    return haversineDistanceKm(state.location.lat, state.location.lng, shop.latitude, shop.longitude);
+  const lat = Number(shop?.lat ?? shop?.latitude);
+  const lng = Number(shop?.lng ?? shop?.longitude);
+  if (state.location && Number.isFinite(lat) && Number.isFinite(lng)) {
+    return haversineDistanceKm(state.location.lat, state.location.lng, lat, lng);
   }
   return NaN;
 }
@@ -1001,7 +1061,7 @@ function enhanceRecipeQuality(recipe) {
   };
 
   recipeCopy.sauces = recipeCopy.sauces.map((item) => enhanceSubRecipe(item, "sauce", { kosherMode, lang }));
-  recipeCopy.sides = recipeCopy.sides.map((item) => enhanceSubRecipe(item, "side", { kosherMode, lang }));
+  recipeCopy.sides = dedupeSubRecipesByTitle(recipeCopy.sides.map((item) => enhanceSubRecipe(item, "side", { kosherMode, lang })));
   recipeCopy.drinkPairings = recipeCopy.drinkPairings.map((d) => {
     const value = d?.name || "";
     return { name: lang === "he" ? normalizeHebrewCookingText(value) : value };
@@ -1011,6 +1071,7 @@ function enhanceRecipeQuality(recipe) {
     recipeCopy.main.title = normalizeHebrewCookingText(recipeCopy.main.title || "");
     recipeCopy.main.description = normalizeHebrewCookingText(recipeCopy.main.description || "");
   }
+  sanitizeLocalizedRecipe(recipeCopy, lang);
 
   return recipeCopy;
 }
@@ -1018,6 +1079,7 @@ function enhanceRecipeQuality(recipe) {
 function enhanceSubRecipe(item, type, { kosherMode, lang }) {
   const sub = {
     title: item?.title || defaultSubRecipe(type).title,
+    description: item?.description || "",
     ingredients: Array.isArray(item?.ingredients) ? [...item.ingredients] : [],
     steps: Array.isArray(item?.steps) ? [...item.steps] : []
   };
@@ -1028,15 +1090,24 @@ function enhanceSubRecipe(item, type, { kosherMode, lang }) {
   }
   if (lang === "he") {
     sub.title = normalizeHebrewCookingText(sub.title);
+    sub.description = normalizeHebrewCookingText(sub.description);
     sub.ingredients = sub.ingredients.map(normalizeHebrewCookingText);
     sub.steps = sub.steps.map(normalizeHebrewCookingText);
   }
+  if (!sub.description) {
+    sub.description = lang === "he" ? "תוספת קצרה שמתאימה למנה העיקרית." : "A quick side that matches the main dish.";
+  }
+  sub.ingredients = ensureRelevantSideIngredients(sub, type);
+  sub.steps = sub.steps.filter(Boolean);
+  if (!sub.steps.length) sub.steps = defaultSubRecipe(type, sub.title).steps;
   return sub;
 }
 
 function alignTechniqueAndTiming(main, methodId, cutId, lang) {
+  const userRequest = String(state.preferences.userQuestion || "").toLowerCase();
+  const noSmoker = /אין לי מעשנה|no smoker/.test(userRequest);
   const smoking = ["smoker", "smoking", "low_slow"].includes(methodId);
-  if (!smoking) {
+  if (!smoking || noSmoker) {
     if (cutId === "ribeye" || cutId === "striploin") {
       setFallbackTimes(main, {
         prep: lang === "he" ? "15 דקות" : "15 min",
@@ -1047,8 +1118,16 @@ function alignTechniqueAndTiming(main, methodId, cutId, lang) {
         ? "חממו גריל לחום גבוה וצרבו 2–3 דקות מכל צד, ואז העבירו לאזור חום בינוני עד דרגת העשייה הרצויה."
         : "Preheat the grill to high heat, sear 2–3 minutes per side, then finish over medium heat to target doneness.");
       appendStep(main.steps, lang === "he"
+        ? "בשלב הסיום הכניסו מדחום למרכז הנתח: מדיום 55–60°C (130–140°F)."
+        : "At the finishing stage, insert a thermometer into the center: medium is 55–60°C (130–140°F).");
+      appendStep(main.steps, lang === "he"
         ? "תנו לנתח מנוחה 5–7 דקות לפני פריסה כדי שהמיצים יתייצבו בתוך הבשר."
         : "Rest the steak 5–7 minutes before slicing so juices redistribute.");
+    }
+    if (noSmoker) {
+      appendStep(main.steps, lang === "he"
+        ? "אין מעשנה? השתמשו בתנור/קדירה בחום נמוך ויציב והוסיפו צריבה קצרה בסיום."
+        : "No smoker available? Use oven or a covered pot at low steady heat, then finish with a short sear.");
     }
     return;
   }
@@ -1087,8 +1166,8 @@ function alignTechniqueAndTiming(main, methodId, cutId, lang) {
   }
 
   appendStep(main.steps, lang === "he"
-    ? "המשיכו עד טמפרטורה פנימית של 93–96 מעלות או עד שהמדחום נכנס כמו חמאה (Probe Tender)."
-    : "Continue until 200–205°F internal temp or until a probe slides in with little resistance (probe tender).");
+    ? "כאשר המרכז מגיע ל-92–96°C בדקו עם מדחום: המשיכו עד שהמדחום נכנס כמעט בלי התנגדות (Probe Tender)."
+    : "When the center reaches 92–96°C (197–205°F), check with your thermometer: continue until probe tender.");
   appendStep(main.steps, lang === "he"
     ? "הניחו למנוחה עטופה 45–90 דקות לפני פריסה להגשה עסיסית."
     : "Rest wrapped for 45–90 minutes before slicing for juicier results.");
@@ -1110,15 +1189,17 @@ function ensureDefinitionsInSteps(main, lang) {
       "Spritz = lightly mist the meat surface with water or apple juice to retain moisture.",
       "Probe tender = the probe should slide in with very little resistance."
     ];
-  explanations.forEach((line) => appendStep(main.steps, line));
+  main.techniqueGlossary = explanations;
 }
 
 function ensureMarinadeSupport(main, methodId, cutId, lang) {
-  const needsMarinade = ["flank", "sirloin", "chuck", "asado", "short_ribs"].includes(cutId) || methodId === "grill";
+  const userRequest = String(state.preferences.userQuestion || "");
+  const wantsNoMarinade = /בלי השריה|no marinade/i.test(userRequest);
+  const needsMarinade = !wantsNoMarinade && (["flank", "sirloin", "chuck", "asado", "short_ribs"].includes(cutId) || methodId === "grill");
   if (!needsMarinade) return;
-  appendStep(main.steps, lang === "he"
-    ? "אפשר להשרות במרינדה (שמן זית, שום כתוש, פפריקה, פלפל שחור ומעט חומץ) במקרר 4–12 שעות. לא להשאיר בחוץ."
-    : "Optional marinade: olive oil, crushed garlic, paprika, black pepper, and a little vinegar. Refrigerate 4–12 hours; do not leave meat out.");
+  prependStep(main.steps, lang === "he"
+    ? "השריה: לערבב שמן זית, שום כתוש, פפריקה, פלפל שחור ומעט חומץ. להכניס את הבשר, לכסות ולהשרות במקרר 4–12 שעות."
+    : "Marinade: mix olive oil, crushed garlic, paprika, black pepper, and a little vinegar. Coat, cover, and refrigerate for 4–12 hours.");
 }
 
 function applyKosherAdjustments(main, lang) {
@@ -1173,6 +1254,69 @@ function appendStep(steps, text) {
   if (!exists) steps.push(text);
 }
 
+function prependStep(steps, text) {
+  if (!Array.isArray(steps) || !text) return;
+  const exists = steps.some((line) => String(line).includes(text.slice(0, 20)));
+  if (!exists) steps.unshift(text);
+}
+
+function dedupeSubRecipesByTitle(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = String(item?.title || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function ensureRelevantSideIngredients(sub, type) {
+  if (type !== "side") return sub.ingredients.filter(Boolean);
+  const lowTitle = String(sub.title || "").toLowerCase();
+  if (/potato|תפוחי אדמה/.test(lowTitle) && !/tomato|עגבנ/.test(lowTitle)) {
+    return sub.ingredients.filter((line) => !/tomato|עגבנ/i.test(String(line)));
+  }
+  return sub.ingredients.filter(Boolean);
+}
+
+function sanitizeLocalizedRecipe(recipe, lang) {
+  const clean = (txt) => sanitizeUnexpectedScripts(String(txt || ""), lang);
+  recipe.main.title = clean(recipe.main.title);
+  recipe.main.description = clean(recipe.main.description);
+  recipe.main.ingredients = (recipe.main.ingredients || []).map(clean);
+  recipe.main.steps = (recipe.main.steps || []).map(clean);
+  recipe.main.techniqueGlossary = (recipe.main.techniqueGlossary || []).map(clean);
+  recipe.sauces = (recipe.sauces || []).map((item) => ({
+    ...item,
+    title: clean(item.title),
+    description: clean(item.description),
+    ingredients: (item.ingredients || []).map(clean),
+    steps: (item.steps || []).map(clean)
+  }));
+  recipe.sides = (recipe.sides || []).map((item) => ({
+    ...item,
+    title: clean(item.title),
+    description: clean(item.description),
+    ingredients: (item.ingredients || []).map(clean),
+    steps: (item.steps || []).map(clean)
+  }));
+}
+
+function sanitizeUnexpectedScripts(text, lang) {
+  const removedCjk = text.replace(/[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff]/g, "");
+  if (lang === "he") return removedCjk.replace(/\s{2,}/g, " ").trim();
+  return removedCjk.replace(/[\u0590-\u05ff]+/g, "").replace(/\s{2,}/g, " ").trim();
+}
+
+function getButcherRankingScore(shop, distanceKm) {
+  const rating = Number(shop.rating) || 0;
+  const reviewCount = Math.max(0, Number(shop.userRatingsTotal) || 0);
+  const base = rating * Math.log10(reviewCount + 10);
+  const lowReviewPenalty = reviewCount < 10 ? 0.78 : 1;
+  const distancePenalty = Number.isFinite(distanceKm) ? Math.max(0.82, 1 - (distanceKm * 0.018)) : 1;
+  return base * lowReviewPenalty * distancePenalty;
+}
+
 async function copyShoppingListToClipboard() {
   const list = Object.values(state.shopping).flat().join("\n");
   try {
@@ -1191,8 +1335,10 @@ function initOpeningAnimation() {
   if (!el.openingSplash) return;
   window.setTimeout(() => {
     updateOpeningProgress(100);
-    el.openingSplash.classList.add("is-hidden");
-    window.setTimeout(() => stopOpeningExperience(), 380);
+    window.setTimeout(() => {
+      el.openingSplash.classList.add("is-hidden");
+      window.setTimeout(() => stopOpeningExperience(), 380);
+    }, INTRO_FINAL_HOLD_MS);
   }, INTRO_MIN_DURATION_MS);
 }
 

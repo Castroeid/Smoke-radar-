@@ -398,21 +398,29 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
 .legal-menu {
   display: grid;
   gap: 8px;
-  margin-top: 2px;
-  padding: 10px;
+  margin-top: 0;
+  padding: 9px;
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+  border-color: rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  transform: scale(.985);
+  transform-origin: center top;
 }
 .legal-menu h3 {
   margin: 0 0 2px;
-  color: #c8b7a4;
-  font-size: .9rem;
+  color: #a69b8d;
+  font-size: .82rem;
   font-weight: 700;
+}
+.footer-separator {
+  height: 1px;
+  margin: 10px 10px 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
 }
 .footer-note {
   margin-top: 4px;
-  opacity: 0.9;
-  font-size: .76rem;
+  opacity: 0.72;
+  font-size: .72rem;
 }
 .sub-recipe-block + .sub-recipe-block {
   border-top: 1px dashed rgba(255, 255, 255, .15);
@@ -462,6 +470,11 @@ select, input {
   border: 1px solid var(--line);
   border-radius: 11px;
   padding: 11px;
+}
+.cut-helper-text {
+  margin-top: 3px;
+  font-size: .8rem;
+  color: #cfb9a2;
 }
 .servings-inline {
   display: inline-flex;
