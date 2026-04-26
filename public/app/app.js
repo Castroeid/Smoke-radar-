@@ -1,8 +1,8 @@
-const STEPS = ["landing", "saved", "hot", "preferences", "cook", "recipe", "shopping", "butcher"];
+const STEPS = ["landing", "saved", "hot", "preferences", "expert", "cook", "recipe", "shopping", "butcher"];
 let currentStep = 0;
 const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
 const SHARE_TEXT = "Check out Smoke Radar — meat trends, recipes, and butcher discovery in one radar-style app.";
-const INTRO_MIN_DURATION_MS = 2600;
+const INTRO_MIN_DURATION_MS = 3400;
 const INTRO_FINAL_HOLD_MS = 850;
 
 const assetCandidates = {
@@ -71,6 +71,30 @@ const cutHelperText = {
 };
 
 
+
+const cutMethodRules = {
+  ribeye: ["grill", "bbq", "cast_iron", "pan_sear", "reverse_sear"],
+  striploin: ["grill", "bbq", "cast_iron", "pan_sear", "reverse_sear"],
+  entrecote: ["grill", "bbq", "cast_iron", "pan_sear", "reverse_sear"],
+  brisket: ["smoker", "smoking", "low_slow", "oven", "long_cook", "oven_roast"],
+  asado: ["long_cook", "smoker", "smoking", "low_slow", "oven", "oven_roast"],
+  short_ribs: ["long_cook", "smoker", "smoking", "low_slow", "oven", "oven_roast"],
+  picanha: ["grill", "bbq", "reverse_sear"],
+  filet: ["grill", "cast_iron", "pan_sear", "reverse_sear"],
+  tenderloin: ["grill", "cast_iron", "pan_sear", "reverse_sear"],
+  sirloin: ["grill", "bbq", "cast_iron", "pan_sear", "reverse_sear"],
+  chuck: ["long_cook", "smoker", "smoking", "low_slow", "oven", "oven_roast"],
+  flank: ["grill", "bbq", "cast_iron", "pan_sear"]
+};
+
+const expertState = {
+  question: "",
+  loading: false,
+  answer: null,
+  suggestedCutId: null,
+  suggestedMethodId: null,
+  returnToStep: "preferences"
+};
 function defaultDietaryPreference(lang) {
   return lang === "he" ? "kosher" : "non_kosher";
 }
@@ -113,6 +137,7 @@ const copy = {
       hot: "Smoke Index™",
       preferences: "מה לבשל",
       cook: "Smart Cooking Mode™",
+      expert: "שאל את המומחים",
       recipe: "מתכון מלא",
       shopping: "רשימת קניות",
       butcher: "Butcher Radar™"
@@ -155,6 +180,7 @@ const copy = {
       hot: "Smoke Index™",
       preferences: "What to cook",
       cook: "Smart Cooking Mode™",
+      expert: "Ask the Experts",
       recipe: "Cooking Guide",
       shopping: "Shopping List",
       butcher: "Butcher Radar™"
@@ -303,6 +329,7 @@ function render() {
   if (step === "hot") return renderHotNow();
   if (step === "preferences") return renderPreferences();
   if (step === "cook") return renderCookIdeas();
+  if (step === "expert") return renderAskExpert();
   if (step === "recipe") return renderRecipe();
   if (step === "shopping") return renderShopping();
   if (step === "butcher") return renderButchers();
@@ -537,7 +564,8 @@ function renderPreferences() {
         <p class="small cut-helper-text" id="cutHelperText"></p>
       </div>
       <div class="field"><label>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</label>
-        <select id="methodId">${methods.map((m) => `<option value="${m.id}">${m.labels[state.lang]}</option>`).join("")}</select>
+        <select id="methodId"></select>
+        <p class="small method-helper-text" id="methodHelperText"></p>
       </div>
       <div class="field"><label>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</label>
         <select id="flavorId">${flavorProfiles.map((f) => `<option value="${f.id}">${f.labels[state.lang]}</option>`).join("")}</select>
@@ -557,9 +585,10 @@ function renderPreferences() {
         </div>
       </div>
       <div class="field">
-        <label>${state.lang === "he" ? "שאלה או בקשה מיוחדת" : "Question or special request"}</label>
+        <label>${state.lang === "he" ? "בקשה חופשית" : "Custom request"}</label>
         <input id="userQuestion" type="text" maxlength="220" placeholder="${state.lang === "he" ? "שאלה או בקשה מיוחדת? למשל: איזה בשר מתאים לבישול ארוך בקדירה?" : "Any question or special request? Example: what cut works best for long braising?"}" />
       </div>
+      <button type="button" class="btn btn-ghost" id="toExpertBtn">${state.lang === "he" ? "שאל את המומחים" : "Ask the Experts"}</button>
     </div>
   `;
 
@@ -572,10 +601,46 @@ function renderPreferences() {
   const questionInput = document.getElementById("userQuestion");
   questionInput.value = state.preferences.userQuestion || "";
   questionInput.addEventListener("input", collectPreferences);
+  setupMethodOptions();
   updateCutHelperText();
-  document.getElementById("cutId")?.addEventListener("change", updateCutHelperText);
+  updateMethodHelperText();
+  document.getElementById("cutId")?.addEventListener("change", () => { updateCutHelperText(); setupMethodOptions(); updateMethodHelperText(); });
+  document.getElementById("methodId")?.addEventListener("change", updateMethodHelperText);
+  document.getElementById("toExpertBtn")?.addEventListener("click", () => {
+    expertState.returnToStep = "preferences";
+    currentStep = STEPS.indexOf("expert");
+    render();
+  });
   document.getElementById("servingsMinus")?.addEventListener("click", () => updateServings(-1, false));
   document.getElementById("servingsPlus")?.addEventListener("click", () => updateServings(1, false));
+}
+
+
+function getAllowedMethodsForCut(cutId) {
+  return cutMethodRules[cutId] || methods.map((m) => m.id);
+}
+
+function setupMethodOptions() {
+  const methodSelect = document.getElementById("methodId");
+  const cutId = document.getElementById("cutId")?.value || state.preferences.cutId;
+  if (!methodSelect) return;
+  const allowed = new Set(getAllowedMethodsForCut(cutId));
+  const options = methods.filter((m) => allowed.has(m.id));
+  methodSelect.innerHTML = options.map((m) => `<option value="${m.id}">${m.labels[state.lang]}</option>`).join("");
+  if (!allowed.has(state.preferences.methodId)) {
+    state.preferences.methodId = options[0]?.id || "grill";
+  }
+  methodSelect.value = state.preferences.methodId;
+}
+
+function updateMethodHelperText() {
+  const helperEl = document.getElementById("methodHelperText");
+  if (!helperEl) return;
+  const cutId = document.getElementById("cutId")?.value || state.preferences.cutId;
+  const allowed = getAllowedMethodsForCut(cutId).map((id) => getMethodById(id).labels[state.lang]);
+  helperEl.textContent = state.lang === "he"
+    ? `מתאים ל: ${allowed.join(" / ")}`
+    : `Best methods: ${allowed.join(" / ")}`;
 }
 
 function collectPreferences() {
@@ -598,6 +663,96 @@ function updateCutHelperText() {
   helperEl.textContent = helper;
 }
 
+
+function renderAskExpert() {
+  const placeholder = state.lang === "he" ? "למשל: איזה בשר מתאים לקדירה?" : "Example: which cut is best for stew?";
+  const answerHtml = expertState.answer ? `
+    <div class="card">
+      <h3>${state.lang === "he" ? "תשובת מומחה" : "Expert Answer"}</h3>
+      <p>${expertState.answer}</p>
+      <div class="inline-actions">
+        <button class="btn btn-primary" id="expertUseBtn">${state.lang === "he" ? "להכין מתכון על בסיס זה" : "Generate Recipe from This"}</button>
+        <button class="btn btn-ghost" id="expertAnotherBtn">${state.lang === "he" ? "יש לי שאלה נוספת" : "Ask Another Question"}</button>
+      </div>
+    </div>` : "";
+
+  el.content.innerHTML = `
+    <div class="card">
+      <h3>${state.lang === "he" ? "שאל את המומחים" : "Ask the Experts"}</h3>
+      <div class="field">
+        <input id="expertQuestion" type="text" maxlength="220" placeholder="${placeholder}" value="${expertState.question || ""}" />
+      </div>
+      <button class="btn btn-primary" id="expertSubmitBtn">${state.lang === "he" ? "שלח" : "Send"}</button>
+    </div>
+    ${expertState.loading ? renderRecipeLoadingCard(state.lang === "he" ? "המומחים חושבים..." : "Experts are thinking...") : ""}
+    ${answerHtml}
+  `;
+
+  document.getElementById("expertQuestion")?.addEventListener("input", (event) => {
+    expertState.question = event.target.value;
+  });
+  document.getElementById("expertSubmitBtn")?.addEventListener("click", async () => {
+    const q = String(document.getElementById("expertQuestion")?.value || "").trim();
+    if (!q) return;
+    expertState.question = q;
+    expertState.loading = true;
+    expertState.answer = null;
+    renderAskExpert();
+    await new Promise((resolve) => window.setTimeout(resolve, 900));
+    const result = buildExpertAnswer(q);
+    expertState.answer = result.answer;
+    expertState.suggestedCutId = result.cutId;
+    expertState.suggestedMethodId = result.methodId;
+    expertState.loading = false;
+    renderAskExpert();
+  });
+
+  document.getElementById("expertUseBtn")?.addEventListener("click", () => {
+    if (expertState.suggestedCutId) state.preferences.cutId = expertState.suggestedCutId;
+    if (expertState.suggestedMethodId) state.preferences.methodId = expertState.suggestedMethodId;
+    state.preferences.userQuestion = expertState.question || state.preferences.userQuestion;
+    currentStep = STEPS.indexOf("preferences");
+    render();
+  });
+  document.getElementById("expertAnotherBtn")?.addEventListener("click", () => {
+    expertState.answer = null;
+    expertState.question = "";
+    renderAskExpert();
+  });
+}
+
+function buildExpertAnswer(question) {
+  const q = question.toLowerCase();
+  const isLongCook = /קדירה|בישול ארוך|נמוך|איטי|long|braise|slow/.test(q);
+  const isSmoker = /מעשנה|עישון|smok/.test(q);
+  const isQuick = /מהיר|סטייק|צריבה|grill|מחבת/.test(q);
+  if (isLongCook || isSmoker) {
+    return {
+      cutId: isSmoker ? "brisket" : "asado",
+      methodId: isSmoker ? "smoker" : "long_cook",
+      answer: state.lang === "he"
+        ? "לבישול ארוך בקדירה מתאימים נתחים עם הרבה קולגן כמו אסאדו, צוואר או כתף. אם יש מעשנה, בריסקט הוא בחירה מעולה לזמן ארוך."
+        : "For long braising, collagen-rich cuts like short ribs or chuck are best. If you have a smoker, brisket is ideal for a long cook."
+    };
+  }
+  if (isQuick) {
+    return {
+      cutId: "ribeye",
+      methodId: "grill",
+      answer: state.lang === "he"
+        ? "למנה מהירה ומדויקת עדיף אנטריקוט או פילה על גריל/מחבת: צריבה קצרה ומנוחה קצרה יתנו תוצאה עסיסית."
+        : "For a fast, accurate result, use ribeye or filet on grill/pan with a short sear and short rest."
+    };
+  }
+  return {
+    cutId: "picanha",
+    methodId: "grill",
+    answer: state.lang === "he"
+      ? "אם אין מגבלה מיוחדת, פיקניה על גריל היא בחירה מצוינת: טעם עשיר, זמן הכנה קצר ותוצאה יציבה."
+      : "If there are no constraints, picanha on the grill is a strong choice: rich flavor and reliable results."
+  };
+}
+
 function buildIdeas() {
   const cut = getCutById(state.preferences.cutId).labels[state.lang];
   return [
@@ -615,12 +770,19 @@ function renderCookIdeas() {
       <h3 class="cook-mode-title">${state.lang === "he" ? "Smart Cooking Mode™" : "Smart Cooking Mode™"}</h3>
       <p class="small">${state.lang === "he" ? "בחר סגנון בישול והמשך למתכון מותאם." : "Choose your cooking style and continue to a tailored recipe."}</p>
     </div>
+    <button class="btn btn-ghost" id="cookExpertBtn">${state.lang === "he" ? "שאל את המומחים" : "Ask the Experts"}</button>
     ${state.mealIdeas.map((idea, idx) => `
       <button class="btn btn-choice ${state.selectedMealIdea === idx ? "active" : ""}" data-idea="${idx}">
         <strong>${idea.title}</strong>
         <p class="small">${idea.note}</p>
       </button>`).join("")}
   `;
+
+  document.getElementById("cookExpertBtn")?.addEventListener("click", () => {
+    expertState.returnToStep = "cook";
+    currentStep = STEPS.indexOf("expert");
+    render();
+  });
 
   el.content.querySelectorAll("[data-idea]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -840,9 +1002,7 @@ async function loadButchers() {
 function renderButchers() {
   if (!state.butchers.length && !state.location) {
     el.content.innerHTML = `
-      <div class="card visual-map">
-        <h3>${state.lang === "he" ? "Butcher Radar™" : "Butcher Radar™"}</h3>
-      </div>
+      <div class="card visual-map" aria-label="Butcher map"></div>
       <button id="findButchers" class="btn btn-primary">${state.lang === "he" ? "📍 מצא קצביות קרובות" : "📍 Find nearby butcher shops"}</button>
     `;
     document.getElementById("findButchers").addEventListener("click", async () => {
@@ -870,9 +1030,7 @@ function renderButchers() {
     .sort((a, b) => b.rankingScore - a.rankingScore);
 
   el.content.innerHTML = `
-    <div class="card visual-map">
-      <h3>${state.lang === "he" ? "Butcher Radar™" : "Butcher Radar™"}</h3>
-    </div>
+    <div class="card visual-map" aria-label="Butcher map"></div>
     ${rankedButchers.slice(0, 8).map((b, idx) => {
       const stars = "⭐".repeat(Math.max(1, Math.min(5, Math.round(b.rating || 4))));
       const distance = getDistanceValue(b);
@@ -886,7 +1044,8 @@ function renderButchers() {
           ${badges.length ? `<div class="badges-row">${badges.map((badge) => `<span class="badge badge-emphasis">${badge}</span>`).join("")}</div>` : ""}
           <strong>📍 ${b.name}</strong>
           <p class="small">${b.address || ""}</p>
-          ${Number.isFinite(distance) ? `<p class="small">${state.lang === "he" ? "מרחק ממך" : "Distance"}: ${formatDistance(distance)}</p>` : ""}
+          ${Number.isFinite(distance) ? `<p class="small">${state.lang === "he" ? `מרחק ממך: ${formatDistance(distance)}` : `Distance: ${formatDistance(distance)}`}</p>` : ""}
+          ${renderOpenNowStatus(b)}
           <div class="butcher-footer">
             <p class="small butcher-rating">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0})</p>
             <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
@@ -971,6 +1130,11 @@ async function handleNext() {
   if (step === "saved") return;
   if (step === "hot" && state.homeChoice === "hot" && state.selectedHot === null) return;
   if (step === "cook" && state.selectedMealIdea === null) return;
+  if (step === "expert") {
+    currentStep = STEPS.indexOf(expertState.returnToStep || "preferences");
+    render();
+    return;
+  }
 
   if (currentStep < STEPS.length - 1) {
     currentStep += 1;
@@ -993,8 +1157,8 @@ function getDistanceValue(shop) {
       return parsed;
     }
   }
-  const lat = Number(shop?.lat ?? shop?.latitude);
-  const lng = Number(shop?.lng ?? shop?.longitude);
+  const lat = Number(shop?.lat ?? shop?.latitude ?? shop?.location?.lat ?? shop?.geometry?.location?.lat);
+  const lng = Number(shop?.lng ?? shop?.longitude ?? shop?.location?.lng ?? shop?.geometry?.location?.lng);
   if (state.location && Number.isFinite(lat) && Number.isFinite(lng)) {
     return haversineDistanceKm(state.location.lat, state.location.lng, lat, lng);
   }
@@ -1046,7 +1210,7 @@ function enhanceRecipeQuality(recipe) {
   const steps = Array.isArray(main.steps) ? [...main.steps] : [];
 
   const enrichedMain = { ...main, ingredients, steps };
-  alignTechniqueAndTiming(enrichedMain, methodId, cutId, lang);
+  applyCutMethodRecipeRules(enrichedMain, methodId, cutId, lang);
   ensureDefinitionsInSteps(enrichedMain, lang);
   ensureMarinadeSupport(enrichedMain, methodId, cutId, lang);
   if (kosherMode) applyKosherAdjustments(enrichedMain, lang);
@@ -1103,76 +1267,6 @@ function enhanceSubRecipe(item, type, { kosherMode, lang }) {
   return sub;
 }
 
-function alignTechniqueAndTiming(main, methodId, cutId, lang) {
-  const userRequest = String(state.preferences.userQuestion || "").toLowerCase();
-  const noSmoker = /אין לי מעשנה|no smoker/.test(userRequest);
-  const smoking = ["smoker", "smoking", "low_slow"].includes(methodId);
-  if (!smoking || noSmoker) {
-    if (cutId === "ribeye" || cutId === "striploin") {
-      setFallbackTimes(main, {
-        prep: lang === "he" ? "15 דקות" : "15 min",
-        cook: lang === "he" ? "10–14 דקות" : "10–14 min",
-        total: lang === "he" ? "30 דקות" : "30 min"
-      });
-      appendStep(main.steps, lang === "he"
-        ? "חממו גריל לחום גבוה וצרבו 2–3 דקות מכל צד, ואז העבירו לאזור חום בינוני עד דרגת העשייה הרצויה."
-        : "Preheat the grill to high heat, sear 2–3 minutes per side, then finish over medium heat to target doneness.");
-      appendStep(main.steps, lang === "he"
-        ? "בשלב הסיום הכניסו מדחום למרכז הנתח: מדיום 55–60°C (130–140°F)."
-        : "At the finishing stage, insert a thermometer into the center: medium is 55–60°C (130–140°F).");
-      appendStep(main.steps, lang === "he"
-        ? "תנו לנתח מנוחה 5–7 דקות לפני פריסה כדי שהמיצים יתייצבו בתוך הבשר."
-        : "Rest the steak 5–7 minutes before slicing so juices redistribute.");
-    }
-    if (noSmoker) {
-      appendStep(main.steps, lang === "he"
-        ? "אין מעשנה? השתמשו בתנור/קדירה בחום נמוך ויציב והוסיפו צריבה קצרה בסיום."
-        : "No smoker available? Use oven or a covered pot at low steady heat, then finish with a short sear.");
-    }
-    return;
-  }
-
-  if (lang === "he") {
-    appendStep(main.steps, "חממו מעשנה ל-107–120 מעלות צלזיוס ושמרו על טמפרטורה יציבה לאורך כל העישון.");
-    appendStep(main.steps, "השתמשו בעץ עישון עדין כמו אלון או היקורי לפי הטעם לעומק עשן מאוזן.");
-    appendStep(main.steps, "רססו בעדינות תפוחים/מים כל 45–60 דקות אחרי שהקליפה מתחילה להתייצב כדי לשמור על לחות.");
-  } else {
-    appendStep(main.steps, "Preheat the smoker to 225–250°F (107–120°C) and hold that temperature steady.");
-    appendStep(main.steps, "Use mild smoking wood such as oak or hickory for balanced smoke flavor.");
-    appendStep(main.steps, "Spritz lightly with apple juice or water every 45–60 minutes once bark begins to set.");
-  }
-
-  if (cutId === "brisket") {
-    setFallbackTimes(main, {
-      prep: lang === "he" ? "35 דקות" : "35 min",
-      cook: lang === "he" ? "8–12 שעות" : "8–12 hours",
-      total: lang === "he" ? "10–14 שעות (כולל מנוחה)" : "10–14 hours (including rest)"
-    });
-    appendStep(main.steps, lang === "he"
-      ? "כאשר הטמפרטורה הפנימית מגיעה ל-74–78 מעלות והבארק יציב, עטפו בנייר קצבים או נייר כסף."
-      : "When internal temperature reaches 165–172°F and bark is set, wrap in butcher paper or foil.");
-  } else if (cutId === "asado" || cutId === "short_ribs") {
-    setFallbackTimes(main, {
-      prep: lang === "he" ? "25 דקות" : "25 min",
-      cook: lang === "he" ? "6–8 שעות" : "6–8 hours",
-      total: lang === "he" ? "7–9 שעות (כולל מנוחה)" : "7–9 hours (including rest)"
-    });
-  } else {
-    setFallbackTimes(main, {
-      prep: lang === "he" ? "20 דקות" : "20 min",
-      cook: lang === "he" ? "2–4 שעות" : "2–4 hours",
-      total: lang === "he" ? "3–5 שעות" : "3–5 hours"
-    });
-  }
-
-  appendStep(main.steps, lang === "he"
-    ? "כאשר המרכז מגיע ל-92–96°C בדקו עם מדחום: המשיכו עד שהמדחום נכנס כמעט בלי התנגדות (Probe Tender)."
-    : "When the center reaches 92–96°C (197–205°F), check with your thermometer: continue until probe tender.");
-  appendStep(main.steps, lang === "he"
-    ? "הניחו למנוחה עטופה 45–90 דקות לפני פריסה להגשה עסיסית."
-    : "Rest wrapped for 45–90 minutes before slicing for juicier results.");
-}
-
 function ensureDefinitionsInSteps(main, lang) {
   const explanations = lang === "he"
     ? [
@@ -1180,7 +1274,7 @@ function ensureDefinitionsInSteps(main, lang) {
       "מנוחה = להניח לבשר אחרי הבישול בלי לחתוך, כדי שהמיצים יתפזרו מחדש בבשר.",
       "עיטוף = לעטוף בנייר קצבים או בנייר כסף כשהבארק יציב כדי להתגבר על הסטול.",
       "ריסוס = התזה עדינה של מים/מיץ תפוחים על פני הבשר לשמירה על לחות.",
-      "רך לבדיקה = כשהמדחום נכנס ויוצא כמעט בלי התנגדות."
+      "טמפ פנימית = טמפרטורה במרכז הנתח לפי מדחום מזון."
     ]
     : [
       "Dry = pat the cut with paper towels until the surface is dry for better sear.",
@@ -1194,12 +1288,60 @@ function ensureDefinitionsInSteps(main, lang) {
 
 function ensureMarinadeSupport(main, methodId, cutId, lang) {
   const userRequest = String(state.preferences.userQuestion || "");
-  const wantsNoMarinade = /בלי השריה|no marinade/i.test(userRequest);
-  const needsMarinade = !wantsNoMarinade && (["flank", "sirloin", "chuck", "asado", "short_ribs"].includes(cutId) || methodId === "grill");
+  const wantsNoMarinade = /בלי השריה|ללא השריה|no marinade/i.test(userRequest);
+  const explicitlyWantsMarinade = /השריה|מרינדה|marinad/i.test(userRequest);
+  const marinadeCuts = ["flank", "chuck"];
+  const needsMarinade = !wantsNoMarinade && (explicitlyWantsMarinade || marinadeCuts.includes(cutId));
   if (!needsMarinade) return;
   prependStep(main.steps, lang === "he"
-    ? "השריה: לערבב שמן זית, שום כתוש, פפריקה, פלפל שחור ומעט חומץ. להכניס את הבשר, לכסות ולהשרות במקרר 4–12 שעות."
-    : "Marinade: mix olive oil, crushed garlic, paprika, black pepper, and a little vinegar. Coat, cover, and refrigerate for 4–12 hours.");
+    ? "מרינדה: מערבבים 3 כפות שמן זית, 2 שיני שום כתושות, כפית פפריקה, חצי כפית פלפל שחור וכף חומץ. מצפים את הנתח, מכסים ומקררים 2–8 שעות במקרר."
+    : "Marinade: mix olive oil, crushed garlic, paprika, black pepper and vinegar. Coat the meat, cover, and refrigerate for 2–8 hours.");
+}
+
+function applyCutMethodRecipeRules(main, methodId, cutId, lang) {
+  const allowed = getAllowedMethodsForCut(cutId);
+  if (!allowed.includes(methodId)) {
+    state.preferences.methodId = allowed[0] || "grill";
+    methodId = state.preferences.methodId;
+  }
+
+  if (["ribeye", "striploin", "filet", "tenderloin", "picanha"].includes(cutId)) {
+    main.prepTime = lang === "he" ? "10–15 דקות" : "10–15 min";
+    main.cookTime = lang === "he" ? "8–14 דקות" : "8–14 min";
+    main.totalTime = lang === "he" ? "20–30 דקות" : "20–30 min";
+    main.steps = [
+      lang === "he" ? "ייבוש: מייבשים היטב את הנתח עם נייר סופג ומתבלים במלח ופלפל." : "Pat the cut dry and season with salt and pepper.",
+      lang === "he" ? "מחממים גריל/מחבת ברזל לחום גבוה וצורבים 3–5 דקות מכל צד לפי עובי." : "Heat grill or cast iron to high and sear 3–5 minutes per side depending on thickness.",
+      lang === "he" ? "טמפ פנימית: מודדים במרכז הנתח — מדיום רייר 54–57°C, מדיום 60–63°C." : "Check internal temperature: medium rare 54–57°C, medium 60–63°C.",
+      lang === "he" ? "מנוחה: מניחים 5–7 דקות לפני פריסה." : "Rest 5–7 minutes before slicing."
+    ];
+    return;
+  }
+
+  if (cutId === "brisket") {
+    main.prepTime = lang === "he" ? "30–40 דקות" : "30–40 min";
+    main.cookTime = lang === "he" ? "8–12 שעות במעשנה" : "8–12 hours in smoker";
+    main.totalTime = lang === "he" ? "10–14 שעות כולל מנוחה" : "10–14 hours including rest";
+    main.steps = [
+      lang === "he" ? "מייבשים ומתבלים, מחממים מעשנה ל-107–120°C." : "Season and preheat smoker to 107–120°C.",
+      lang === "he" ? "מעשנים 8–12 שעות. ריסוס קל כל 45–60 דקות אחרי יצירת מעטפת." : "Smoke 8–12 hours and spritz every 45–60 minutes once bark forms.",
+      lang === "he" ? "עיטוף: בטמפ פנימית 74–78°C עוטפים בנייר קצבים וממשיכים." : "Wrap at 74–78°C internal temperature and continue.",
+      lang === "he" ? "טמפ פנימית סופית 92–96°C, ואז מנוחה עטופה 60–90 דקות." : "Finish at 92–96°C internal, then rest wrapped 60–90 minutes."
+    ];
+    return;
+  }
+
+  if (["asado", "short_ribs", "chuck"].includes(cutId)) {
+    main.prepTime = lang === "he" ? "20–30 דקות" : "20–30 min";
+    main.cookTime = lang === "he" ? "4–8 שעות" : "4–8 hours";
+    main.totalTime = lang === "he" ? "5–9 שעות כולל מנוחה" : "5–9 hours including rest";
+    main.steps = [
+      lang === "he" ? "צורבים קצרות מכל צד ואז מעבירים לבישול ארוך (קדירה/תנור/מעשנה)." : "Sear briefly, then move to long cook (braise/oven/smoker).",
+      lang === "he" ? "מבשלים ב-140–160°C בתנור או 107–120°C במעשנה למשך 4–8 שעות." : "Cook at 140–160°C in oven or 107–120°C in smoker for 4–8 hours.",
+      lang === "he" ? "טמפ פנימית יעד 90–96°C עד רכות מלאה." : "Target internal temperature 90–96°C until fully tender.",
+      lang === "he" ? "מנוחה 20–30 דקות לפני הגשה." : "Rest 20–30 minutes before serving."
+    ];
+  }
 }
 
 function applyKosherAdjustments(main, lang) {
@@ -1304,13 +1446,28 @@ function sanitizeLocalizedRecipe(recipe, lang) {
 
 function sanitizeUnexpectedScripts(text, lang) {
   const removedCjk = text.replace(/[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff]/g, "");
-  if (lang === "he") return removedCjk.replace(/\s{2,}/g, " ").trim();
+  if (lang === "he") return removedCjk.replace(/[A-Za-z]+/g, "").replace(/\s{2,}/g, " ").trim();
   return removedCjk.replace(/[\u0590-\u05ff]+/g, "").replace(/\s{2,}/g, " ").trim();
+}
+
+
+function renderOpenNowStatus(shop) {
+  const status = getOpenNow(shop);
+  if (status === null) return "";
+  return `<p class="small">${status ? (state.lang === "he" ? "פתוח עכשיו" : "Open now") : (state.lang === "he" ? "סגור עכשיו" : "Closed now")}</p>`;
+}
+
+function getOpenNow(shop) {
+  if (typeof shop.openNow === "boolean") return shop.openNow;
+  if (typeof shop.isOpenNow === "boolean") return shop.isOpenNow;
+  if (typeof shop?.opening_hours?.open_now === "boolean") return shop.opening_hours.open_now;
+  if (typeof shop?.googleOpeningHours?.open_now === "boolean") return shop.googleOpeningHours.open_now;
+  return null;
 }
 
 function getButcherRankingScore(shop, distanceKm) {
   const rating = Number(shop.rating) || 0;
-  const reviewCount = Math.max(0, Number(shop.userRatingsTotal) || 0);
+  const reviewCount = Math.max(0, Number(shop.userRatingsTotal ?? shop.reviewCount) || 0);
   const base = rating * Math.log10(reviewCount + 10);
   const lowReviewPenalty = reviewCount < 10 ? 0.78 : 1;
   const distancePenalty = Number.isFinite(distanceKm) ? Math.max(0.82, 1 - (distanceKm * 0.018)) : 1;
