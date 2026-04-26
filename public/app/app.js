@@ -1109,6 +1109,146 @@ function normalizeSubRecipes(items, type) {
   });
 }
 
+const sideRecipeTemplates = {
+  he: [
+    {
+      id: "smoked_rosemary_potatoes",
+      mainIngredient: "תפוחי אדמה",
+      twist: "מעושנים עם רוזמרין",
+      method: "smoked",
+      texture: "קראנצ'י",
+      flavorProfile: "מעושן-עשבי תיבול",
+      description: "קראנצ'י מבחוץ ורך מבפנים, מתאים במיוחד לצד בשר על האש.",
+      ingredients: ["6 תפוחי אדמה קטנים חצויים", "3 כפות שמן זית", "2 ענפי רוזמרין קצוצים", "1 כפית פפריקה מעושנת", "מלח גס ופלפל שחור"],
+      steps: ["לערבב את תפוחי האדמה עם שמן זית, רוזמרין ותבלינים.", "לעשן או לצלות על אש עקיפה עד הזהבה עמוקה.", "לסיים בצריבה קצרה לחיזוק הקראנץ׳ ולהגיש חם."]
+    },
+    {
+      id: "oven_garlic_lemon_vegetables",
+      mainIngredient: "ירקות שורש",
+      twist: "צלויים בתנור עם שום ולימון",
+      method: "oven",
+      texture: "רך-צלוי",
+      flavorProfile: "חמצמץ-שומי",
+      description: "קראנצ'י מבחוץ ורך מבפנים, מתאים במיוחד לצד בשר על האש.",
+      ingredients: ["2 גזרים חתוכים למקלות", "2 בצלים סגולים לפלחים", "1 בטטה לקוביות", "4 שיני שום פרוסות", "גרידה ומיץ מחצי לימון", "2 כפות שמן זית", "מלח ופלפל שחור"],
+      steps: ["לערבב את הירקות עם שמן זית, שום, לימון ותיבול.", "לצלות בתנור חם עד שהקצוות מקורמלים.", "להגיש עם עוד מעט מיץ לימון טרי מעל."]
+    },
+    {
+      id: "fresh_herb_salad",
+      mainIngredient: "סלט ירוקים",
+      twist: "רענן עם עשבי תיבול וסומאק",
+      method: "fresh",
+      texture: "פריך",
+      flavorProfile: "רענן-חמצמץ",
+      description: "קראנצ'י מבחוץ ורך מבפנים, מתאים במיוחד לצד בשר על האש.",
+      ingredients: ["2 מלפפונים פרוסים דק", "3 עגבניות בשלות חתוכות", "חופן פטרוזיליה קצוצה", "חופן נענע קצוצה", "1 כף סומאק", "2 כפות שמן זית", "1 כף מיץ לימון", "מלח"],
+      steps: ["לקצוץ את כל הירקות והעשבים לקערה גדולה.", "לתבל בשמן זית, לימון, סומאק ומלח.", "לערבב בעדינות ולהגיש מיד לקבלת מרקם פריך."]
+    }
+  ],
+  en: [
+    {
+      id: "smoked_rosemary_potatoes",
+      mainIngredient: "Potatoes",
+      twist: "smoked with rosemary",
+      method: "smoked",
+      texture: "crispy",
+      flavorProfile: "smoky-herb",
+      description: "Crispy outside and fluffy inside, perfect next to grilled meat.",
+      ingredients: ["6 baby potatoes, halved", "3 tbsp olive oil", "2 rosemary sprigs, chopped", "1 tsp smoked paprika", "Coarse salt and black pepper"],
+      steps: ["Coat potatoes with oil, rosemary, and spices.", "Smoke or roast over indirect heat until deeply golden.", "Finish with a quick sear for extra crisp texture."]
+    },
+    {
+      id: "oven_garlic_lemon_vegetables",
+      mainIngredient: "Root vegetables",
+      twist: "oven-roasted with garlic and lemon",
+      method: "oven",
+      texture: "tender-roasted",
+      flavorProfile: "garlic-citrus",
+      description: "Crispy outside and fluffy inside, perfect next to grilled meat.",
+      ingredients: ["2 carrots, batons", "2 red onions, wedges", "1 sweet potato, cubed", "4 garlic cloves, sliced", "Zest and juice of 1/2 lemon", "2 tbsp olive oil", "Salt and pepper"],
+      steps: ["Toss vegetables with oil, garlic, lemon, and seasoning.", "Roast in a hot oven until edges caramelize.", "Serve with a final squeeze of fresh lemon."]
+    },
+    {
+      id: "fresh_herb_salad",
+      mainIngredient: "Green salad",
+      twist: "fresh with herbs and sumac",
+      method: "fresh",
+      texture: "crunchy",
+      flavorProfile: "bright-tangy",
+      description: "Crispy outside and fluffy inside, perfect next to grilled meat.",
+      ingredients: ["2 cucumbers, thinly sliced", "3 ripe tomatoes, chopped", "A handful chopped parsley", "A handful chopped mint", "1 tbsp sumac", "2 tbsp olive oil", "1 tbsp lemon juice", "Salt"],
+      steps: ["Chop all vegetables and herbs into a large bowl.", "Season with olive oil, lemon juice, sumac, and salt.", "Toss gently and serve immediately for crisp texture."]
+    }
+  ]
+};
+
+const sauceRecipeTemplates = {
+  he: [
+    {
+      id: "chimichurri_classic",
+      styleName: "צ'ימיצ'ורי",
+      descriptor: "קלאסי",
+      base: "herb",
+      originStyle: "דרום אמריקאי",
+      description: "רענן, חמצמץ ומרים כל ביס.",
+      ingredients: ["1 כוס פטרוזיליה קצוצה", "2 שיני שום קצוצות דק", "3 כפות שמן זית", "1 כף חומץ יין אדום", "1/2 כפית צ׳ילי גרוס", "מלח ופלפל שחור"],
+      steps: ["לערבב בקערה את כל המרכיבים עד לקבלת רוטב אחיד.", "לטעום ולכוון חומציות ומליחות.", "להניח לנוח 10 דקות לפני ההגשה."]
+    },
+    {
+      id: "smoked_garlic_butter",
+      styleName: "חמאת שום",
+      descriptor: "מעושנת",
+      base: "dairy",
+      originStyle: "אירופי חם",
+      description: "רענן, חמצמץ ומרים כל ביס.",
+      ingredients: ["80 גרם חמאה רכה", "3 שיני שום כתושות", "1 כפית פפריקה מעושנת", "1 כפית מיץ לימון", "1 כף פטרוזיליה קצוצה", "קורט מלח"],
+      steps: ["להמיס בעדינות את החמאה בסיר קטן.", "להוסיף שום, פפריקה ולימון ולבשל דקה קצרה.", "לכבות אש, להוסיף פטרוזיליה ולהגיש חמים."]
+    },
+    {
+      id: "spicy_pepper_sauce",
+      styleName: "רוטב פלפלים",
+      descriptor: "חריף",
+      base: "spice",
+      originStyle: "מזרח תיכוני",
+      description: "רענן, חמצמץ ומרים כל ביס.",
+      ingredients: ["1 פלפל אדום קלוי", "1 פלפל צ׳ילי טרי", "2 כפות שמן זית", "1 כף רסק עגבניות", "1 כפית כמון", "1 כפית סילאן", "מלח"],
+      steps: ["לטחון פלפלים עם שמן זית ורסק עגבניות למרקם חלק.", "להוסיף כמון, סילאן ומלח ולערבב היטב.", "להגיש בטמפרטורת החדר לצד הבשר."]
+    }
+  ],
+  en: [
+    {
+      id: "chimichurri_classic",
+      styleName: "Chimichurri",
+      descriptor: "Classic",
+      base: "herb",
+      originStyle: "South American",
+      description: "Fresh, tangy, and lifts every bite.",
+      ingredients: ["1 cup chopped parsley", "2 garlic cloves, finely chopped", "3 tbsp olive oil", "1 tbsp red wine vinegar", "1/2 tsp chili flakes", "Salt and black pepper"],
+      steps: ["Mix all ingredients in a bowl until combined.", "Taste and balance acidity and seasoning.", "Rest for 10 minutes before serving."]
+    },
+    {
+      id: "smoked_garlic_butter",
+      styleName: "Garlic Butter",
+      descriptor: "Smoked",
+      base: "dairy",
+      originStyle: "Warm European",
+      description: "Fresh, tangy, and lifts every bite.",
+      ingredients: ["80 g soft butter", "3 crushed garlic cloves", "1 tsp smoked paprika", "1 tsp lemon juice", "1 tbsp chopped parsley", "Pinch of salt"],
+      steps: ["Melt butter gently in a small pan.", "Add garlic, paprika, and lemon and cook briefly.", "Turn off heat, stir in parsley, and serve warm."]
+    },
+    {
+      id: "spicy_pepper_sauce",
+      styleName: "Pepper Sauce",
+      descriptor: "Spicy",
+      base: "spice",
+      originStyle: "Middle Eastern",
+      description: "Fresh, tangy, and lifts every bite.",
+      ingredients: ["1 roasted red pepper", "1 fresh chili pepper", "2 tbsp olive oil", "1 tbsp tomato paste", "1 tsp cumin", "1 tsp date syrup", "Salt"],
+      steps: ["Blend peppers with olive oil and tomato paste until smooth.", "Mix in cumin, date syrup, and salt.", "Serve at room temperature alongside meat."]
+    }
+  ]
+};
+
 function defaultSubRecipe(type, explicitTitle) {
   if (state.lang === "he") {
     if (type === "sauce") {
@@ -1283,8 +1423,8 @@ function enhanceRecipeQuality(recipe) {
     drinkPairings: Array.isArray(recipe.drinkPairings) ? recipe.drinkPairings.map((d) => ({ ...d })) : []
   };
 
-  recipeCopy.sauces = recipeCopy.sauces.map((item) => enhanceSubRecipe(item, "sauce", { kosherMode, lang }));
-  recipeCopy.sides = dedupeSubRecipesByTitle(recipeCopy.sides.map((item) => enhanceSubRecipe(item, "side", { kosherMode, lang })));
+  recipeCopy.sauces = enforceSubRecipeDiversity(recipeCopy.sauces.map((item) => enhanceSubRecipe(item, "sauce", { kosherMode, lang })), "sauce", { kosherMode, lang });
+  recipeCopy.sides = enforceSubRecipeDiversity(recipeCopy.sides.map((item) => enhanceSubRecipe(item, "side", { kosherMode, lang })), "side", { kosherMode, lang });
   recipeCopy.drinkPairings = recipeCopy.drinkPairings.map((d) => {
     const value = d?.name || "";
     return { name: lang === "he" ? normalizeHebrewCookingText(value) : value };
@@ -1318,12 +1458,205 @@ function enhanceSubRecipe(item, type, { kosherMode, lang }) {
     sub.steps = sub.steps.map(normalizeHebrewCookingText);
   }
   if (!sub.description) {
-    sub.description = lang === "he" ? "תוספת קצרה שמתאימה למנה העיקרית." : "A quick side that matches the main dish.";
+    sub.description = type === "side"
+      ? (lang === "he" ? "קראנצ'י מבחוץ ורך מבפנים, מתאים במיוחד לצד בשר על האש." : "Crispy outside and fluffy inside, perfect next to grilled meat.")
+      : (lang === "he" ? "רענן, חמצמץ ומרים כל ביס." : "Fresh, tangy, and lifts every bite.");
   }
   sub.ingredients = ensureRelevantSideIngredients(sub, type);
   sub.steps = sub.steps.filter(Boolean);
   if (!sub.steps.length) sub.steps = defaultSubRecipe(type, sub.title).steps;
   return sub;
+}
+
+function enforceSubRecipeDiversity(items, type, { kosherMode, lang }) {
+  const targetCount = 2;
+  const templates = getSubRecipeTemplates(type, lang, kosherMode);
+  const titleSet = new Set();
+  const selected = [];
+
+  const candidates = dedupeSubRecipesByTitle(items);
+  candidates.forEach((item) => {
+    const normalized = finalizeSubRecipe(item, type, lang);
+    if (canAddSubRecipe(selected, normalized, type, titleSet)) {
+      selected.push(normalized);
+      titleSet.add(normalizeTitleKey(normalized.title));
+    }
+  });
+
+  for (const template of templates) {
+    if (selected.length >= targetCount) break;
+    const built = buildSubRecipeFromTemplate(template, type, lang);
+    if (canAddSubRecipe(selected, built, type, titleSet)) {
+      selected.push(finalizeSubRecipe(built, type, lang));
+      titleSet.add(normalizeTitleKey(built.title));
+    }
+  }
+
+  return selected.slice(0, targetCount);
+}
+
+function getSubRecipeTemplates(type, lang, kosherMode) {
+  const templatePool = type === "side" ? sideRecipeTemplates[lang] : sauceRecipeTemplates[lang];
+  if (!Array.isArray(templatePool)) return [];
+  if (type !== "sauce" || !kosherMode) return templatePool;
+  return templatePool.filter((tpl) => tpl.base !== "dairy");
+}
+
+function buildSubRecipeFromTemplate(template, type, lang) {
+  if (type === "side") {
+    return {
+      title: lang === "he"
+        ? `${template.mainIngredient} ${template.twist}`
+        : `${template.mainIngredient} ${template.twist}`,
+      description: template.description,
+      ingredients: [...template.ingredients],
+      steps: [...template.steps],
+      method: template.method,
+      texture: template.texture,
+      flavorProfile: template.flavorProfile,
+      templateId: template.id
+    };
+  }
+  return {
+    title: `${template.styleName} ${template.descriptor}`,
+    description: template.description,
+    ingredients: [...template.ingredients],
+    steps: [...template.steps],
+    base: template.base,
+    originStyle: template.originStyle,
+    templateId: template.id
+  };
+}
+
+function finalizeSubRecipe(item, type, lang) {
+  const result = {
+    ...item,
+    description: item.description || (type === "side"
+      ? (lang === "he" ? "קראנצ'י מבחוץ ורך מבפנים, מתאים במיוחד לצד בשר על האש." : "Crispy outside and fluffy inside, perfect next to grilled meat.")
+      : (lang === "he" ? "רענן, חמצמץ ומרים כל ביס." : "Fresh, tangy, and lifts every bite."))
+  };
+  if (lang === "he") {
+    result.title = normalizeHebrewCookingText(result.title || "");
+    result.description = normalizeHebrewCookingText(result.description || "");
+    result.ingredients = (result.ingredients || []).map(normalizeHebrewCookingText);
+    result.steps = (result.steps || []).map(normalizeHebrewCookingText);
+  }
+  return result;
+}
+
+function canAddSubRecipe(selected, candidate, type, titleSet) {
+  const titleKey = normalizeTitleKey(candidate?.title || "");
+  if (!titleKey || titleSet.has(titleKey)) return false;
+  if (!candidate?.ingredients?.length || !candidate?.steps?.length) return false;
+  return selected.every((existing) => isSubRecipePairDiverse(existing, candidate, type));
+}
+
+function isSubRecipePairDiverse(first, second, type) {
+  if (ingredientSimilarity(first.ingredients, second.ingredients) > 0.7) return false;
+  if (stepStructureSimilarity(first.steps, second.steps) > 0.75) return false;
+
+  if (type === "side") {
+    const methodA = classifySideMethod(first);
+    const methodB = classifySideMethod(second);
+    const textureA = classifySideTexture(first);
+    const textureB = classifySideTexture(second);
+    const flavorA = classifySideFlavor(first);
+    const flavorB = classifySideFlavor(second);
+    return methodA !== methodB && textureA !== textureB && flavorA !== flavorB;
+  }
+
+  const baseA = classifySauceBase(first);
+  const baseB = classifySauceBase(second);
+  const originA = classifySauceOrigin(first);
+  const originB = classifySauceOrigin(second);
+  return baseA !== baseB && originA !== originB;
+}
+
+function ingredientSimilarity(a, b) {
+  const setA = new Set((a || []).map(normalizeIngredientKey).filter(Boolean));
+  const setB = new Set((b || []).map(normalizeIngredientKey).filter(Boolean));
+  const union = new Set([...setA, ...setB]);
+  if (!union.size) return 0;
+  let intersection = 0;
+  union.forEach((entry) => {
+    if (setA.has(entry) && setB.has(entry)) intersection += 1;
+  });
+  return intersection / union.size;
+}
+
+function stepStructureSimilarity(a, b) {
+  const structureA = (a || []).map((step, idx) => `${idx}:${normalizeStepKey(step)}`).join("|");
+  const structureB = (b || []).map((step, idx) => `${idx}:${normalizeStepKey(step)}`).join("|");
+  if (!structureA || !structureB) return 0;
+  if (structureA === structureB) return 1;
+  const minLen = Math.min((a || []).length, (b || []).length);
+  const matches = Array.from({ length: minLen }).filter((_, i) => normalizeStepKey(a[i]) === normalizeStepKey(b[i])).length;
+  return matches / Math.max((a || []).length, (b || []).length);
+}
+
+function classifySideMethod(item) {
+  const source = `${item?.method || ""} ${item?.title || ""} ${(item?.steps || []).join(" ")}`.toLowerCase();
+  if (/fresh|סלט|טרי/.test(source)) return "fresh";
+  if (/oven|תנור|צלו|אפייה/.test(source)) return "oven";
+  if (/smoked|מעוש|גריל|צלייה/.test(source)) return "smoked_grilled";
+  return "other";
+}
+
+function classifySideTexture(item) {
+  const source = `${item?.texture || ""} ${item?.description || ""} ${(item?.steps || []).join(" ")}`.toLowerCase();
+  if (/קראנצ|crispy|crunchy/.test(source)) return "crispy";
+  if (/רך|tender|fluffy|creamy/.test(source)) return "soft";
+  if (/פריך|fresh|עסיס/.test(source)) return "fresh";
+  return "other";
+}
+
+function classifySideFlavor(item) {
+  const source = `${item?.flavorProfile || ""} ${item?.title || ""} ${(item?.ingredients || []).join(" ")}`.toLowerCase();
+  if (/מעוש|smok/.test(source)) return "smoky";
+  if (/לימון|חומץ|sumac|סומאק|חמצ/.test(source)) return "acidic";
+  if (/שום|garlic|עשבי|herb/.test(source)) return "herby_garlic";
+  return "other";
+}
+
+function classifySauceBase(item) {
+  const source = `${item?.base || ""} ${item?.title || ""} ${(item?.ingredients || []).join(" ")}`.toLowerCase();
+  if (/butter|cream|יוגורט|חמאה|שמנת/.test(source)) return "dairy";
+  if (/שמן|olive oil|oil/.test(source)) return "oil";
+  if (/parsley|cilantro|פטרוזיליה|עשבי|mint|נענע/.test(source)) return "herb";
+  if (/pepper|chili|צ׳ילי|פלפל|כמון|paprika/.test(source)) return "spice";
+  return "other";
+}
+
+function classifySauceOrigin(item) {
+  const source = `${item?.originStyle || ""} ${item?.title || ""} ${item?.description || ""}`.toLowerCase();
+  if (/chimichurri|דרום אמריק|south american|ארגנטינ/.test(source)) return "south_american";
+  if (/middle eastern|מזרח תיכונ|סומאק|סילאן/.test(source)) return "middle_eastern";
+  if (/אירופ|european|butter/.test(source)) return "european";
+  return "other";
+}
+
+function normalizeIngredientKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\d+/g, "")
+    .replace(/[^\p{L}\s]+/gu, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function normalizeStepKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\s]+/gu, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, 3)
+    .join(" ");
+}
+
+function normalizeTitleKey(title) {
+  return String(title || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 }
 
 function ensureDefinitionsInSteps(main, lang) {
@@ -1418,10 +1751,15 @@ function enforceHebrewOnlyRecipe(main) {
 function normalizeHebrewCookingText(text) {
   if (!text) return text;
   const replacements = [
+    [/\bparsley\b/ig, "פטרוזיליה"],
+    [/\bgarlic cloves?\b/ig, "שיני שום"],
     [/tablespoons?/ig, "כפות"],
     [/teaspoons?/ig, "כפיות"],
     [/\bgrams?\b/ig, "גרם"],
     [/\bml\b/ig, "מ״ל"],
+    [/\bmix\b/ig, "לערבב"],
+    [/\badd\b/ig, "להוסיף"],
+    [/\blet rest\b/ig, "להניח לנוח"],
     [/cloves?/ig, "שיני"],
     [/finely chopped/ig, "קצוץ דק"],
     [/smoker/ig, "מעשנה"],
@@ -1464,7 +1802,7 @@ function prependStep(steps, text) {
 function dedupeSubRecipesByTitle(items) {
   const seen = new Set();
   return items.filter((item) => {
-    const key = String(item?.title || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    const key = normalizeTitleKey(item?.title || "");
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
