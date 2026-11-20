@@ -6,11 +6,11 @@ const INTRO_MIN_DURATION_MS = 3400;
 const INTRO_FINAL_HOLD_MS = 850;
 
 const assetCandidates = {
-  appBg: ["/app/assets/app-bg-smoke.jpg", "/app/assets/app-bg-smoke.jpg.png"],
-  hero: ["/app/assets/hero-steak.jpg", "/app/assets/hero-steak.jpg.png"],
-  hot: ["/app/assets/hot-trends.jpg", "/app/assets/hot-trends-bg.jpg", "/app/assets/hot-trends.jpg.png", "/app/assets/hot-trends1.jpg.PNG"],
-  recipe: ["/app/assets/recipe-card-bg.jpg", "/app/assets/recipe-bg.jpg", "/app/assets/recipe-card-bg.jpg.png", "/app/assets/recipe-bg.jpg.png"],
-  butcher: ["/app/assets/butcher-map-bg.jpg", "/app/assets/butcher-map-bg.jpg.png"]
+  appBg: ["/app/assets/app-bg-smoke.jpg.png"],
+  hero: ["/app/assets/hero-steak.jpg.png"],
+  hot: ["/app/assets/hot-trends.jpg.png"],
+  recipe: ["/app/assets/recipe-bg.jpg.png"],
+  butcher: ["/app/assets/butcher-map-bg.jpg.png"]
 };
 
 const cutsCatalog = [
@@ -214,6 +214,9 @@ const state = {
   lastOpenedRecipeId: null,
   recipeLoading: false,
   butcherLoading: false,
+  butcherLoaded: false,
+  butcherError: null,
+  butcherFromHome: false,
   navigation: {
     generatorMode: true,
     askExpertMode: false
@@ -254,7 +257,8 @@ let toastTimer = null;
 
 el.backBtn.addEventListener("click", () => {
   if (currentStep > 0) {
-    currentStep -= 1;
+    currentStep = STEPS[currentStep] === "butcher" && state.butcherFromHome
+      ? STEPS.indexOf("landing") : currentStep - 1;
     render();
   }
 });
@@ -313,7 +317,7 @@ function render() {
   el.title.textContent = step === "landing" ? "" : t(`titles.${step}`);
   el.subtitle.textContent = "";
   el.header.classList.toggle("landing-minimal", step === "landing" || step === "saved");
-  el.progressWrap?.classList.toggle("hidden", step === "landing" || step === "saved");
+  el.progressWrap?.classList.toggle("hidden", step === "landing" || step === "saved" || (step === "butcher" && state.butcherFromHome));
   el.progressFill.style.width = `${progress}%`;
   el.progressText.textContent = `${t("stepLabel")} ${Math.max(currentStep, 1)}/${totalFlowSteps}`;
   el.backBtn.textContent = t("back");
@@ -426,6 +430,7 @@ function renderLanding() {
     </div>
     <button class="btn btn-choice btn-choice-hot" data-choice="hot">${t("hotAction")}</button>
     <button class="btn btn-choice btn-choice-know" data-choice="feel">${t("knowAction")}</button>
+    <button class="btn btn-choice" id="openButchersBtn">${state.lang === "he" ? "📍 מצא קצבייה לידי" : "📍 Find a butcher near me"}</button>
     ${latest ? `
       <div class="card last-recipe-prompt">
         <p>${state.lang === "he" ? "להמשיך מהמתכון האחרון?" : "Continue your last recipe?"}</p>
@@ -458,6 +463,11 @@ function renderLanding() {
     });
   });
 
+  document.getElementById("openButchersBtn")?.addEventListener("click", () => {
+    state.butcherFromHome = true;
+    currentStep = STEPS.indexOf("butcher");
+    render();
+  });
   document.getElementById("openSavedRecipesBtn")?.addEventListener("click", () => {
     currentStep = STEPS.indexOf("saved");
     render();
@@ -1018,37 +1028,79 @@ function renderShopping() {
 
   document.getElementById("copyList").addEventListener("click", async () => copyShoppingListToClipboard());
   document.getElementById("toButchers").addEventListener("click", () => {
+    state.butcherFromHome = false;
     currentStep = STEPS.indexOf("butcher");
     render();
   });
 }
 
 async function loadButchers() {
-  if (!navigator.geolocation) throw new Error("Location unavailable");
-  const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000 }));
+  if (!navigator.geolocation) throw new Error("location_unavailable");
+  let pos;
+  try {
+    pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000 }));
+  } catch (error) {
+    throw new Error(error.code === 1 ? "location_denied" : error.code === 3 ? "location_timeout" : "location_unavailable");
+  }
   state.location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-  const res = await fetch(`/api/butchers-nearby?lat=${encodeURIComponent(state.location.lat)}&lng=${encodeURIComponent(state.location.lng)}`);
-  state.butchers = await res.json();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const res = await fetch(`/api/butchers-nearby?lat=${encodeURIComponent(state.location.lat)}&lng=${encodeURIComponent(state.location.lng)}`, { signal: controller.signal });
+    if (!res.ok) throw new Error("service_unavailable");
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("service_unavailable");
+    state.butchers = data;
+    state.butcherLoaded = true;
+  } catch {
+    throw new Error("service_unavailable");
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function butcherErrorMessage(code) {
+  const messages = {
+    location_denied: ["הרשאת המיקום חסומה. אפשר גישה למיקום בהגדרות הדפדפן ונסה שוב.", "Location access is blocked. Allow it in browser settings and try again."],
+    location_timeout: ["קבלת המיקום ארכה זמן רב מדי. נסה שוב.", "Getting your location timed out. Please try again."],
+    location_unavailable: ["לא הצלחנו לקבל את המיקום. בדוק ששירותי המיקום פעילים ונסה שוב.", "Could not get your location. Check location services and try again."],
+    service_unavailable: ["המיקום התקבל, אך שירות איתור הקצביות אינו זמין כרגע. אפשר לנסות שוב או לחפש במפות.", "Your location was received, but butcher search is currently unavailable. Retry or search in Maps."]
+  };
+  return (messages[code] || messages.service_unavailable)[state.lang === "he" ? 0 : 1];
+}
+
+async function searchButchers() {
+  if (state.butcherLoading) return;
+  state.butcherLoading = true;
+  state.butcherError = null;
+  renderButchers();
+  try {
+    await loadButchers();
+  } catch (error) {
+    state.butcherError = error.message;
+  } finally {
+    state.butcherLoading = false;
+    // A completed request must not replace another screen after navigation.
+    if (STEPS[currentStep] === "butcher") renderButchers();
+  }
 }
 
 function renderButchers() {
-  if (!state.butchers.length && !state.location) {
+  if (state.butcherLoading) {
+    el.content.innerHTML = renderButcherLoading();
+    return;
+  }
+  if (state.butcherError || !state.butcherLoaded || !state.butchers.length) {
+    const mapsQuery = state.location
+      ? `butcher shops near ${state.location.lat},${state.location.lng}` : "butcher shops near me";
     el.content.innerHTML = `
       <div class="card visual-map" aria-label="Butcher map"></div>
-      <button id="findButchers" class="btn btn-primary">${state.lang === "he" ? "📍 מצא קצביות קרובות" : "📍 Find nearby butcher shops"}</button>
+      ${state.butcherError ? `<div class="card" role="alert">${butcherErrorMessage(state.butcherError)}</div>` : ""}
+      ${!state.butcherError && state.butcherLoaded ? `<div class="card">${state.lang === "he" ? "לא נמצאו קצביות באזור שלך. אפשר לחפש שוב או לפתוח מפות." : "No butcher shops found nearby. Try again or open Maps."}</div>` : ""}
+      <button id="findButchers" class="btn btn-primary">${state.lang === "he" ? (state.butcherError || state.butcherLoaded ? "נסה שוב" : "📍 מצא קצביות קרובות") : (state.butcherError || state.butcherLoaded ? "Try again" : "📍 Find nearby butcher shops")}</button>
+      ${state.butcherError || state.butcherLoaded ? `<a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}" target="_blank" rel="noopener">${state.lang === "he" ? "חפש קצביות ב־Google Maps" : "Search butcher shops in Google Maps"}</a>` : ""}
     `;
-    document.getElementById("findButchers").addEventListener("click", async () => {
-      state.butcherLoading = true;
-      el.content.innerHTML = renderButcherLoading();
-      try {
-        await loadButchers();
-        state.butcherLoading = false;
-        renderButchers();
-      } catch {
-        state.butcherLoading = false;
-        el.content.innerHTML = `<div class="card">${state.lang === "he" ? "נדרשת הרשאת מיקום כדי לאתר קצביות." : "Location permission is required to find butcher shops."}</div>`;
-      }
-    });
+    document.getElementById("findButchers").addEventListener("click", searchButchers);
     return;
   }
 
