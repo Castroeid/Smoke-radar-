@@ -445,7 +445,41 @@ function parseCoordinate(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+// Google uses Sunday=0. Check overlap with the whole Saturday, including
+// overnight periods and Saturday evening; this is not a religious Shabbat test.
+function getSaturdayOpeningStatus(hours) {
+  if (!Array.isArray(hours?.periods)) return null;
+  if (!hours.periods.length) return false;
+  const week = 7 * 24 * 60;
+  const saturday = 6 * 24 * 60;
+  const minutes = (point) => {
+    if (!point || typeof point !== "object") return null;
+    const { day = 0, hour = 0, minute = 0 } = point;
+    if (!Number.isInteger(day) || day < 0 || day > 6 ||
+        !Number.isInteger(hour) || hour < 0 || hour > 23 ||
+        !Number.isInteger(minute) || minute < 0 || minute > 59) return null;
+    return day * 1440 + hour * 60 + minute;
+  };
+  let incomplete = false;
+  for (const period of hours.periods) {
+    const start = minutes(period?.open);
+    let end = minutes(period?.close);
+    // Documented 24/7 representation: Sunday midnight with no close point.
+    if (hours.periods.length === 1 && start === 0 && !period.close) return true;
+    if (start === null || end === null) { incomplete = true; continue; }
+    if (end <= start) end += week;
+    if (start < week && end > saturday) return true;
+  }
+  return incomplete ? null : false;
+}
+
 function buildNearbyPlaceResult(place = {}) {
+  const regular = place.regularOpeningHours;
+  const current = place.currentOpeningHours;
+  const descriptions = (hours) => Array.isArray(hours?.weekdayDescriptions)
+    ? hours.weekdayDescriptions.filter((line) => typeof line === "string" && line.trim()) : [];
+  const regularDescriptions = descriptions(regular);
+  const businessClosed = ["CLOSED_TEMPORARILY", "CLOSED_PERMANENTLY"].includes(place.businessStatus);
   return {
     name: place.displayName?.text || "Unknown",
     address: place.formattedAddress || "",
@@ -455,11 +489,16 @@ function buildNearbyPlaceResult(place = {}) {
       lat: Number(place.location?.latitude || 0),
       lng: Number(place.location?.longitude || 0)
     },
-    mapsUrl: place.googleMapsUri || ""
+    mapsUrl: place.googleMapsUri || "",
+    businessStatus: place.businessStatus || null,
+    openNow: businessClosed ? false : (typeof current?.openNow === "boolean" ? current.openNow : null),
+    openOnSaturday: businessClosed ? false : getSaturdayOpeningStatus(regular),
+    openingHours: regularDescriptions.length ? regularDescriptions : descriptions(current),
+    openingHoursType: regularDescriptions.length ? "regular" : "current"
   };
 }
 
-async function fetchButchersNearby({ lat, lng, maxResults = 8 }) {
+async function fetchButchersNearby({ lat, lng, maxResults = 8, languageCode = "en", includeAll = false }) {
   const placesApiKey = process.env.GOOGLE_PLACES_API_KEY;
 
   if (!placesApiKey) {
@@ -473,7 +512,7 @@ async function fetchButchersNearby({ lat, lng, maxResults = 8 }) {
     const body = {
       textQuery: query,
       maxResultCount: maxResults,
-      languageCode: "en",
+      languageCode,
       locationBias: {
         circle: {
           center: {
@@ -496,7 +535,10 @@ async function fetchButchersNearby({ lat, lng, maxResults = 8 }) {
           "places.rating",
           "places.userRatingCount",
           "places.location",
-          "places.googleMapsUri"
+          "places.googleMapsUri",
+          "places.businessStatus",
+          "places.currentOpeningHours",
+          "places.regularOpeningHours"
         ].join(",")
       },
       body: JSON.stringify(body)
@@ -529,7 +571,9 @@ async function fetchButchersNearby({ lat, lng, maxResults = 8 }) {
       if (ratingDiff !== 0) return ratingDiff;
       return Number(b.userRatingCount || 0) - Number(a.userRatingCount || 0);
     })
-    .slice(0, maxResults)
+    // The app filters the already fetched pool, before limiting visible cards.
+    // Keep the original eight-result contract for other clients.
+    .slice(0, includeAll ? queries.length * maxResults : maxResults)
     .map(buildNearbyPlaceResult);
 }
 
@@ -547,7 +591,12 @@ app.get("/api/butchers-nearby", async (req, res) => {
   }
 
   try {
-    const places = await fetchButchersNearby({ lat, lng, maxResults: 8 });
+    const places = await fetchButchersNearby({
+      lat, lng, maxResults: 8,
+      languageCode: req.query.lang === "he" ? "he" : "en",
+      includeAll: req.query.includeAll === "true"
+    });
+    res.set("Cache-Control", "no-store");
     console.log("[butchers-nearby] places found:", places.length);
     return res.json(places);
   } catch (error) {

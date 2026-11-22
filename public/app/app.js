@@ -221,6 +221,8 @@ const state = {
   butcherLoaded: false,
   butcherError: null,
   butcherFromHome: false,
+  butcherFilters: { openNow: false, saturday: false },
+  butcherCheckedAt: null,
   navigation: {
     generatorMode: true,
     askExpertMode: false
@@ -1096,12 +1098,13 @@ async function loadButchers() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
   try {
-    const res = await fetch(`/api/butchers-nearby?lat=${encodeURIComponent(state.location.lat)}&lng=${encodeURIComponent(state.location.lng)}`, { signal: controller.signal });
+    const res = await fetch(`/api/butchers-nearby?lat=${encodeURIComponent(state.location.lat)}&lng=${encodeURIComponent(state.location.lng)}&lang=${state.lang === "he" ? "he" : "en"}&includeAll=true`, { signal: controller.signal, cache: "no-store" });
     if (!res.ok) throw new Error("service_unavailable");
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("service_unavailable");
     state.butchers = data;
     state.butcherLoaded = true;
+    state.butcherCheckedAt = Date.now();
   } catch {
     throw new Error("service_unavailable");
   } finally {
@@ -1154,9 +1157,15 @@ function renderButchers() {
     return;
   }
 
-  const distances = state.butchers.map((item) => getDistanceValue(item)).filter((v) => Number.isFinite(v));
+  const he = state.lang === "he";
+  const filters = state.butcherFilters;
+  const filteredButchers = state.butchers.filter((shop) =>
+    (!filters.openNow || getOpenNow(shop) === true) &&
+    (!filters.saturday || shop.openOnSaturday === true)
+  );
+  const distances = filteredButchers.map((item) => getDistanceValue(item)).filter((v) => Number.isFinite(v));
   const closestDistance = distances.length ? Math.min(...distances) : NaN;
-  const rankedButchers = [...state.butchers]
+  const rankedButchers = [...filteredButchers]
     .map((shop) => {
       const distanceKm = getDistanceValue(shop);
       return { ...shop, distanceKm, rankingScore: getButcherRankingScore(shop, distanceKm) };
@@ -1165,6 +1174,20 @@ function renderButchers() {
 
   el.content.innerHTML = `
     <div class="card visual-map" aria-label="Butcher map"></div>
+    <div class="card butcher-filter-panel">
+      <div class="butcher-filters" role="group" aria-label="${he ? "סינון קצביות" : "Filter butcher shops"}">
+        <button type="button" class="btn btn-choice ${filters.openNow ? "active" : ""}" id="filterOpenNow" aria-pressed="${filters.openNow}">${he ? "פתוח עכשיו" : "Open now"}</button>
+        <button type="button" class="btn btn-choice ${filters.saturday ? "active" : ""}" id="filterSaturday" aria-pressed="${filters.saturday}">${he ? "פתוח בשבת" : "Open on Saturday"}</button>
+      </div>
+      <p class="small">${he ? "סינון מתוך הקצביות שנמצאו. פתוח בשבת = שעות יום שבת, כולל מוצ״ש, לפי Google Maps." : "Filters apply to the shops found. Saturday includes Saturday evening, according to Google Maps."}</p>
+      <p class="small">${he ? "שעות פתיחה עשויות להשתנות בחגים; מומלץ לוודא לפני הגעה." : "Holiday hours may differ; confirm before visiting."}</p>
+      <div class="butcher-filter-footer">
+        <span class="small" role="status">${he ? `${Math.min(rankedButchers.length, 8)} מוצגות מתוך ${rankedButchers.length} מתאימות` : `Showing ${Math.min(rankedButchers.length, 8)} of ${rankedButchers.length} matches`}</span>
+        <button type="button" class="btn btn-ghost" id="refreshButchers">${he ? "רענון תוצאות" : "Refresh results"}</button>
+      </div>
+      ${state.butcherCheckedAt ? `<p class="small">${he ? "מצב הפתיחה נבדק ב־" : "Opening status checked at "}<bdi>${new Date(state.butcherCheckedAt).toLocaleTimeString(he ? "he-IL" : "en-GB", { hour: "2-digit", minute: "2-digit" })}</bdi></p>` : ""}
+    </div>
+    ${!rankedButchers.length ? `<div class="card" role="status"><p>${he ? "אין בתוצאות קצביות עם מידע שמאשר את הסינון שבחרת. עסק ללא מידע על שעות פתיחה לא נכלל במסנן." : "No results have confirmed hours matching these filters. Shops with unknown hours are excluded."}</p><button type="button" class="btn btn-ghost" id="clearButcherFilters">${he ? "הצג את כל התוצאות" : "Show all results"}</button></div>` : ""}
     ${rankedButchers.slice(0, 8).map((b, idx) => {
       const stars = "⭐".repeat(Math.max(1, Math.min(5, Math.round(b.rating || 4))));
       const distance = getDistanceValue(b);
@@ -1176,17 +1199,31 @@ function renderButchers() {
       return `
         <article class="card butcher-card ${idx === 0 ? "featured" : ""}">
           ${badges.length ? `<div class="badges-row">${badges.map((badge) => `<span class="badge badge-emphasis">${badge}</span>`).join("")}</div>` : ""}
-          <strong>📍 ${b.name}</strong>
-          <p class="small">${b.address || ""}</p>
+          <strong>📍 ${escapeHotText(b.name)}</strong>
+          <p class="small">${escapeHotText(b.address || "")}</p>
           ${Number.isFinite(distance) ? `<p class="small">${state.lang === "he" ? `מרחק ממך: ${formatDistance(distance)}` : `Distance: ${formatDistance(distance)}`}</p>` : ""}
           ${renderOpenNowStatus(b)}
+          ${renderButcherOpeningHours(b)}
           <div class="butcher-footer">
             <p class="small butcher-rating">${stars} ${b.rating || "-"} (${b.userRatingsTotal || 0})</p>
-            <a class="btn btn-primary" href="${b.mapsUrl}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
+            <a class="btn btn-primary" href="${escapeHotText(safeButcherMapsUrl(b.mapsUrl))}" target="_blank" rel="noopener">${state.lang === "he" ? "פתח במפות" : "Open in Maps"}</a>
           </div>
         </article>`;
     }).join("")}
   `;
+  for (const [id, key] of [["filterOpenNow", "openNow"], ["filterSaturday", "saturday"]]) {
+    document.getElementById(id).addEventListener("click", () => {
+      state.butcherFilters[key] = !state.butcherFilters[key];
+      renderButchers();
+      document.getElementById(id)?.focus();
+    });
+  }
+  document.getElementById("refreshButchers").addEventListener("click", searchButchers);
+  document.getElementById("clearButcherFilters")?.addEventListener("click", () => {
+    state.butcherFilters = { openNow: false, saturday: false };
+    renderButchers();
+    document.getElementById("filterOpenNow")?.focus();
+  });
 }
 
 function normalizeSubRecipes(items, type) {
@@ -1952,8 +1989,33 @@ function sanitizeUnexpectedScripts(text, lang) {
 
 function renderOpenNowStatus(shop) {
   const status = getOpenNow(shop);
-  if (status === null) return "";
-  return `<p class="small">${status ? (state.lang === "he" ? "פתוח עכשיו" : "Open now") : (state.lang === "he" ? "סגור עכשיו" : "Closed now")}</p>`;
+  const he = state.lang === "he";
+  let text = status === null ? (he ? "מצב הפתיחה לא ידוע" : "Opening status unknown")
+    : status ? (he ? "פתוח עכשיו" : "Open now") : (he ? "סגור עכשיו" : "Closed now");
+  if (shop.businessStatus === "CLOSED_PERMANENTLY") text = he ? "סגור לצמיתות" : "Permanently closed";
+  if (shop.businessStatus === "CLOSED_TEMPORARILY") text = he ? "סגור זמנית" : "Temporarily closed";
+  return `<p class="butcher-status ${status === null ? "is-unknown" : status ? "is-open" : "is-closed"}">${text}</p>`;
+}
+
+function renderButcherOpeningHours(shop) {
+  const he = state.lang === "he";
+  const saturday = shop.openOnSaturday;
+  const saturdayText = saturday === true ? (he ? "פתוח בשבת לפי השעות הרשומות" : "Open on Saturday according to listed hours")
+    : saturday === false ? (he ? "סגור בשבת" : "Closed on Saturday")
+    : (he ? "אין מידע על פתיחה בשבת" : "Saturday hours unknown");
+  const hours = Array.isArray(shop.openingHours) ? shop.openingHours.filter((line) => typeof line === "string") : [];
+  const title = shop.openingHoursType === "regular" ? (he ? "שעות פתיחה רגילות" : "Regular opening hours")
+    : (he ? "שעות פתיחה לשבוע הקרוב" : "Opening hours for the next seven days");
+  return `<p class="small butcher-saturday">${saturdayText}</p>${hours.length
+    ? `<details class="butcher-hours"><summary>${title}</summary><ul>${hours.map((line) => `<li dir="auto">${escapeHotText(line)}</li>`).join("")}</ul></details>`
+    : `<p class="small butcher-hours-missing">${he ? "שעות הפתיחה לא נמסרו" : "Opening hours unavailable"}</p>`}`;
+}
+
+function safeButcherMapsUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.href : "https://www.google.com/maps";
+  } catch { return "https://www.google.com/maps"; }
 }
 
 function getOpenNow(shop) {
