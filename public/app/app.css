@@ -332,6 +332,21 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
 .btn:hover { transform: translateY(-1px); }
 .card:hover { transform: translateY(-1px); border-color: rgba(255, 141, 89, .3); }
 .butcher-card.featured { border-color: rgba(255, 139, 81, .55); box-shadow: inset 0 0 0 1px rgba(255, 139, 81, .2); }
+.butcher-filter-panel { display: grid; gap: 12px; }
+.butcher-filters { display: flex; gap: 10px; flex-wrap: wrap; }
+.butcher-filters .btn { flex: 1 1 130px; width: auto; margin: 0; text-align: center; }
+.butcher-filter-footer { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.butcher-filter-footer .btn { width: auto; margin: 0; padding: 10px 14px; }
+.butcher-status { font-size: 1rem; font-weight: 700; margin: 12px 0 6px; }
+.butcher-status.is-open { color: #8ee3a2; }
+.butcher-status.is-closed { color: #ffb2a4; }
+.butcher-status.is-unknown { color: var(--muted); }
+.butcher-hours { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 6px; }
+.butcher-hours summary { cursor: pointer; padding: 10px 0; min-height: 44px; font-size: 1rem; }
+.butcher-hours ul { list-style: none; padding: 0; margin: 6px 0; display: grid; gap: 8px; font-size: .95rem; }
+.butcher-hours li { overflow-wrap: anywhere; unicode-bidi: plaintext; }
+.butcher-hours-missing { margin-top: 8px; }
+.butcher-filters .btn:focus-visible, .butcher-hours summary:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 3px; }
 .butcher-rating { margin: 0; word-break: break-word; flex: 1; min-width: 155px; }
 .butcher-footer {
   margin-top: 10px;
