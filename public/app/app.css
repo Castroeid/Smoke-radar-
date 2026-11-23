@@ -372,6 +372,14 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
 
 .app-nav { display: grid; gap: 10px; grid-template-columns: 1fr 1.2fr; }
 .small { color: var(--muted); font-size: .88rem; margin: 0; }
+.recipe-account { display: grid; gap: 12px; }
+.recipe-account h3 { margin: 0; }
+.account-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.account-actions .btn { flex: 1 1 130px; width: auto; margin: 0; }
+.account-identity { overflow-wrap: anywhere; }
+.account-signin { min-height: 48px; font-size: 1rem; }
+.account-actions .btn:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 3px; }
+.recipe-account button:disabled { opacity: .55; cursor: wait; }
 .list { margin: 8px 0 0; padding-inline: 18px; display: grid; gap: 7px; }
 .inline-actions { display: grid; gap: 8px; }
 .group-title { margin: 0 0 8px; color: var(--accent-soft); font-size: .87rem; }

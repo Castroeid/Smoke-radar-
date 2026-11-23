@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smoke Radar — פרטיות ומחיקת נתונים</title>
+  <style>
+    body { margin: 0; background: #101010; color: #f5f1ec; font: 16px/1.8 Arial, sans-serif; }
+    main { max-width: 760px; margin: auto; padding: 28px 20px 60px; }
+    h1 { font-size: 1.8rem; } h2 { font-size: 1.25rem; margin-top: 28px; }
+    a { color: #ffb282; } section { margin-top: 40px; border-top: 1px solid #555; padding-top: 24px; }
+  </style>
+</head>
+<body><main>
+  <a href="/app/">חזרה ל־Smoke Radar</a>
+  <h1>פרטיות ושמירת המתכונים</h1>
+  <p>Smoke Radar הוא אתר למתכונים, מגמות בשר ואיתור קצביות. שימוש באתר אפשרי גם ללא התחברות.</p>
+  <h2>מתכונים במכשיר ובחשבון</h2>
+  <p>ללא התחברות, מתכונים שמורים נשמרים באחסון המקומי של הדפדפן. מחיקת נתוני הדפדפן עלולה למחוק אותם. כאשר שירות החשבונות מופעל ומתחברים, מתכונים ששומרים נשמרים בחשבון ב־Google Cloud Firestore. מתכונים שכבר שמורים במכשיר מועברים לחשבון רק לאחר בחירה מפורשת להעביר אותם.</p>
+  <h2>התחברות עם Google או Facebook</h2>
+  <p>כאשר אפשרויות ההתחברות פעילות, Firebase Authentication מנהל את הזיהוי ואת ההתחברות. מזהה המשתמש ופרטי פרופיל שהספק מעביר, כגון שם ואימייל, משמשים לניהול החשבון. האתר אינו מקבל את סיסמת Google או Facebook שלך. פרטי ההתחברות נשמרים בדפדפן כדי לזהות אותך בביקור הבא, כשאפשר; בדפדפנים מסוימים ההתחברות נשמרת רק למשך ההפעלה.</p>
+  <p>המתכונים משויכים למזהה החשבון ומוגבלים לגישה מהחשבון שלו הם שייכים. תוכן מתכון שנשלח למחולל עובר לשרת האפליקציה ולספק יצירת המתכונים, OpenAI. מידע על מיקום, כאשר נותנים הרשאה, משמש לחיפוש קצביות באמצעות Google Places. באתר עשויים לפעול כלי ניתוח שימוש לצורך שיפורו.</p>
+  <h2 id="delete-data">מחיקת נתונים וחשבון</h2>
+  <ol>
+    <li>היכנס לאתר ופתח ״המתכונים שלי״.</li>
+    <li>למחיקת מתכון יחיד, לחץ על ״מחק״ בכרטיס שלו. ללא התחברות, פעולה זו מוחקת את עותק המכשיר; לאחר התחברות, את העותק בחשבון.</li>
+    <li>למחיקת החשבון והמתכונים שבו, התחבר, פתח ״ניהול חשבון״ ולחץ ״מחק חשבון ואת כל המתכונים שבו״. אשר את הפעולה ואת אימות ההתחברות. אין אפשרות לבטל מחיקה שהושלמה.</li>
+    <li>אם מופיעה שגיאה, המחיקה לא הושלמה וניתן לנסות שוב. אין להתייחס להתנתקות בלבד כאל מחיקת החשבון.</li>
+  </ol>
+  <p>הפעולה מוחקת את המתכונים הפעילים ב־Firestore ואת משתמש Firebase. עותקי מכשיר נפרדים שלא הועברו לחשבון דורשים מחיקה מהמכשיר שבו נשמרו. היא אינה מוחקת את חשבון Google או Facebook עצמו, או נתונים נפרדים שבידי ספקים חיצוניים. ניתן להסיר בנפרד את הרשאת האפליקציה בהגדרות Google או Facebook.</p>
+  <p>מידע נוסף: <a href="https://firebase.google.com/support/privacy" rel="noopener">פרטיות Firebase</a>, <a href="https://policies.google.com/privacy" rel="noopener">פרטיות Google</a>, <a href="https://www.facebook.com/privacy/policy/" rel="noopener">פרטיות Meta</a>.</p>
+  <section lang="en" dir="ltr">
+    <h2>Privacy and data deletion</h2>
+    <p>Without sign-in, saved recipes stay in this browser's local storage. With account sign-in enabled, Firebase Authentication manages Google/Facebook sign-in and stores the account identifier and provider profile information, such as name and email. Smoke Radar does not receive your provider password. Account recipes are stored under your private user ID in Cloud Firestore. Device recipes are moved only when you explicitly choose to import them.</p>
+    <p>Recipe-generation requests go to the application server and OpenAI. Location is used for Google Places butcher searches when permission is granted. Usage analytics may be used to improve the site.</p>
+    <p>To delete a recipe, open My Recipes and select Delete. To delete your account and its recipes, sign in, open Account settings, select Delete account and all its recipes, and complete confirmation and reauthentication. If deletion fails, retry; signing out alone does not delete account data. Separate device-only copies must be removed on their original device. This does not delete your Google/Facebook account or separate data held by external providers.</p>
+  </section>
+</main></body></html>

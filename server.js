@@ -579,6 +579,25 @@ async function fetchButchersNearby({ lat, lng, maxResults = 8, languageCode = "e
 
 // ---------------- endpoints ----------------
 
+function getRecipeAccountConfig(env = process.env) {
+  if (env.RECIPE_ACCOUNTS_ENABLED !== "true") return { enabled: false };
+  try {
+    const raw = JSON.parse(env.FIREBASE_WEB_CONFIG || "{}");
+    // Never return arbitrary environment fields or service-account credentials.
+    const fields = ["apiKey", "authDomain", "projectId", "appId"];
+    if (!fields.every(key => typeof raw[key] === "string" && raw[key].trim())) return { enabled: false };
+    const config = Object.fromEntries(fields.map(key => [key, raw[key]]));
+    const providers = (env.RECIPE_AUTH_PROVIDERS || "google,facebook").split(",")
+      .map(provider => provider.trim()).filter(provider => ["google", "facebook"].includes(provider));
+    return providers.length ? { enabled: true, config, providers: [...new Set(providers)] } : { enabled: false };
+  } catch { return { enabled: false }; }
+}
+
+app.get("/api/recipe-account-config", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  return res.json(getRecipeAccountConfig());
+});
+
 app.get("/api/butchers-nearby", async (req, res) => {
   const lat = parseCoordinate(req.query.lat);
   const lng = parseCoordinate(req.query.lng);
