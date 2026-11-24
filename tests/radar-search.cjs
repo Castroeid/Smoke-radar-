@@ -30,6 +30,7 @@ test('refresh adds one bilingual seasoning search, deduplicates IDs and fetches 
   const query = calls[1].searchParams.get('q');
   for (const term of ['rub', 'dry brine', 'wet brine', 'marinade', 'drying', 'dry aging', 'vacuum marinating', 'בריין', 'השריה בוואקום']) assert.ok(query.includes(term), term);
   assert.ok(calls[1].href.includes('%7C'), 'OR must be URL encoded');
+  assert.ok(query.split('|').every(phrase => /^"[^"]+"$/.test(phrase)), 'keep multiword alternatives together instead of ANDing their words');
   assert.equal(calls[1].searchParams.get('order'), 'date');
   assert.equal(calls[1].searchParams.get('maxResults'), '20');
   assert.equal(calls[2].searchParams.get('id'), 'aaaaaaaaaaa,bbbbbbbbbbb,ccccccccccc');
