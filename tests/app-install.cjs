@@ -2,7 +2,8 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const { JSDOM } = require('jsdom');
+let JSDOM;
+try { ({ JSDOM } = require('jsdom')); } catch { /* Optional QA dependency. */ }
 const settle = () => new Promise(resolve => setImmediate(resolve));
 function setup({ ua = 'Android Chrome', standalone = false } = {}) {
   const dom = new JSDOM(fs.readFileSync('public/app/install.html', 'utf8'), { url: 'https://smoke-radar.onrender.com/app/install.html', runScripts: 'outside-only' });
@@ -13,7 +14,7 @@ function setup({ ua = 'Android Chrome', standalone = false } = {}) {
   return { dom, w, d: w.document };
 }
 
-test('installation fallback offers platform help without claiming the app is installed', () => {
+test('installation fallback offers platform help without claiming the app is installed', { skip: !JSDOM }, () => {
   for (const [ua, section] of [['Android Chrome', 'androidHelp'], ['iPhone Safari', 'iosHelp'], ['Linux Firefox', 'desktopHelp'], ['Android FBAN FBAV', 'androidHelp']]) {
     const c = setup({ ua });
     try {
@@ -26,7 +27,7 @@ test('installation fallback offers platform help without claiming the app is ins
   }
 });
 
-test('native prompt is consumed once, cancellation can be retried, completion is event-driven', async () => {
+test('native prompt is consumed once, cancellation can be retried, completion is event-driven', { skip: !JSDOM }, async () => {
   const c = setup();
   try {
     let calls = 0;
@@ -53,7 +54,7 @@ test('native prompt is consumed once, cancellation can be retried, completion is
   } finally { c.dom.window.close(); }
 });
 
-test('standalone entry does not invite another install and sharing copies the install URL', async () => {
+test('standalone entry does not invite another install and sharing copies the install URL', { skip: !JSDOM }, async () => {
   const c = setup({ standalone: true });
   try {
     assert.equal(c.d.getElementById('installBtn').hidden, true);
@@ -68,7 +69,7 @@ test('standalone entry does not invite another install and sharing copies the in
   } finally { c.dom.window.close(); }
 });
 
-test('manifest icons match real raster sizes and both entry pages reference the manifest', () => {
+test('manifest icons match real raster sizes and both entry pages reference the manifest', { skip: !JSDOM }, () => {
   const manifest = JSON.parse(fs.readFileSync('public/app/manifest.json', 'utf8'));
   assert.equal(manifest.id, manifest.start_url);
   assert.equal(manifest.scope, '/app/');
