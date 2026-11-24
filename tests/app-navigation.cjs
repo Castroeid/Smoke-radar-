@@ -248,14 +248,63 @@ test('expert back respects its entry screen and a late expert answer cannot repl
     c.click('homeBtn');
     c.d.querySelector('[data-choice="feel"]').click(); c.click('toExpertBtn');
     let finishAnswer;
-    const setTimer = c.w.setTimeout.bind(c.w);
-    c.w.setTimeout = (fn, ms, ...args) => { if (ms === 900) { finishAnswer = fn; return 0; } return setTimer(fn, ms, ...args); };
+    c.w.fetch = () => new Promise(resolve => { finishAnswer = () => resolve({ ok: true, json: async () => ({ kind: 'answer', answer: 'קדירה מתאימה לבישול ממושך.', cutId: null, methodId: null }) }); });
     c.d.getElementById('expertQuestion').value = 'איזה בשר מתאים לקדירה?';
     c.click('expertSubmitBtn');
     assert.ok(finishAnswer);
-    c.click('homeBtn'); finishAnswer(); await settle();
+    c.click('homeBtn'); finishAnswer(); await settle(); await settle();
     assert.equal(c.screen(), 'landing');
     assert.ok(c.d.querySelector('[data-choice="feel"]'));
     assert.equal(c.d.getElementById('expertQuestion'), null);
+  } finally { c.dom.window.close(); }
+});
+
+test('expert sends the actual question, distinguishes clarifications, escapes text and keeps follow-ups', { skip: !JSDOM }, async () => {
+  const c = await setup();
+  try {
+    const calls = [];
+    let output = { kind: 'clarification', answer: 'מה תרצה לדעת על שייטל?', cutId: null, methodId: null };
+    c.w.fetch = async (url, options) => { calls.push({ url, options, body: JSON.parse(options.body) }); return { ok: true, json: async () => output }; };
+    c.d.querySelector('[data-choice="feel"]').click(); c.click('toExpertBtn');
+    const send = async question => { c.d.getElementById('expertQuestion').value = question; c.click('expertSubmitBtn'); await settle(); await settle(); };
+    await send('שייטל');
+    assert.equal(calls[0].url, '/api/ask-expert'); assert.equal(calls[0].options.method, 'POST');
+    assert.equal(calls[0].body.question, 'שייטל');
+    assert.equal(c.d.getElementById('expertUseBtn'), null);
+    assert.match(c.d.getElementById('expertAnswer').textContent, /כדי שאוכל לעזור/);
+    output = { kind: 'answer', answer: 'הכנה במחבת:\nמייבשים <b>את הנתח</b>.', cutId: 'rump', methodId: 'pan_sear' };
+    await send('איך מכינים אותו במחבת?');
+    assert.equal(calls[1].body.history[0].content, 'שייטל');
+    assert.match(c.d.querySelector('.expert-answer-text').textContent, /<b>את הנתח<\/b>/);
+    assert.equal(c.d.querySelector('#expertAnswer b'), null);
+    assert.ok(c.d.getElementById('expertUseBtn'));
+    c.click('expertAnotherBtn');
+    assert.equal(c.d.getElementById('expertQuestion').value, '');
+    assert.equal(c.execute('expertState.history.length'), 0);
+    output = { kind: 'out_of_scope', answer: 'עונה על בשר וגריל בלבד.', cutId: 'picanha', methodId: 'grill' };
+    await send('מה מזג האוויר? " onfocus="alert(1)');
+    assert.equal(c.d.getElementById('expertQuestion').getAttribute('onfocus'), null);
+    assert.equal(c.d.getElementById('expertUseBtn'), null);
+    assert.equal(calls[2].body.history.length, 0);
+  } finally { c.dom.window.close(); }
+});
+
+test('expert prevents duplicate sends and preserves the question on failure for retry', { skip: !JSDOM }, async () => {
+  const c = await setup();
+  try {
+    let reject, calls = 0;
+    c.w.fetch = () => { calls++; return new Promise((resolve, fail) => { reject = fail; }); };
+    c.d.querySelector('[data-choice="feel"]').click(); c.click('toExpertBtn');
+    c.d.getElementById('expertQuestion').value = 'איך מכינים רוסטביף?'; c.click('expertSubmitBtn');
+    assert.equal(c.d.getElementById('expertSubmitBtn').disabled, true);
+    c.d.getElementById('expertForm').dispatchEvent(new c.w.Event('submit', { cancelable: true }));
+    assert.equal(calls, 1);
+    reject(Error('offline')); await settle(); await settle();
+    assert.equal(c.d.getElementById('expertQuestion').value, 'איך מכינים רוסטביף?');
+    assert.equal(c.d.getElementById('expertUseBtn'), null);
+    assert.match(c.d.getElementById('expertAnswer').textContent, /לא התקבלה תשובה/);
+    assert.doesNotMatch(c.d.getElementById('expertAnswer').textContent, /פיקניה/);
+    assert.equal(c.d.getElementById('expertSubmitBtn').disabled, false);
+    assert.equal(c.execute('expertState.history.length'), 0);
   } finally { c.dom.window.close(); }
 });

@@ -730,6 +730,7 @@ app.get("/api/smoke-radar", async (req, res) => {
   }
 });
 
+app.post("/api/ask-expert", require("./lib/expert-answers.js").createExpertHandler({ client: openai }));
 app.get("/api/ai-recipe", require("./lib/recipe-generation.js").createRecipeHandler({ client: openai }));
 
 app.get("/api/debug/system-check", (req, res) => {
