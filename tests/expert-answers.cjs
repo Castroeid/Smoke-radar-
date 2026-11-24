@@ -30,8 +30,8 @@ test('real questions reach the model intact, with bounded history as data and no
     const expected = { kind: 'answer', answer: `Guidance for: ${question}`, cutId: null, methodId: null };
     const { calls, response } = await ask({ question, lang: 'he' }, expected);
     assert.equal(calls.length, 1); assert.deepEqual(response.body, expected);
-    const sent = JSON.parse(calls[0].args.messages[1].content);
-    assert.equal(sent.question, question); assert.equal(sent.cutId, undefined);
+    const sent = calls[0].args.messages.at(-1);
+    assert.deepEqual(sent, { role: 'user', content: question });
     assert.equal(calls[0].args.response_format.json_schema.strict, true);
     assert.equal(calls[0].options.timeout, 25000);
     assert.equal(response.headers['Cache-Control'], 'no-store');
@@ -53,7 +53,8 @@ test('a short response to a clarification uses prior context but an isolated wor
   const history = [{ role: 'user', content: 'איך להכין רוסטביף?' }, { role: 'assistant', content: 'איזה נתח יש לך?' }];
   const output = { kind: 'answer', answer: 'שייטל מתאים לרוסטביף; מה המשקל?', cutId: null, methodId: null };
   const { calls } = await ask({ question: 'שייטל', history }, output);
-  assert.deepEqual(JSON.parse(calls[0].args.messages[1].content).history, history);
+  assert.deepEqual(calls[0].args.messages.slice(1, -1), history);
+  assert.deepEqual(calls[0].args.messages.at(-1), { role: 'user', content: 'שייטל' });
   history[1].content = 'פורסים נגד הסיבים.';
   assert.equal((await ask({ question: 'שייטל', history })).response.body.kind, 'clarification');
 });
