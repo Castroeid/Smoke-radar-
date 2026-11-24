@@ -114,14 +114,14 @@ const copy = {
     loadingMessages: [
       "מנתחים את הנתונים...",
       "מחפשים השראה חמה 🔥",
-      "מרכיבים לך מתכון מושלם...",
+      "מרכיבים את המתכון שלך...",
       "בודקים מה הכי טרנדי עכשיו...",
       "כמעט שם..."
     ],
     recipeLoadingMessages: [
       "מחממים את הרדאר 🔥",
       "מוצאים את השילוב המושלם...",
-      "בונים לך מתכון מדויק..."
+      "בודקים כמויות ופרטי הכנה..."
     ],
     butcherLoadingMessage: "מחפש קצביות באזור שלך...",
     loadingSteps: [
@@ -157,14 +157,14 @@ const copy = {
     loadingMessages: [
       "Analyzing trends...",
       "Finding something hot 🔥",
-      "Crafting your perfect recipe...",
+      "Creating your recipe...",
       "Scanning what's trending...",
       "Almost ready..."
     ],
     recipeLoadingMessages: [
       "Warming up the radar 🔥",
       "Finding the perfect pairing...",
-      "Building your precise recipe..."
+      "Checking quantities and preparation details..."
     ],
     butcherLoadingMessage: "Searching butcher shops near you...",
     loadingSteps: [
@@ -215,6 +215,7 @@ const state = {
   location: null,
   variationCount: 0,
   savedRecipes: [],
+  account: { enabled: false, initializing: true, ready: false, user: null, providers: [], loading: false, busy: false, error: null, guestCount: 0 },
   lastOpenedRecipeId: null,
   recipeLoading: false,
   butcherLoading: false,
@@ -260,6 +261,8 @@ const openingExperience = {
 
 let recipeLoadingInterval = null;
 let toastTimer = null;
+let recipeStore = null;
+let recipeAccountClient = null;
 
 el.backBtn.addEventListener("click", () => {
   if (STEPS[currentStep] === "hot") {
@@ -450,12 +453,14 @@ function renderLanding() {
       </div>
     ` : ""}
     <button class="btn btn-choice btn-choice-saved" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
+    ${renderRecipeAccount()}
     <div class="footer-separator" aria-hidden="true"></div>
     <section class="card legal-menu">
       <h3>${state.lang === "he" ? "תפריט Smoke Radar" : "Smoke Radar Menu"}</h3>
       <button class="btn btn-ghost" id="aboutBtn">${state.lang === "he" ? "About Smoke Radar" : "About Smoke Radar"}</button>
       <button class="btn btn-ghost" id="termsBtn">${state.lang === "he" ? "Terms of Use" : "Terms of Use"}</button>
       <button class="btn btn-ghost" id="privacyBtn">${state.lang === "he" ? "Privacy Policy" : "Privacy Policy"}</button>
+      <a class="btn btn-ghost" href="/app/privacy.html">${state.lang === "he" ? "פרטיות ומחיקת נתונים" : "Privacy and data deletion"}</a>
       <button class="btn btn-ghost" id="shareBtn">${state.lang === "he" ? "Share Smoke Radar" : "Share Smoke Radar"}</button>
       <p class="small footer-note">© 2026 Smoke Radar. All rights reserved.</p>
     </section>
@@ -495,41 +500,41 @@ function renderLanding() {
   document.getElementById("termsBtn")?.addEventListener("click", () => openLegalModal("terms"));
   document.getElementById("privacyBtn")?.addEventListener("click", () => openLegalModal("privacy"));
   document.getElementById("shareBtn")?.addEventListener("click", () => shareSmokeRadar());
+  bindRecipeAccount();
 }
 
 function renderSavedRecipes() {
-  const cards = state.savedRecipes.map((item) => {
+  const cards = (state.account.loading || state.account.initializing ? [] : state.savedRecipes).map((item) => {
     const cut = getCutById(item.preferences?.cutId || "ribeye").labels[state.lang];
     const method = getMethodById(item.preferences?.methodId || "grill").labels[state.lang];
     const date = formatSavedDate(item.createdAt);
-    const thumbnail = item.thumbnail || recipeThumbnailForCut(item.preferences?.cutId || "ribeye");
+    const thumbnail = recipeThumbnailForCut(item.preferences?.cutId || "ribeye");
     return `
       <article class="card saved-recipe-card">
-        <img class="saved-thumb" src="${thumbnail}" alt="${item.title || "recipe"}" />
+        <img class="saved-thumb" src="${thumbnail}" alt="${escapeHotText(item.title || "recipe")}" />
         <div class="saved-recipe-content">
-        <h3>${item.title || (state.lang === "he" ? "מתכון שמור" : "Saved Recipe")}</h3>
+        <h3>${escapeHotText(item.title || (state.lang === "he" ? "מתכון שמור" : "Saved Recipe"))}</h3>
         <p class="small">${state.lang === "he" ? "נתח" : "Cut"}: ${cut}</p>
         <p class="small">${state.lang === "he" ? "שיטת בישול" : "Cooking method"}: ${method}</p>
         <p class="small">${state.lang === "he" ? "נשמר בתאריך" : "Saved on"}: ${date}</p>
         <div class="saved-recipe-actions">
-          <button class="btn btn-primary" data-open-recipe="${item.id}">${state.lang === "he" ? "פתח מתכון" : "Open Recipe"}</button>
-          <button class="btn btn-ghost" data-delete-recipe="${item.id}">${state.lang === "he" ? "מחק" : "Delete"}</button>
+          <button class="btn btn-primary" data-open-recipe="${escapeHotText(item.id)}">${state.lang === "he" ? "פתח מתכון" : "Open Recipe"}</button>
+          <button class="btn btn-ghost" data-delete-recipe="${escapeHotText(item.id)}" ${state.account.busy ? "disabled" : ""}>${state.lang === "he" ? "מחק" : "Delete"}</button>
         </div>
         </div>
       </article>
     `;
   }).join("");
 
-  el.content.innerHTML = cards || `<div class="card"><p class="small">${state.lang === "he" ? "עדיין אין מתכונים שמורים." : "No saved recipes yet."}</p></div>`;
+  const pending = state.account.loading || state.account.initializing;
+  el.content.innerHTML = `${renderRecipeAccount(true)}${pending ? `<div class="card" role="status">${state.lang === "he" ? "טוען את המתכונים שלך..." : "Loading your recipes..."}</div>` : cards || (state.account.error ? "" : `<div class="card"><p class="small">${state.lang === "he" ? "עדיין אין מתכונים שמורים." : "No saved recipes yet."}</p></div>`)}`;
+  bindRecipeAccount();
 
   el.content.querySelectorAll("[data-open-recipe]").forEach((btn) => {
     btn.addEventListener("click", () => openSavedRecipe(btn.dataset.openRecipe));
   });
   el.content.querySelectorAll("[data-delete-recipe]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      deleteSavedRecipe(btn.dataset.deleteRecipe);
-      renderSavedRecipes();
-    });
+    btn.addEventListener("click", () => deleteSavedRecipe(btn.dataset.deleteRecipe));
   });
 }
 
@@ -888,13 +893,16 @@ function renderCookIdeas() {
 }
 
 async function loadRecipe() {
-  const p = state.preferences;
+  const p = { ...state.preferences };
+  const requestLanguage = state.lang;
   const cut = getCutById(p.cutId).labels[state.lang];
   const method = getMethodById(p.methodId).labels[state.lang];
   const flavor = getFlavorById(p.flavorId).labels[state.lang];
   const query = new URLSearchParams({
     lang: state.lang,
     meatType: p.meatType,
+    cutId: p.cutId,
+    methodId: p.methodId,
     cut,
     method,
     flavor,
@@ -908,12 +916,42 @@ async function loadRecipe() {
 
   const res = await fetch(`/api/ai-recipe?${query.toString()}`);
   const data = await res.json();
-  state.recipe = enhanceRecipeQuality(data.structuredRecipe || null);
+  if (requestLanguage !== state.lang || JSON.stringify(p) !== JSON.stringify(state.preferences) || state.recipe) return false;
+  if (!res.ok) throw new Error(data.error || "recipe_service_unavailable");
+  const report = RecipeQuality.check(data.structuredRecipe, p);
+  if (!report.passed) throw new Error("recipe_incomplete");
+  state.recipe = enhanceRecipeQuality(data.structuredRecipe);
   state.shopping = buildShoppingList(state.recipe);
 }
 
 function recipeHeroForCut() {
   return "var(--asset-recipe)";
+}
+
+function renderRecipeQuality(recipe) {
+  const he = state.lang === "he";
+  const report = RecipeQuality.check(recipe, state.preferences);
+  if (recipe.recipeVersion !== RecipeQuality.VERSION || !report.passed) {
+    return `<div class="card recipe-quality"><p>${he ? "למתכון השמור הזה אין בדיקת שלמות עדכנית. יצירה מחדש תפעיל את הבדיקות החדשות." : "This saved recipe has no current completeness check. Regenerate it to apply the new checks."}</p></div>`;
+  }
+  const m = recipe.main.metadata;
+  return `<section class="card recipe-quality" aria-label="${he ? "פרטי בדיקת המתכון" : "Recipe check details"}">
+    <span class="recipe-check-label">${he ? "עבר בדיקת שלמות אוטומטית" : "Automated completeness checks passed"}</span>
+    <p>${he ? "נוצר בעזרת AI. המתכון טרם נוסה במטבח." : "AI-generated. This recipe has not been kitchen-tested."}</p>
+    <details><summary>${he ? "מה נבדק?" : "What was checked?"}</summary>
+      <p>${he ? "נבדקו נוכחות של כמות ויחידה לכל מרכיב, התאמת מספר המנות לבקשה, סכום זמני ההכנה וקיום רשימות המרכיבים והשלבים למנה, לרטבים ולתוספות. זו בדיקת נתונים אוטומטית, לא בדיקת טעם או אישור מקצועי." : "Checks cover a quantity and unit for each ingredient, requested serving count, time totals, and ingredient and instruction lists for the main dish, sauces and sides. This is an automated data check, not a taste test or professional approval."}</p>
+    </details>
+    <p><strong>${he ? "המתכון מתוכנן עבור:" : "Recipe assumptions:"}</strong> ${m.meat_weight_g} ${he ? "גרם בשר בסך הכול; עובי כל יחידה כ־" : "g meat in total; each piece about "}${m.piece_thickness_cm} ${he ? "ס״מ." : "cm thick."}</p>
+    <p><strong>${he ? "ציוד:" : "Equipment:"}</strong> ${recipe.main.equipment.map(escapeHotText).join(" · ")}</p>
+    <p><strong>${he ? "טמפרטורת ליבה במתכון:" : "Recipe internal target:"}</strong> <bdi>${m.target_internal_c}°C</bdi>. ${escapeHotText(m.doneness_cue)}</p>
+    <p class="small">${he ? "הזמנים הם הערכה למנה העיקרית וכוללים מנוחה. משקל, עובי וציוד משפיעים על הבישול; בדקו במדחום ובסימני המוכנות." : "Times estimate the main dish and include resting. Weight, thickness and equipment affect cooking; check with a thermometer and the readiness cues."}</p>
+    <details><summary>${he ? "הנחיית טמפרטורה ממקור חיצוני" : "External temperature guidance"}</summary>
+      <p>${he ? "לסוג הבשר שבמתכון, הנחיית FoodSafety.gov היא לפחות " : "For this recipe's meat type, FoodSafety.gov recommends at least "}<bdi>${report.safety.minimumC}°C</bdi>${report.safety.restMinutes ? (he ? " ומנוחה של 3 דקות לפחות." : " and at least 3 minutes rest.") : "."}</p>
+      ${report.cooking ? `<p>${he ? "בנתח הזה נדרש גם ריכוך בבישול ממושך. טמפרטורת המינימום לבטיחות אינה יעד הריכוך; בדקו שהשיפוד או המדחום נכנסים בקלות." : "This cut also needs extended cooking for tenderness. The safety minimum is not the tenderness target; check that a probe enters easily."}</p><a href="${report.cooking.url}" target="_blank" rel="noopener noreferrer">${he ? "הסבר על ריכוך הנתח: " : "Cut tenderness reference: "}${report.cooking.name}</a><br>` : ""}
+      <a href="${RecipeQuality.SOURCE_URL}" target="_blank" rel="noopener noreferrer">${he ? "טבלת טמפרטורות לבישול — FoodSafety.gov" : "Cooking temperature chart — FoodSafety.gov"}</a>
+      <p class="small">${he ? "המקור מתייחס לטמפרטורת הבישול; הוא אינו מקור למתכון ואינו מאשר אותו." : "The source covers cooking temperatures; it is not the source of, or an endorsement of, this recipe."}</p>
+    </details>
+  </section>`;
 }
 
 function renderRecipe() {
@@ -924,11 +962,16 @@ function renderRecipe() {
       loadRecipe().then(() => {
         stopRecipeLoadingState();
         state.recipeLoading = false;
-        renderRecipe();
-      }).catch(() => {
+        if (STEPS[currentStep] === "recipe") renderRecipe();
+      }).catch((error) => {
         stopRecipeLoadingState();
         state.recipeLoading = false;
-        el.content.innerHTML = `<div class="card">${state.lang === "he" ? "לא הצלחנו לטעון מתכון כרגע." : "Could not load recipe right now."}</div>`;
+        if (STEPS[currentStep] !== "recipe") return;
+        const incomplete = error.message === "recipe_incomplete";
+        el.content.innerHTML = `<div class="card" role="status"><p>${state.lang === "he"
+          ? (incomplete ? "המתכון שנוצר לא עבר את בדיקת השלמות. אפשר לנסות שוב או לשנות את הבקשה." : "לא הצלחנו ליצור מתכון כרגע. אפשר לנסות שוב.")
+          : (incomplete ? "This recipe did not pass the completeness checks. Try again or adjust your request." : "Could not create a recipe right now. Please retry.")}</p><button class="btn btn-primary" id="retryRecipeBtn">${state.lang === "he" ? "נסה שוב" : "Try again"}</button></div>`;
+        document.getElementById("retryRecipeBtn")?.addEventListener("click", renderRecipe);
       });
     }
     return;
@@ -939,10 +982,10 @@ function renderRecipe() {
   const selectedCut = getCutById(state.preferences.cutId).labels[state.lang];
   const selectedMethod = getMethodById(state.preferences.methodId).labels[state.lang];
   const selectedFlavor = getFlavorById(state.preferences.flavorId).labels[state.lang];
-  const prep = main.prepTime || (state.lang === "he" ? "20 דקות" : "20 min");
-  const cook = main.cookTime || (state.lang === "he" ? "45 דקות" : "45 min");
-  const total = main.totalTime || (state.lang === "he" ? "65 דקות" : "65 min");
-  const difficulty = main.difficulty || (state.lang === "he" ? "בינוני" : "Medium");
+  const prep = main.prepTime || main.metadata?.prep_time || "—";
+  const cook = main.cookTime || main.metadata?.cook_time || "—";
+  const total = main.totalTime || main.metadata?.total_time || "—";
+  const difficulty = main.difficulty || main.metadata?.difficulty || "—";
   const kosherLabel = state.preferences.dietaryPreference === "kosher" ? (state.lang === "he" ? "כשר" : "Kosher") : (state.lang === "he" ? "לא כשר" : "Non-kosher");
   const badges = [
     { label: state.lang === "he" ? "סה״כ זמן" : "Total Time", value: total },
@@ -950,7 +993,7 @@ function renderRecipe() {
     { label: state.lang === "he" ? "מנות" : "Servings", value: state.preferences.servings },
     { label: state.lang === "he" ? "כשרות" : "Diet", value: kosherLabel }
   ];
-  const chefTips = getChefTips(state.preferences.cutId, state.preferences.methodId);
+  const chefTips = Array.isArray(main.chefTips) ? main.chefTips : [];
   const sauces = normalizeSubRecipes(r.sauces, "sauce");
   const sides = normalizeSubRecipes(r.sides, "side");
   const glossaryTitle = state.lang === "he" ? "מקרא פעולות" : "Technique Glossary";
@@ -958,19 +1001,21 @@ function renderRecipe() {
 
   el.content.innerHTML = `
     <div class="card recipe-hero" style="--recipe-image:${recipeHeroForCut()}">
-      <h2>${main.title || (state.lang === "he" ? "מתכון פרימיום" : "Premium Recipe")}</h2>
-      <p class="small">${main.description || ""}</p>
+      <h2>${escapeHotText(main.title || (state.lang === "he" ? "מתכון פרימיום" : "Premium Recipe"))}</h2>
+      <p class="small">${escapeHotText(main.description || "")}</p>
     </div>
 
+    ${renderRecipeQuality(r)}
     <div class="badges-row">
-      ${badges.map((badge) => `<span class="badge"><strong>${badge.label}</strong> ${badge.value}</span>`).join("")}
+      ${badges.map((badge) => `<span class="badge"><strong>${badge.label}</strong> ${escapeHotText(badge.value)}</span>`).join("")}
     </div>
 
     <div class="card meta-grid">
-      <div class="meta-item"><strong>${state.lang === "he" ? "זמן הכנה" : "Prep Time"}</strong>${prep}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "זמן בישול" : "Cook Time"}</strong>${cook}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "סה״כ זמן" : "Total Time"}</strong>${total}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "קושי" : "Difficulty"}</strong>${difficulty}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "הכנה והשריה" : "Prep & marinating"}</strong>${escapeHotText(prep)}</div>
+      ${Number.isFinite(main.metadata?.rest_minutes) ? `<div class="meta-item"><strong>${state.lang === "he" ? "מנוחה" : "Rest"}</strong>${main.metadata.rest_minutes} ${state.lang === "he" ? "דקות" : "min"}</div>` : ""}
+      <div class="meta-item"><strong>${state.lang === "he" ? "זמן בישול" : "Cook Time"}</strong>${escapeHotText(cook)}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "סה״כ זמן" : "Total Time"}</strong>${escapeHotText(total)}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "קושי" : "Difficulty"}</strong>${escapeHotText(difficulty)}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "נתח" : "Cut"}</strong>${selectedCut}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</strong>${selectedMethod}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</strong>${selectedFlavor}</div>
@@ -978,9 +1023,9 @@ function renderRecipe() {
       <div class="meta-item"><strong>${state.lang === "he" ? "העדפת כשרות" : "Dietary preference"}</strong>${kosherLabel}</div>
     </div>
 
-    <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${i}</li>`).join("")}</ul></div>
-    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s) => `<li>${s}</li>`).join("")}</ol></div>
-    ${glossary.length ? `<div class="card"><h3>${glossaryTitle}</h3><ul class="list">${glossary.map((item) => `<li>${item}</li>`).join("")}</ul></div>` : ""}
+    <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${escapeHotText(i)}</li>`).join("")}</ul></div>
+    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s, i) => `<li>${escapeHotText(s)}${main.step_timing?.[i]?.minutes ? `<p class="small">${state.lang === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${Number(main.step_timing[i].minutes)} ${state.lang === "he" ? "דקות" : "min"}</p>` : ""}</li>`).join("")}</ol></div>
+    ${glossary.length ? `<div class="card"><h3>${glossaryTitle}</h3><ul class="list">${glossary.map((item) => `<li>${escapeHotText(item)}</li>`).join("")}</ul></div>` : ""}
     <div class="card">
       <h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3>
       ${renderSubRecipeDetails(sauces)}
@@ -989,10 +1034,10 @@ function renderRecipe() {
       <h3>${state.lang === "he" ? "תוספות" : "Side Dishes"}</h3>
       ${renderSubRecipeDetails(sides)}
     </div>
-    <div class="card"><h3>${state.lang === "he" ? "שתייה מתאימה" : "Drink Pairings"}</h3><ul class="list">${(r.drinkPairings || []).map((d) => `<li>${d.name}</li>`).join("")}</ul></div>
+    <div class="card"><h3>${state.lang === "he" ? "שתייה מתאימה" : "Drink Pairings"}</h3><ul class="list">${(r.drinkPairings || []).map((d) => `<li>${escapeHotText(d.name)}</li>`).join("")}</ul></div>
     <div class="card">
-      <h3>${state.lang === "he" ? "טיפים מהשף" : "Chef Tips"}</h3>
-      <ul class="list">${chefTips.map((tip) => `<li>${tip}</li>`).join("")}</ul>
+      <h3>${state.lang === "he" ? "טיפים להכנה" : "Cooking Tips"}</h3>
+      <ul class="list">${chefTips.map((tip) => `<li>${escapeHotText(tip)}</li>`).join("")}</ul>
     </div>
 
     <div class="inline-actions">
@@ -1039,7 +1084,7 @@ function buildShoppingList(recipe) {
 
   return {
     meat: mainIng.filter((i) => /beef|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
-    seasoning: mainIng.filter((i) => /salt|pepper|paprika|garlic|spice|מלח|פלפל|תבלין|שום/i.test(i)),
+    seasoning: mainIng.filter((i) => !/beef|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
     sauceIngredients: [...new Set(sauces)],
     sideIngredients: [...new Set(sides)],
     drinks: [...new Set(drinks)]
@@ -1049,7 +1094,7 @@ function buildShoppingList(recipe) {
 function renderShopping() {
   const groups = [
     { key: "meat", he: "בשר", en: "Meat" },
-    { key: "seasoning", he: "תיבול", en: "Seasoning" },
+    { key: "seasoning", he: "יתר מרכיבי המנה", en: "Other main-dish ingredients" },
     { key: "sauceIngredients", he: "מרכיבי רוטב", en: "Sauce ingredients" },
     { key: "sideIngredients", he: "מרכיבי תוספות", en: "Side dish ingredients" },
     { key: "drinks", he: "שתייה", en: "Drinks" }
@@ -1063,7 +1108,7 @@ function renderShopping() {
           <h3 class="group-title">${group[state.lang]}</h3>
           ${items.length ? items.map((item, idx) => {
             const id = `${group.key}-${idx}`;
-            return `<label class="check-item"><input type="checkbox" data-check="${id}" ${state.shoppingChecks[id] ? "checked" : ""} /><span>${item}</span></label>`;
+            return `<label class="check-item"><input type="checkbox" data-check="${id}" ${state.shoppingChecks[id] ? "checked" : ""} /><span>${escapeHotText(item)}</span></label>`;
           }).join("") : `<p class="small">${state.lang === "he" ? "לא נוספו פריטים" : "No items added"}</p>`}
         </div>`;
     }).join("")}
@@ -1226,26 +1271,13 @@ function renderButchers() {
   });
 }
 
-function normalizeSubRecipes(items, type) {
-  const list = Array.isArray(items) ? items : [];
-  const normalized = list.map((item) => ({
-    title: item?.name || defaultSubRecipe(type).title,
-    description: item?.description || "",
-    ingredients: (item?.ingredients || []).filter(Boolean),
-    steps: (item?.steps || []).filter(Boolean)
+function normalizeSubRecipes(items) {
+  return (Array.isArray(items) ? items : []).filter(item => item && typeof item === "object").map(item => ({
+    name: item.name || item.title || "", title: item.title || item.name || "",
+    description: item.description || "",
+    ingredients: Array.isArray(item.ingredients) ? item.ingredients.filter(i => typeof i === "string") : [],
+    steps: Array.isArray(item.steps) ? item.steps.filter(i => typeof i === "string") : []
   }));
-
-  if (!normalized.length) return [defaultSubRecipe(type)];
-
-  return normalized.map((item) => {
-    const fallback = defaultSubRecipe(type, item.title);
-    return {
-      title: item.title || fallback.title,
-      description: item.description || fallback.description,
-      ingredients: item.ingredients.length ? item.ingredients : fallback.ingredients,
-      steps: item.steps.length ? item.steps : fallback.steps
-    };
-  });
 }
 
 const sideRecipeTemplates = {
@@ -1426,12 +1458,12 @@ function renderSubRecipeDetails(items) {
   if (!items.length) return `<p class="small">${state.lang === "he" ? "לא נוספו פריטים" : "No items added"}</p>`;
   return items.map((item) => `
     <div class="sub-recipe-block">
-      <h4>${item.title}</h4>
-      <p class="small">${item.description || (state.lang === "he" ? "תוספת מומלצת למנה." : "Recommended side pairing.")}</p>
+      <h4>${escapeHotText(item.title)}</h4>
+      <p class="small">${escapeHotText(item.description || (state.lang === "he" ? "תוספת מומלצת למנה." : "Recommended side pairing."))}</p>
       <p class="small">${state.lang === "he" ? "מרכיבים" : "Ingredients"}</p>
-      <ul class="list">${item.ingredients.map((ingredient) => `<li>${ingredient}</li>`).join("")}</ul>
+      <ul class="list">${item.ingredients.map((ingredient) => `<li>${escapeHotText(ingredient)}</li>`).join("")}</ul>
       <p class="small">${state.lang === "he" ? "הכנה" : "Instructions"}</p>
-      <ol class="list">${item.steps.map((step) => `<li>${step}</li>`).join("")}</ol>
+      <ol class="list">${item.steps.map((step) => `<li>${escapeHotText(step)}</li>`).join("")}</ol>
     </div>
   `).join("");
 }
@@ -1538,44 +1570,17 @@ function getChefTips(cutId, methodId) {
 }
 
 function enhanceRecipeQuality(recipe) {
-  if (!recipe || typeof recipe !== "object") return recipe;
-  const methodId = state.preferences.methodId;
-  const cutId = state.preferences.cutId;
-  const lang = state.lang;
-  const kosherMode = state.preferences.dietaryPreference === "kosher";
+  // Preserve the generated cooking instructions, amounts and full side recipes.
+  if (!recipe || typeof recipe !== "object") return null;
   const main = recipe.main || {};
-  const ingredients = Array.isArray(main.ingredients) ? [...main.ingredients] : [];
-  const steps = Array.isArray(main.steps) ? [...main.steps] : [];
-
-  const enrichedMain = { ...main, ingredients, steps };
-  applyCutMethodRecipeRules(enrichedMain, methodId, cutId, lang);
-  ensureDefinitionsInSteps(enrichedMain, lang);
-  ensureMarinadeSupport(enrichedMain, methodId, cutId, lang);
-  if (kosherMode) applyKosherAdjustments(enrichedMain, lang);
-  if (lang === "he") enforceHebrewOnlyRecipe(enrichedMain);
-
-  const recipeCopy = {
+  const metadata = main.metadata || {};
+  return {
     ...recipe,
-    main: enrichedMain,
-    sauces: normalizeSubRecipes(recipe.sauces, "sauce"),
-    sides: normalizeSubRecipes(recipe.sides, "side"),
-    drinkPairings: Array.isArray(recipe.drinkPairings) ? recipe.drinkPairings.map((d) => ({ ...d })) : []
+    main: { ...main, prepTime: main.prepTime || metadata.prep_time || "",
+      cookTime: main.cookTime || metadata.cook_time || "", totalTime: main.totalTime || metadata.total_time || "",
+      difficulty: main.difficulty || metadata.difficulty || "" },
+    sauces: normalizeSubRecipes(recipe.sauces), sides: normalizeSubRecipes(recipe.sides)
   };
-
-  recipeCopy.sauces = enforceSubRecipeDiversity(recipeCopy.sauces.map((item) => enhanceSubRecipe(item, "sauce", { kosherMode, lang })), "sauce", { kosherMode, lang });
-  recipeCopy.sides = enforceSubRecipeDiversity(recipeCopy.sides.map((item) => enhanceSubRecipe(item, "side", { kosherMode, lang })), "side", { kosherMode, lang });
-  recipeCopy.drinkPairings = recipeCopy.drinkPairings.map((d) => {
-    const value = d?.name || "";
-    return { name: lang === "he" ? normalizeHebrewCookingText(value) : value };
-  });
-
-  if (lang === "he") {
-    recipeCopy.main.title = normalizeHebrewCookingText(recipeCopy.main.title || "");
-    recipeCopy.main.description = normalizeHebrewCookingText(recipeCopy.main.description || "");
-  }
-  sanitizeLocalizedRecipe(recipeCopy, lang);
-
-  return recipeCopy;
 }
 
 function enhanceSubRecipe(item, type, { kosherMode, lang }) {
@@ -2048,6 +2053,7 @@ async function copyShoppingListToClipboard() {
 function initOpeningAnimation() {
   applyResolvedAssets();
   loadSavedRecipes();
+  initRecipeAccounts();
   startOpeningExperience();
   render();
   if (!el.openingSplash) return;
@@ -2060,13 +2066,19 @@ function initOpeningAnimation() {
   }, INTRO_MIN_DURATION_MS);
 }
 
-function saveCurrentRecipe() {
+async function saveCurrentRecipe() {
   if (!state.recipe) return;
+  if (state.account.initializing || state.account.loading || state.account.busy) {
+    showToast(state.lang === "he" ? "ממתין לסיום טעינת החשבון. נסה שוב בעוד רגע." : "Please wait for your account to finish loading.");
+    return;
+  }
   const main = state.recipe.main || {};
   const savedRecipe = {
-    id: String(Date.now()),
+    id: crypto.randomUUID(),
     title: main.title || (state.lang === "he" ? "מתכון ללא שם" : "Untitled Recipe"),
     preferences: { ...state.preferences },
+    recipeVersion: state.recipe.recipeVersion,
+    dietaryPreference: state.recipe.dietaryPreference,
     main: state.recipe.main || {},
     sauces: state.recipe.sauces || [],
     sides: state.recipe.sides || [],
@@ -2075,10 +2087,15 @@ function saveCurrentRecipe() {
     createdAt: new Date().toISOString(),
     thumbnail: recipeThumbnailForCut(state.preferences.cutId)
   };
-  const withoutDupes = state.savedRecipes.filter((item) => item.id !== savedRecipe.id);
-  state.savedRecipes = [savedRecipe, ...withoutDupes];
-  persistSavedRecipes();
-  showToast(state.lang === "he" ? "המתכון נשמר" : "Recipe saved");
+  const button = document.getElementById("saveRecipeBtn");
+  if (button) button.disabled = true;
+  try {
+    if (await recipeStore.save(savedRecipe)) showToast(state.lang === "he"
+      ? (state.account.user ? "המתכון נשמר בחשבון שלך" : "המתכון נשמר במכשיר הזה")
+      : (state.account.user ? "Recipe saved to your account" : "Recipe saved on this device"));
+  } catch {
+    showToast(state.lang === "he" ? "המתכון לא נשמר. בדוק את החיבור ונסה שוב." : "Recipe was not saved. Check your connection and retry.");
+  } finally { if (button) button.disabled = false; }
 }
 
 function openSavedRecipe(id) {
@@ -2086,6 +2103,8 @@ function openSavedRecipe(id) {
   if (!saved) return;
   state.preferences = { ...state.preferences, ...(saved.preferences || {}) };
   state.recipe = {
+    recipeVersion: saved.recipeVersion,
+    dietaryPreference: saved.dietaryPreference || saved.preferences?.dietaryPreference,
     main: saved.main || {},
     sauces: saved.sauces || [],
     sides: saved.sides || [],
@@ -2097,22 +2116,130 @@ function openSavedRecipe(id) {
   render();
 }
 
-function deleteSavedRecipe(id) {
-  state.savedRecipes = state.savedRecipes.filter((item) => item.id !== id);
-  persistSavedRecipes();
-}
-
-function persistSavedRecipes() {
-  localStorage.setItem(SAVED_RECIPES_KEY, JSON.stringify(state.savedRecipes));
+async function deleteSavedRecipe(id) {
+  try { await recipeStore.remove(id); }
+  catch { showToast(state.lang === "he" ? "המחיקה לא הושלמה. נסה שוב." : "Deletion failed. Please retry."); }
 }
 
 function loadSavedRecipes() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(SAVED_RECIPES_KEY) || "[]");
-    state.savedRecipes = Array.isArray(parsed) ? parsed.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)) : [];
-  } catch {
-    state.savedRecipes = [];
+  recipeStore = RecipeStore.create({
+    storage: { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) },
+    key: SAVED_RECIPES_KEY,
+    onChange(snapshot) {
+      state.savedRecipes = snapshot.recipes;
+      Object.assign(state.account, { user: snapshot.user, loading: snapshot.loading, busy: snapshot.busy, error: snapshot.error, guestCount: snapshot.guestCount });
+      renderRecipeAccountScreen();
+    }
+  });
+  state.savedRecipes = recipeStore.snapshot().recipes;
+}
+
+function renderRecipeAccountScreen() {
+  if (["landing", "saved"].includes(STEPS[currentStep])) render();
+}
+
+async function initRecipeAccounts(loadModule = () => import("/app/recipe-account.js")) {
+  const controller = new AbortController();
+  let timeout;
+  const deadline = new Promise((_, reject) => {
+    timeout = setTimeout(() => {
+      controller.abort();
+      reject(new Error("account-initialization-timeout"));
+    }, 10000);
+  });
+  const initialize = async () => {
+    const response = await fetch("/api/recipe-account-config", { signal: controller.signal, cache: "no-store" });
+    if (!response.ok) throw new Error("account-config-unavailable");
+    const settings = await response.json();
+    if (controller.signal.aborted) return;
+    if (!settings.enabled) return;
+    state.account.enabled = true;
+    state.account.providers = settings.providers;
+    const { connect } = await loadModule();
+    if (controller.signal.aborted) return;
+    const client = await connect({
+      ...settings, store: recipeStore, lang: state.lang, signal: controller.signal,
+      onUser(user) {
+        if (controller.signal.aborted) return;
+        if (state.account.user && state.account.user.uid !== user?.uid) {
+          // Never leave the previous account's opened recipe visible after logout.
+          state.recipe = null; state.shopping = {}; state.shoppingChecks = {}; state.lastOpenedRecipeId = null;
+          if (["recipe", "shopping"].includes(STEPS[currentStep])) currentStep = STEPS.indexOf("saved");
+        }
+      }
+    });
+    if (controller.signal.aborted) return;
+    recipeAccountClient = client;
+    state.account.ready = true;
+  };
+  try { await Promise.race([initialize(), deadline]); }
+  catch { controller.abort(); state.account.connectionError = true; }
+  finally {
+    clearTimeout(timeout);
+    state.account.initializing = false;
+    renderRecipeAccountScreen();
   }
+}
+
+function renderRecipeAccount(always = false) {
+  const account = state.account, he = state.lang === "he";
+  if (!account.enabled && !always) return "";
+  if (account.initializing) return `<div class="card small" role="status">${he ? "בודק את החשבון..." : "Checking your account..."}</div>`;
+  const disabled = account.busy || account.loading ? "disabled" : "";
+  if (!account.user) return `<section class="card recipe-account">
+    <h3>${he ? "המתכונים שלך" : "Your recipes"}</h3>
+    <p class="small">${he ? "ללא התחברות, המתכונים נשמרים בדפדפן הזה בלבד." : "Without sign-in, recipes are saved only in this browser."}</p>
+    ${account.ready ? `<p class="small">${he ? "התחבר כדי לשמור מתכונים בחשבון ולפתוח אותם גם ממכשיר אחר." : "Sign in to save recipes to your account and access them on other devices."}</p><div class="account-actions">${account.providers.map(provider => `<button type="button" class="btn btn-ghost account-signin" data-recipe-login="${provider}">${he ? "המשך עם" : "Continue with"} ${provider === "google" ? "Google" : "Facebook"}</button>`).join("")}</div><p class="small">${he ? "אם נכנסת מתוך פייסבוק או וואטסאפ, פתח את הקישור ב־Chrome או Safari כדי להתחבר." : "If opened inside Facebook or WhatsApp, open this link in Chrome or Safari to sign in."}</p>` : ""}
+    ${account.connectionError ? `<p class="small" role="alert">${he ? "ההתחברות אינה זמינה כרגע. אפשר לרענן ולנסות שוב; השמירה במכשיר עדיין זמינה." : "Sign-in is unavailable. Refresh to retry; device-only saving still works."}</p>` : ""}
+  </section>`;
+  return `<section class="card recipe-account">
+    <h3>${he ? "המתכונים בחשבון שלך" : "Your account recipes"}</h3>
+    <p class="small account-identity" dir="auto">${escapeHotText(account.user.displayName || account.user.email || (he ? "מחובר" : "Signed in"))}</p>
+    <p class="small">${he ? "המתכונים נשמרים בחשבון וזמינים במכשירים שבהם תתחבר אליו." : "Recipes are saved to your account and available on devices signed into it."}</p>
+    ${account.error ? `<p role="alert" class="small">${he ? "הסנכרון לא הושלם. בדוק את החיבור ונסה שוב." : "Sync did not complete. Check your connection and retry."}</p>` : ""}
+    <div class="account-actions"><button type="button" class="btn btn-ghost" id="refreshRecipes" ${disabled}>${he ? "רענון מתכונים" : "Refresh recipes"}</button><button type="button" class="btn btn-ghost" id="recipeSignOut" ${account.busy ? "disabled" : ""}>${he ? "התנתק" : "Sign out"}</button></div>
+    ${account.guestCount ? `<p class="small">${he ? `${account.guestCount} מתכונים שמורים גם במכשיר הזה. אפשר להעביר אותם לחשבון הנוכחי.` : `${account.guestCount} recipes are saved on this device. You can move them into this account.`}</p><button type="button" class="btn btn-ghost" id="importDeviceRecipes" ${disabled}>${he ? "העבר את מתכוני המכשיר לחשבון" : "Move device recipes into this account"}</button>` : ""}
+    ${account.busy ? `<p class="small" role="status">${he ? "שומר שינויים..." : "Saving changes..."}</p>` : ""}
+    <details><summary>${he ? "ניהול חשבון" : "Account settings"}</summary><button type="button" class="btn btn-ghost" id="deleteRecipeAccount" ${disabled}>${he ? "מחק חשבון ואת כל המתכונים שבו" : "Delete account and all its recipes"}</button></details>
+  </section>`;
+}
+
+function recipeLoginError(error) {
+  const he = state.lang === "he";
+  if (["auth/popup-closed-by-user", "auth/cancelled-popup-request"].includes(error?.code)) return he ? "ההתחברות בוטלה." : "Sign-in cancelled.";
+  if (error?.code === "auth/account-exists-with-different-credential") return he ? "כבר קיים חשבון עם האימייל הזה. התחבר באותה שיטה שבה נרשמת." : "This email already has an account. Use your original sign-in method.";
+  return he ? "לא ניתן להתחבר כרגע. פתח ב־Chrome או Safari, אפשר חלונות קופצים ונסה שוב." : "Could not sign in. Open in Chrome or Safari, allow popups, and retry.";
+}
+
+function bindRecipeAccount() {
+  el.content.querySelectorAll("[data-recipe-login]").forEach(button => button.addEventListener("click", async () => {
+    if (!recipeAccountClient) return;
+    button.disabled = true;
+    try { await recipeAccountClient.login(button.dataset.recipeLogin); }
+    catch (error) { showToast(recipeLoginError(error)); }
+    finally { button.disabled = false; }
+  }));
+  document.getElementById("recipeSignOut")?.addEventListener("click", async () => {
+    try { await recipeAccountClient.logout(); }
+    catch { showToast(state.lang === "he" ? "ההתנתקות לא הושלמה. נסה שוב." : "Sign-out failed. Please retry."); }
+  });
+  document.getElementById("refreshRecipes")?.addEventListener("click", () => recipeStore.refresh());
+  document.getElementById("deleteRecipeAccount")?.addEventListener("click", async () => {
+    if (!window.confirm(state.lang === "he" ? "למחוק את החשבון ואת כל המתכונים שנשמרו בו? הפעולה בלתי הפיכה. תתבקש לאמת את ההתחברות." : "Delete your account and all its saved recipes? This cannot be undone. You will be asked to sign in again.")) return;
+    state.account.busy = true;
+    try {
+      const deletion = recipeAccountClient.deleteAccount();
+      renderRecipeAccountScreen();
+      await deletion;
+      showToast(state.lang === "he" ? "החשבון נמחק" : "Account deleted");
+    } catch { showToast(state.lang === "he" ? "המחיקה לא הושלמה. אפשר לנסות שוב." : "Deletion did not complete. Please retry."); }
+    finally { state.account.busy = false; renderRecipeAccountScreen(); }
+  });
+  document.getElementById("importDeviceRecipes")?.addEventListener("click", async () => {
+    try {
+      if (await recipeStore.importGuests()) showToast(state.lang === "he" ? "המתכונים הועברו לחשבון" : "Recipes moved to your account");
+    } catch { showToast(state.lang === "he" ? "ההעברה לא הושלמה. מתכוני המכשיר נשמרו; אפשר לנסות שוב." : "Import incomplete. Your device recipes were retained; you can retry."); }
+  });
 }
 
 function formatSavedDate(dateString) {
@@ -2151,7 +2278,10 @@ function getLegalContent(type) {
       paragraphs: [
         "The app may collect anonymous usage analytics.",
         "Location, if used, is only for nearby butcher and search results.",
-        "No sensitive personal data should be collected intentionally.",
+        "Without sign-in, saved recipes are stored in this browser. Clearing browser data can remove them.",
+        "When account sign-in is enabled and you choose Google or Facebook, Firebase manages authentication and stores your user identifier and profile information such as name and email. Smoke Radar does not receive your Google or Facebook password.",
+        "Recipes saved while signed in are stored in your private account in Cloud Firestore. Device recipes move to your account only when you choose to import them.",
+        "You can delete individual recipes in My Recipes, or delete your account and its recipes under Account settings. Full details and data deletion instructions: /app/privacy.html.",
         "Analytics are used to improve the app experience."
       ]
     }

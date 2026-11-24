@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/recipes/{recipeId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      allow read, delete: if isOwner();
+      allow create, update: if isOwner()
+        && recipeId.matches('^[a-zA-Z0-9_-]{1,100}$')
+        && request.resource.data.keys().hasOnly(['payload', 'updatedAt', 'schemaVersion'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() <= 200000
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.updatedAt == request.time;
+    }
+    // All other paths are denied by default; no public recipe collection.
+  }
+}

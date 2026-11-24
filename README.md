@@ -52,6 +52,9 @@ This makes it useful for:
 
 ## ⚙️ Tech Stack
 
+Recipe accounts (Google/Facebook + Firebase) are opt-in. See
+[setup and verification](docs/recipe-accounts-setup.md) before enabling them.
+
 - Frontend: HTML, CSS, JavaScript
 - Charts: Chart.js
 - API: YouTube Data API v3

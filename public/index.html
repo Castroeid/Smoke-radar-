@@ -5893,6 +5893,7 @@ updateRecipeActionLabels();
             .map((item) => ({
               name: String(item?.name || "").trim(),
               description: String(item?.description || "").trim(),
+              ingredients: safeList(item?.ingredients),
               steps: safeList(item?.steps)
             }))
             .filter(item => item.name)
@@ -5911,9 +5912,15 @@ updateRecipeActionLabels();
 
       return {
         main: {
+          step_timing: Array.isArray(recipe?.main?.step_timing) ? recipe.main.step_timing.map(t => ({ minutes: Number(t?.minutes) || 0 })) : [],
+          equipment: safeList(recipe?.main?.equipment),
           title: String(recipe?.main?.title || "").trim(),
           description: String(recipe?.main?.description || "").trim(),
           metadata: {
+            meat_weight_g: Number(recipe?.main?.metadata?.meat_weight_g) || null,
+            piece_thickness_cm: Number(recipe?.main?.metadata?.piece_thickness_cm) || null,
+            target_internal_c: Number(recipe?.main?.metadata?.target_internal_c) || null,
+            doneness_cue: String(recipe?.main?.metadata?.doneness_cue || ""),
             prep_time: String(recipe?.main?.metadata?.prep_time || "").trim(),
             cook_time: String(recipe?.main?.metadata?.cook_time || "").trim(),
             total_time: String(recipe?.main?.metadata?.total_time || "").trim(),
@@ -5967,7 +5974,7 @@ updateRecipeActionLabels();
         : `<p>${escapeHtml(t("recipe.ingredientsMissing"))}</p>`;
 
       const mainSteps = (main.steps || []).length
-        ? `<ol>${(main.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+        ? `<ol>${(main.steps || []).map((item, i) => `<li>${escapeHtml(item)}${main.step_timing?.[i]?.minutes ? `<p>${currentLanguage === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${main.step_timing[i].minutes} ${currentLanguage === "he" ? "דקות" : "min"}</p>` : ""}</li>`).join("")}</ol>`
         : `<p>${escapeHtml(t("recipe.stepsMissing"))}</p>`;
       const chefTips = (main.chefTips || []).length
         ? `<ul>${(main.chefTips || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
@@ -5995,9 +6002,9 @@ updateRecipeActionLabels();
         <article class="side-card">
           <h5>${escapeHtml(side.name)}</h5>
           <p>${escapeHtml(side.description)}</p>
+          <ul>${(side.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           <ol class="side-steps">
             ${((side.steps || []).length ? side.steps : [t("recipe.defaultStep")])
-              .slice(0, 3)
               .map(step => `<li>${escapeHtml(step)}</li>`)
               .join("")}
           </ol>
@@ -6017,6 +6024,9 @@ updateRecipeActionLabels();
             <span class="ai-recipe-badge">${escapeHtml(t("recipe.aiPowered"))}</span>
           </div>
 
+          <p>${currentLanguage === "he" ? "נוצר בעזרת AI. המתכון טרם נוסה במטבח; זמני הבישול הם הערכה." : "AI-generated, not kitchen-tested; cooking times are estimates."}</p>
+          ${metadata.meat_weight_g ? `<p>${currentLanguage === "he" ? "המתכון מתוכנן עבור" : "Recipe assumptions:"} ${metadata.meat_weight_g} g · ${metadata.piece_thickness_cm} cm · ${escapeHtml((main.equipment || []).join(" · "))}</p>` : ""}
+          ${metadata.target_internal_c ? `<p>${currentLanguage === "he" ? "טמפרטורת ליבה במתכון:" : "Recipe internal target:"} ${metadata.target_internal_c}°C. ${escapeHtml(metadata.doneness_cue || "")}</p>` : ""}
           <div class="ai-recipe-meta">
             <span class="ai-recipe-chip">🥩 ${escapeHtml(meta.cut || "cut")}</span>
             <span class="ai-recipe-chip">🔥 ${escapeHtml(meta.method || "method")}</span>
