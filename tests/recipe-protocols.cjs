@@ -54,6 +54,59 @@ test('sous-vide bath duration follows thickness, not number of portions', () => 
   }
 });
 
+test('every basic cooking method generates its own equipment and instructions and survives saving', () => {
+  for (const language of ['he', 'en']) for (const meatType of ['beef', 'lamb', 'veal']) {
+    for (const cutId of ['ribeye', 'brisket', 'asado', 'picanha', 'sirloin', 'filet', 'short_ribs', 'chuck', 'flank', 'striploin', 'tenderloin']) {
+      for (const methodId of Protocols.basicMethods(cutId)) for (const servings of [1, 4, 20]) {
+        const c = { ...base, language, meatType, cutId, methodId, servings };
+        const r = Fallback.create(c, 'network');
+        assert.deepEqual(Quality.check(r, c).issues, [], JSON.stringify(c));
+        assert.doesNotMatch(r.main.equipment.join(' '), /מדחום|thermometer|sous.vide|circulator|vacuum/i);
+        const saved = Store.normalize({ ...r, id: 'basic-method', title: r.main.title, preferences: c });
+        assert.equal(saved.preferences.methodId, methodId);
+        assert.equal(Quality.review(saved, saved.preferences).passed, true);
+        const instructions = r.main.steps.join(' '), equipment = r.main.equipment.join(' ');
+        if (['grill', 'bbq', 'oven', 'bbq_finish'].includes(methodId)) {
+          assert.equal(saved.main.metadata.cooking_method, methodId);
+          assert.equal(saved.main.metadata.cooking_protocol, 'basic_v2');
+          assert.match(instructions, /אדים|steam/);
+          assert.match(instructions, /בודקים שוב|recheck/);
+          if (methodId === 'oven' || methodId === 'bbq_finish') assert.match(equipment, /תנור|Oven/);
+          else assert.doesNotMatch(equipment, /תנור|Oven|כיריים|Hob|מחבת|frying pan/);
+          if (methodId === 'bbq_finish') {
+            assert.match(instructions, /אחרי שהבשר כבר רך ומבושל|after cooking and tenderising are complete/);
+            assert.match(equipment, /ללא מכסה|lid is not needed/);
+          } else if (Protocols.tough(cutId) && ['grill', 'bbq'].includes(methodId)) {
+            assert.match(equipment, /עם מכסה|with lid/);
+            assert.match(instructions, /ללא מבער דולק או גחלים מתחתיה|no lit burner or coals underneath/);
+          } else if (!Protocols.tough(cutId)) assert.equal(r.main.metadata.piece_thickness_cm, 1.5);
+        }
+        for (const [i, step] of r.main.steps.entries()) {
+          const tip = Guidance.tipFor(step, { recipe: r, context: c, phase: r.main.step_timing[i].phase }, language);
+          assert.notEqual(tip.id, 'thermometer');
+          assert.notEqual(tip.id, 'preheat', 'do not suggest an oven thermometer in the basic path');
+        }
+      }
+    }
+  }
+});
+
+test('grill and barbecue selection is enforced by the API and recipe validator', async () => {
+  for (const cutId of ['ribeye', 'picanha', 'brisket']) for (const methodId of Protocols.basicMethods(cutId)) {
+    const query = { ...base, cutId, methodId, lang: 'he' };
+    const { status, result } = await call(query, false);
+    assert.equal(status, 200);
+    assert.equal(Quality.review(result.structuredRecipe, query).passed, true);
+    if (methodId === 'grill') assert.equal(Quality.review(result.structuredRecipe, { ...query, methodId: 'bbq' }).usable, false, 'gas instructions cannot masquerade as a charcoal recipe');
+  }
+  for (const query of [
+    { ...base, cutId: 'brisket', methodId: 'pan_sear' },
+    { ...base, methodId: 'bbq_finish' },
+    { ...base, methodId: 'smoker' },
+    { ...base, methodId: 'unknown' }
+  ]) assert.equal((await call(query)).status, 400, 'unsupported basic combinations fail rather than silently changing method');
+});
+
 test('equipment flags cannot exempt arbitrary instructions or altered schedules from safety checks', () => {
   const c = { ...base, equipmentMode: 'standard', methodId: 'sous_vide' };
   for (const change of [

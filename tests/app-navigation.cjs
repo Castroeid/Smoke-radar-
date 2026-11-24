@@ -59,6 +59,8 @@ test('basic cookware and sous vide change the request, recipe, tips and saved ch
     const select = (id, value) => { const input = c.d.getElementById(id); input.value = value; input.dispatchEvent(new c.w.Event('change')); };
     c.d.querySelector('[data-choice="feel"]').click();
     select('cutId', 'picanha'); select('equipmentMode', 'basic');
+    assert.equal(c.d.getElementById('methodId').value, 'grill', 'retain a still-compatible selected method');
+    select('methodId', 'pan_sear');
     assert.equal(c.d.getElementById('methodId').value, 'pan_sear');
     assert.equal(c.d.querySelector('#methodId option[value="sous_vide"]'), null);
     assert.equal(c.d.getElementById('thicknessField').hidden, true);
@@ -108,6 +110,42 @@ test('home is hidden on landing and available elsewhere without deleting recipe 
     }
     c.execute('state.lang = "en"; render();');
     assert.equal(c.d.getElementById('homeBtn').textContent, 'Home');
+  } finally { c.dom.window.close(); }
+});
+
+test('basic mode exposes grill, charcoal and oven choices with cut-specific help and retains the chosen method', { skip: !JSDOM }, async () => {
+  const c = await setup();
+  const Fallback = require('../public/app/recipe-fallback.js');
+  const { requestContext } = require('../lib/recipe-generation.js');
+  try {
+    let request;
+    c.w.fetch = async url => {
+      request = requestContext(Object.fromEntries(new URL(url, c.w.location.href).searchParams));
+      return { ok: true, json: async () => ({ structuredRecipe: Fallback.create(request) }) };
+    };
+    const select = (id, value) => { const input = c.d.getElementById(id); input.value = value; input.dispatchEvent(new c.w.Event('change')); };
+    const options = () => [...c.d.querySelectorAll('#methodId option')].map(x => x.value);
+    c.d.querySelector('[data-choice="feel"]').click(); select('equipmentMode', 'basic');
+    assert.deepEqual(options(), ['pan_sear', 'grill', 'bbq', 'oven']);
+    select('methodId', 'bbq'); select('cutId', 'picanha');
+    assert.equal(c.d.getElementById('methodId').value, 'bbq');
+    assert.match(c.d.getElementById('methodId').selectedOptions[0].textContent, /מנגל פחמים/);
+    select('cutId', 'brisket');
+    assert.deepEqual(options(), ['long_cook', 'oven', 'grill', 'bbq', 'bbq_finish']);
+    assert.equal(c.d.getElementById('methodId').value, 'bbq');
+    assert.match(c.d.getElementById('methodHelperText').textContent, /חום עקיף.*מכסה/);
+    c.click('nextBtn'); await settle(); await settle();
+    assert.equal(request.methodId, 'bbq');
+    assert.match(c.d.querySelector('.recipe-cooking-facts').textContent, /מנגל פחמים עם מכסה/);
+    assert.equal(c.execute('state.recipe.main.metadata.cooking_method'), 'bbq');
+    await c.execute('saveCurrentRecipe()');
+    c.click('homeBtn'); c.click('openSavedRecipesBtn'); c.d.querySelector('[data-open-recipe]').click();
+    assert.equal(c.execute('state.preferences.methodId'), 'bbq');
+    assert.equal(c.execute('RecipeQuality.review(state.recipe, state.preferences).passed'), true);
+    c.click('regenBtn'); select('methodId', 'bbq_finish');
+    assert.match(c.d.getElementById('methodHelperText').textContent, /לא צריך מכסה/);
+    select('cutId', 'ribeye');
+    assert.equal(c.d.getElementById('methodId').value, 'pan_sear', 'reset only an incompatible choice');
   } finally { c.dom.window.close(); }
 });
 

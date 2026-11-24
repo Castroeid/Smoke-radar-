@@ -16,6 +16,25 @@
   const BATH_MINUTES = Object.freeze({ 2: 75, 2.5: 90, 3: 105, 4: 120, 5: 150 });
   const names = { ribeye: ["אנטריקוט", "ribeye"], brisket: ["בריסקט", "brisket"], asado: ["אסאדו", "short ribs"], picanha: ["פיקניה", "picanha"], sirloin: ["סינטה", "sirloin"], filet: ["פילה", "fillet"], short_ribs: ["שפונדרה", "short ribs"], chuck: ["כתף / צוואר", "chuck"], flank: ["פלנק", "flank"], striploin: ["סינטה", "striploin"], tenderloin: ["פילה", "tenderloin"] };
   const tough = cut => ["brisket", "asado", "short_ribs", "chuck"].includes(cut);
+  const basicMethods = cut => tough(cut) ? ["long_cook", "oven", "grill", "bbq", "bbq_finish"] : ["pan_sear", "grill", "bbq", "oven"];
+  function basicMethodLabel(method, cut, language = "he") {
+    const slow = tough(cut), labels = {
+      pan_sear: ["מחבת רגילה", "Ordinary pan"], long_cook: ["סיר — בישול ארוך", "Pot — slow cooking"],
+      oven: ["תנור", "Oven"], grill: slow ? ["גריל גז — בישול עקיף עם מכסה", "Gas grill — covered indirect cooking"] : ["גריל גז", "Gas grill"],
+      bbq: slow ? ["מנגל פחמים עם מכסה — בישול עקיף", "Charcoal barbecue — covered indirect cooking"] : ["מנגל פחמים", "Charcoal barbecue"],
+      bbq_finish: ["מנגל פתוח — ריכוך בתנור וסיום על הגחלים", "Open barbecue — oven braise, then charcoal finish"]
+    };
+    return labels[method]?.[language === "he" ? 0 : 1] || method;
+  }
+  function basicMethodHelp(method, cut, language = "he") {
+    const slow = tough(cut), he = language === "he";
+    if (method === "bbq_finish") return he ? "מרככים בתנור בתבנית מכוסה ומסיימים על מנגל פתוח. נדרשים תנור ומנגל; לא צריך מכסה למנגל." : "Tenderise in a covered oven dish, then finish on an open charcoal barbecue. Requires both an oven and barbecue; no barbecue lid needed.";
+    if (slow && ["grill", "bbq"].includes(method)) return he ? "הנתח יתבשל בתבנית מכוסה בנוזלים, בחום עקיף ובמכשיר עם מכסה. למנגל ללא מכסה בחרו באפשרות של ריכוך בתנור וסיום על הגחלים." : "Cook in a covered dish with liquid over indirect heat, in a barbecue with a lid. Without a lid, choose the oven-braise and charcoal-finish option.";
+    if (slow && method === "oven") return he ? "בישול ממושך בתבנית מכוסה בתנור, עם נוזלים ובדיקת רכות במזלג." : "Slow oven cooking in a covered dish with liquid and a fork-tenderness check.";
+    if (slow) return he ? "קדירה בסיר רגיל, עם בדיקות רכות וחום במרכז." : "An ordinary pot stew with tenderness and central heat checks.";
+    if (method === "pan_sear") return he ? "רצועות דקות במחבת רגילה, עם בדיקות מוכנות. ללא מדחום, המסלול מיועד לבישול מלא." : "Thin strips in an ordinary pan with readiness checks. The no-thermometer path aims for cooking throughout.";
+    return he ? "סטייקים בעובי עד 1.5 ס״מ, עם הוראות לחום, הפיכה ובדיקת מוכנות לפי השיטה שבחרת. ללא מדחום, המסלול מיועד לבישול מלא." : "Steaks up to 1.5 cm thick, with method-specific heat, turning and readiness checks. The no-thermometer path aims for cooking throughout.";
+  }
   const requested = c => c.equipmentMode === "basic" || c.methodId === "sous_vide";
   function createMain(context = {}) {
     if (!requested(context)) return null;
@@ -23,6 +42,8 @@
     const sv = context.methodId === "sous_vide", slow = tough(context.cutId);
     if (!Object.hasOwn(names, context.cutId) || !["beef", "lamb", "veal"].includes(context.meatType || "beef")) throw new Error("unsupported_cooking_selection");
     if (sv && context.equipmentMode === "basic") throw new Error("sous_vide_requires_equipment");
+    const method = context.methodId || (slow ? "long_cook" : "pan_sear");
+    if (!sv && !basicMethods(context.cutId).includes(method)) throw new Error("unsupported_basic_method");
     const thickness = sv ? Number(context.thicknessCm || 2.5) : slow ? 3 : 0.5;
     if (sv && !THICKNESSES.includes(thickness)) throw new Error("invalid_thickness");
     const n = Math.max(1, Math.min(20, Math.floor(Number(context.servings) || 4)));
@@ -39,6 +60,9 @@
       israeli_style: ["פפריקה מתוקה וכמון בחלקים שווים", "equal parts sweet paprika and cumin"]
     };
     if (Object.hasOwn(seasonings, flavor)) ingredients.push(`${n * .25} ${tsp} ${seasonings[flavor][he ? 0 : 1]}`);
+    if (!sv && ["grill", "bbq", "oven", "bbq_finish"].includes(method)) {
+      return expandedBasicMain({ context, method, slow, n, weight, meat, ingredients, t, g, ml });
+    }
     const steps = [], step_timing = [];
     const add = (a, b, phase, minutes) => { steps.push(t(a, b)); step_timing.push({ phase, minutes }); };
     let equipment, cue, bath, hold, bathStep;
@@ -82,6 +106,67 @@
         cooking_language: he ? "he" : "en", cooking_protocol: sv ? "sous_vide_v1" : "basic_v1", ...(sv ? { bath_temperature_c: bath, bath_minutes: hold, bath_step_index: bathStep } : {}) }
     };
   }
+  function expandedBasicMain({ context, method, slow, n, weight, meat, ingredients, t, g, ml }) {
+    const charcoal = method === "bbq" || method === "bbq_finish";
+    const finish = method === "bbq_finish", oven = method === "oven" || finish;
+    const portions = Math.ceil(weight / 600), steps = [], step_timing = [];
+    const add = (a, b, phase, minutes) => { steps.push(t(a, b)); step_timing.push({ phase, minutes }); };
+    const grillSetup = (indirect = false) => {
+      if (charcoal) add(
+        `מדליקים את המנגל בחוץ לפי הוראות היצרן. ממתינים לגחלים זוהרות עם שכבת אפר אפורה ולדעיכת הלהבות, ומסדרים אותן בצד אחד כדי להשאיר גם אזור ללא גחלים מתחתיו.${indirect ? " נדרש מנגל עם מכסה; מחממים עם המכסה סגור ומשאירים זרימת אוויר לפי הוראות היצרן." : " מנקים את הרשת וממתינים שתתחמם; אין להניח בשר מעל להבות."}`,
+        `Light the charcoal barbecue outdoors following its manual. Wait for glowing coals with grey ash and for flames to die down; bank coals on one side, leaving an area with no coals beneath it.${indirect ? " A barbecue lid is required; preheat with it closed and maintain airflow as the manufacturer directs." : " Clean and preheat the grate; do not put meat over flames."}`, "prep", 25);
+      else add(
+        `מדליקים את גריל הגז בחוץ ומחממים לפי הוראות היצרן. מכוונים אזור אחד לחום בינוני ומשאירים מבער אחר כבוי, כדי שיהיה גם אזור ללא אש ישירה.${indirect ? " נדרש גריל עם מכסה, שסוגרים בזמן הבישול העקיף." : " מנקים את הרשת; אם הבשר משחים מהר, אפשר להעביר לאזור החלש."}`,
+        `Light and preheat the gas grill outdoors following its manual. Set one zone to medium heat and leave another burner off for an area without direct heat.${indirect ? " A grill lid is required and stays closed during indirect cooking." : " Clean the grate; move meat to the gentler zone if it browns too quickly."}`, "prep", 15);
+    };
+    let equipment, cue;
+    if (slow) {
+      ingredients.push(`${n * 50} ${g} ${t("בצל", "onion")}`, `${n * 150} ${ml} ${t("מים רותחים, ועוד לפי הצורך עד שני שלישים מגובה הבשר", "boiling water, plus more as needed to reach two-thirds up the meat")}`);
+      equipment = [t(oven ? "תנור" : charcoal ? "מנגל פחמים עם מכסה" : "גריל גז עם מכסה", oven ? "Oven" : charcoal ? "Charcoal barbecue with lid" : "Gas grill with lid"),
+        t("תבנית מתכת עמוקה ורדיד אלומיניום לכיסוי הדוק", "Deep metal roasting dish and foil for a tight cover"), t("קומקום או סיר להרתחת מים", "Kettle or pot for boiling water"),
+        t("קרש וסכין", "Board and knife"), t("מזלג ומלקחיים", "Fork and tongs"), t("כפפות חום", "Heat-resistant gloves")];
+      if (finish) equipment.push(t("מנגל פחמים, גם ללא מכסה", "Charcoal barbecue; a lid is not needed"));
+      add("משתמשים בבשר מופשר וללא עצם. חותכים לחלקים שטוחים בעובי עד 3 ס״מ, מסירים גידים עבים ושומן עודף ופורסים את הבצל. מערבבים את כל המלח, הפלפל ושאר התבלינים. מצפים את הבשר בשמן הזית ובתערובת התיבול.", "Use thawed, boneless meat. Cut into flat pieces no thicker than 3 cm, trim thick sinew and excess fat, and slice the onion. Mix all the salt, pepper and other seasonings. Coat the meat with the olive oil and seasoning mixture.", "prep", 15);
+      if (oven) add("מחממים תנור ל־170°C בחום עליון ותחתון. בוחרים תבנית מתכת עמוקה שתכיל את הבשר בשכבה אחת; לכמות גדולה משתמשים בכמה תבניות או מבשלים בסבבים.", "Preheat the oven to 170°C using conventional top and bottom heat. Choose a deep metal dish that holds the meat in one layer; use more dishes or cook separate batches for a large quantity.", "prep", 15);
+      else grillSetup(true);
+      add("מפזרים את הבצל בתבנית ומניחים מעליו את הבשר בשכבה אחת. יוצקים את המים הרותחים עד כשני שלישים מגובה הבשר ומכסים היטב ברדיד אלומיניום. משאירים מרווח משפת התבנית למניעת גלישה.", "Spread the onion in the dish and arrange the meat on top in one layer. Add boiling water to about two-thirds of the meat's height and seal tightly with foil. Leave room below the rim to prevent spills.", "prep", 5);
+      add(oven
+        ? "מכניסים למדף האמצעי בתנור. מבשלים מכוסה בבעבוע עדין של הנוזלים. פותחים בזהירות לבדיקה כל 45 דקות, הופכים את הבשר ומוסיפים מים רותחים אם חסר. מחזירים את הכיסוי; אם הנוזל רותח בחוזקה מפחיתים מעט את חום התנור."
+        : "מניחים את התבנית על הרשת באזור ללא מבער דולק או גחלים מתחתיה, וסוגרים את מכסה הגריל או המנגל. שומרים על בעבוע עדין של הנוזלים. בודקים בזהירות כל 45 דקות, הופכים את הבשר, מוסיפים מים רותחים אם חסר ומחזירים את שני הכיסויים. מווסתים חום ומחדשים גחלים לפי הוראות היצרן; אם אין בעבוע, מחזקים את החום בלי להעביר לאש ישירה.",
+        oven
+          ? "Place on the middle oven shelf. Cook covered with the liquid gently bubbling. Carefully check every 45 minutes, turn the meat and top up with boiling water if needed, then reseal. Lower the oven heat slightly if the liquid boils vigorously."
+          : "Place the dish on the grate with no lit burner or coals underneath and close the barbecue lid. Maintain gentle bubbling in the liquid. Carefully check every 45 minutes, turn the meat, top up with boiling water as needed and replace both covers. Adjust heat and replenish coals as the manufacturer directs; if there is no bubbling, increase heat without moving the dish over direct heat.", "cook", 180);
+      add("בודקים כמה מהחלקים העבים: מזלג צריך להיכנס בקלות והבשר צריך להיפרד בלחיצה. פותחים בסכין נקייה ובודקים אדים גם מהמרכז ובישול לכל העובי. אם הבשר עדיין קשה או לא חם במרכז, ממשיכים מכוסה באותה שיטה ובודקים שוב כל 20 דקות. זמן וצבע בלבד אינם סימן מוכנות.", "Check several of the thickest pieces: a fork should enter easily and the meat should pull apart under pressure. Cut open with a clean knife and check for steam from the centre and cooking throughout. If still tough or not hot in the middle, continue covered with the same method and recheck every 20 minutes. Time and colour alone do not establish readiness.", "cook", 0);
+      if (finish) {
+        add("משאירים את הבשר המוכן בתנור בתוך נוזליו כשהוא מכוסה וחם, ומכינים את המנגל. עוברים לצריבה מיד כשהגחלים מוכנות; אין לקרר את הבשר חלקית בין שלבי ההכנה.", "Keep the cooked meat covered and hot in its liquid in the oven while preparing the barbecue. Proceed to searing as soon as the coals are ready; do not partially cool the meat between stages.", "prep", 0);
+        grillSetup(false);
+        add("מוציאים בעדינות את הבשר המוכן מהנוזלים ומניחים על הרשת מעל הגחלים המתונות. צורבים בקצרה מכל צד עד השחמה, עם מלקחיים רחבים כדי שהבשר לא יתפרק. אם עולות להבות מזיזים לאזור ללא גחלים. זהו שלב השחמה בלבד אחרי שהבשר כבר רך ומבושל; שומרים את נוזלי הבישול להגשה.", "Gently lift the fully cooked meat from the liquid and put it on the grate over moderate coals. Briefly brown each side, using broad tongs to keep the tender meat together. Move to the coal-free area if flames rise. This is a browning finish after cooking and tenderising are complete; reserve the cooking liquid for serving.", "cook", portions * 4);
+      }
+      add(finish ? "מעבירים לצלחת נקייה ומגישים עם הבצל ומעט נוזלי הבישול. פורסים נגד הסיבים לפי הצורך." : "מוציאים מהחום ומשאירים מכוסה בנוזלי הבישול למנוחה. מגישים עם הבצל והנוזלים, ופורסים נגד הסיבים לפי הצורך.", finish ? "Transfer to a clean plate and serve with the onion and some cooking liquid. Slice across the grain if needed." : "Remove from the heat and rest covered in the cooking liquid. Serve with the onion and liquid, slicing across the grain if needed.", "rest", finish ? 0 : 10);
+      cue = t("בשר רך למזלג, שמתפרק בלחיצה ומעלה אדים גם מהמרכז; ממשיכים לבשל אם עדיין קשה.", "Fork-tender meat that pulls apart under pressure and steams at the centre; continue cooking if still tough.");
+    } else {
+      equipment = [t(oven ? "תנור ותבנית מתכת שטוחה" : charcoal ? "מנגל פחמים" : "גריל גז", oven ? "Oven and shallow metal tray" : charcoal ? "Charcoal barbecue" : "Gas grill"),
+        t("קרש וסכין", "Board and knife"), t("מלקחיים וצלחת נקייה", "Tongs and a clean plate"), t("כפפות חום", "Heat-resistant gloves")];
+      add("משתמשים בבשר מופשר וללא עצם. חותכים לסטייקים בעובי אחיד של עד 1.5 ס״מ, מסירים גידים ושומן חיצוני עודף; בפיקניה משאירים שכבת שומן דקה של עד חצי ס״מ. מערבבים את כל המלח, הפלפל ושאר התבלינים ומורחים על הבשר יחד עם שמן הזית.", "Use thawed, boneless meat. Cut into even steaks no thicker than 1.5 cm and trim sinew and excess external fat; leave no more than a 0.5 cm fat cap on picanha. Mix all the salt, pepper and other seasonings and coat the meat with them and the olive oil.", "prep", 15);
+      if (oven) add("מחממים תנור ל־220°C בחום עליון ותחתון ומניחים את הבשר בתבנית מתכת בשכבה אחת, עם מרווחים. לכמות גדולה משתמשים בכמה תבניות או בסבבים.", "Preheat the oven to 220°C using conventional top and bottom heat. Arrange the meat in a metal tray in a single layer with space between pieces. Use additional trays or batches for large quantities.", "prep", 15);
+      else grillSetup();
+      add(oven
+        ? "צולים במדף האמצעי. הופכים באמצע ההכנה כדי להשחים משני הצדדים; אם התיבול משחים מהר מדי, מפחיתים ל־190°C. מתחילים לבדוק מוכנות לפני סוף הזמן המשוער, במיוחד בסטייקים דקים יותר."
+        : "מניחים על הרשת בחום בינוני, עם מרווחים. הופכים במהלך הצלייה להשחמה משני הצדדים. מתחילים לבדוק מוקדם; אם החוץ משחים מהר מדי או השומן מתלקח, מעבירים לאזור החלש וממשיכים עד שהמרכז מוכן. הזמן כולל הערכה לסבבים בכמות גדולה.",
+        oven
+          ? "Roast on the middle shelf, turning halfway to brown both sides. Reduce to 190°C if the seasoning darkens too quickly. Begin checking before the estimated time ends, especially for thinner steaks."
+          : "Place on the grate over medium heat with space between steaks. Turn during cooking to brown both sides. Start checking early; if the outside darkens too quickly or fat flares up, move to the gentler zone and continue until the centre is cooked. The time estimates batches for a larger quantity.", "cook", oven ? 18 * portions : 12 * portions);
+      add(`פותחים את החלק העבה בכל סטייק בסכין נקייה ובודקים שהוא מעלה אדים גם מהמרכז ומבושל לכל עוביו, ללא מרקם נא. אם לא, ממשיכים ${oven ? "בתנור" : "על הרשת בחום מתון"} ובודקים שוב כל 2 דקות. משלבים חום במרכז ומרקם; צבע והשחמה מבחוץ לבדם אינם מספיקים.`, `Cut into the thickest part of each steak with a clean knife and check that it steams at the centre and is cooked throughout with no raw texture. Otherwise continue ${oven ? "in the oven" : "on the grate over moderate heat"} and recheck every 2 minutes. Combine central heat and texture checks; colour and exterior browning alone are insufficient.`, "cook", 0);
+      add("מעבירים לצלחת נקייה למנוחה קצרה ומגישים חם. פורסים נגד כיוון הסיבים.", "Transfer to a clean plate for a short rest, then serve hot. Slice across the grain.", "rest", 3);
+      cue = t("סטייקים בעובי עד 1.5 ס״מ, מבושלים לכל העובי ומעלים אדים מהמרכז. אין יעד מדויק של מדיום ללא מדידה.", "Steaks no thicker than 1.5 cm, cooked throughout and steaming at the centre. Precise medium doneness is not targeted without measurement.");
+    }
+    return {
+      title: `${meat} — ${basicMethodLabel(method, context.cutId, context.language)}`,
+      description: basicMethodHelp(method, context.cutId, context.language), ingredients, steps, step_timing, equipment, chefTips: [],
+      metadata: { servings: n, meat_weight_g: weight, piece_thickness_cm: slow ? 3 : 1.5, doneness_cue: cue, difficulty: t("קל לעקוב", "Easy to follow"),
+        cooking_language: context.language === "he" ? "he" : "en", cooking_protocol: "basic_v2", cooking_method: method }
+    };
+  }
   function matches(main, context) {
     let expected;
     try { expected = createMain({ ...context, language: context.language || main?.metadata?.cooking_language }); } catch { return false; }
@@ -92,5 +177,5 @@
     for (const [key, value] of Object.entries(expected.metadata)) if (String(main.metadata?.[key]) !== String(value)) return false;
     return main.metadata?.target_internal_c == null;
   }
-  return { SOURCES, THICKNESSES, BATH_MINUTES, tough, requested, createMain, matches };
+  return { SOURCES, THICKNESSES, BATH_MINUTES, tough, basicMethods, basicMethodLabel, basicMethodHelp, requested, createMain, matches };
 });
