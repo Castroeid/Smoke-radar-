@@ -94,7 +94,7 @@
     else for (const key of Object.keys(totals)) if (m[key] !== totals[key]) issues.push(`main.metadata.${key}: must equal the sum of step_timing`);
     list(recipe.main?.steps).forEach((s, i) => {
       const bounds = durationBounds(s), minutes = recipe.main?.step_timing?.[i]?.minutes;
-      if (bounds && (minutes < bounds.min - 1 || minutes > bounds.max + 1)) issues.push(`main.steps[${i}]: duration in text must agree with step_timing, counting both sides and all cooking stages`);
+      if (bounds && (minutes < bounds.min - 1 || minutes > bounds.max + 1)) issues.push(`main.steps[${i}]: text states ${bounds.min}-${bounds.max} minutes but minutes is ${typeof minutes === "number" ? minutes : "missing"}; remove durations from text and give the correct total in minutes, counting both sides and all cooking stages`);
     });
     const servings = Number(m.servings);
     if (!Number.isInteger(servings) || servings < 1 || servings > 20 || (context.servings !== undefined && servings !== Number(context.servings))) issues.push("main.metadata.servings: must match requested servings");
@@ -140,5 +140,5 @@
       drinkPairings: list(recipe.drinkPairings).filter(d => text(d?.name)).map(d => ({ name: d.name, description: d.description || "" }))
     };
   }
-  return { VERSION, SOURCE_URL, check, normalize, safetyReference, cookingReference, prepareDraft };
+  return { VERSION, SOURCE_URL, INGREDIENT_PATTERN: quantity.source, check, normalize, safetyReference, cookingReference, prepareDraft };
 });
