@@ -79,6 +79,10 @@
           const amount = line.match(/^\s*(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/);
           const positive = amount ? Number(amount[1].replace(",", ".")) > 0 && (!amount[2] || Number(amount[2]) > 0) : /^\s*[¼½¾]/.test(line);
           if (!quantity.test(line) || !positive) issues.push(`${name}.ingredients[${i}]: positive numeric amount and explicit unit required`);
+          const liquidUnit = /^\s*(?:\d+(?:[.,]\d+)?(?:\s*\/\s*\d+)?|[¼½¾])\s*(?:ml|l|liters?|litres?|מ[״"']?ל|ליטר(?:ים)?)(?:\s|$)/i.test(line);
+          const vegetable = /מלפפו|עגבני|בצל|גזר|תפוחי?\s+אדמה|חסה|\b(cucumbers?|tomato(?:es)?|onions?|carrots?|potato(?:es)?|lettuce)\b/i.test(line);
+          const liquidForm = /מיץ|מחית|רסק|רוטב|ציר|\b(juice|puree|purée|paste|sauce|stock|broth)\b/i.test(line);
+          if (liquidUnit && vegetable && !liquidForm) issues.push(`${name}.ingredients[${i}]: solid vegetables require weight, count or cup measures, not ml/l; reserve ml/l for an explicitly named juice, puree or sauce`);
         });
       }
       if (!strings(item?.steps) || item.steps.length < minSteps || item.steps.length > 20) issues.push(`${name}: preparation steps are incomplete`);

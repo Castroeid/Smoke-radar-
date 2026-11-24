@@ -13,6 +13,9 @@ AI-generated / not kitchen-tested note. It is not a guarantee of safety or taste
   methods. Invalid output gets one repair attempt, then a recoverable error.
 - Every main/sauce/side requires ingredient amounts/units and instruction lists.
   Side ingredients are retained in both the mobile and desktop interfaces.
+  Common solid vegetables cannot use ml/l unless explicitly described as juice,
+  puree, paste, sauce or stock. This catches an observed cucumber-unit error;
+  it is a targeted consistency check, not validation of all ingredient meanings.
 - Numeric metadata includes servings, assumed total meat weight, piece thickness,
   equipment, prep (including marination), cooking, rest and total minutes. The
   main meat weight and time totals must agree with their corresponding fields.
