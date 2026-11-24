@@ -38,6 +38,17 @@ test("serving mismatch, missing weight, conflicting weight and time arithmetic f
   ]) { const r = fixture(); mutate(r); assert.equal(Quality.check(r, context).passed, false); }
 });
 
+test("solid vegetable measurements cannot masquerade as liquid units, while juices and purees remain valid", () => {
+  for (const line of ['1 מ"ל מלפפון', '1 מל cucumber', '100 ml carrots', '2 ליטר תפוחי אדמה']) {
+    const r = fixture(); r.sides[0].ingredients.push(line);
+    assert.equal(Quality.check(r, context).passed, false, line);
+  }
+  for (const line of ['1 יחידה מלפפון', '200 גרם מלפפון', '1 כוס מלפפון קצוץ', '30 מ"ל מיץ מלפפון', '200 ml tomato puree']) {
+    const r = fixture(); r.sides[0].ingredients.push(line);
+    assert.equal(Quality.check(r, context).passed, true, line);
+  }
+});
+
 test("total time comes from every step, including additional finishing and resting", () => {
   const r = fixture();
   r.main.steps.splice(3, 0, "מסירים את הכיסוי ומשחימים בתנור.");
