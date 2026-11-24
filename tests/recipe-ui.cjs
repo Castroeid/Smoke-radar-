@@ -16,7 +16,7 @@ test('full app keeps guest recipes, renders saved content safely and switches ac
     window.Image = class { set src(value) { queueMicrotask(() => this.onload?.()); } };
     const guest = { id: 'old-local', title: 'Old recipe', createdAt: '2026-11-22T00:00:00Z', main: { title: 'Old recipe', ingredients: ['salt'], steps: ['Cook'] } };
     window.localStorage.setItem('smoke_radar_saved_recipes_v1', JSON.stringify([guest]));
-    for (const file of ['hot-topics.js', 'recipe-protocols.js', 'recipe-quality.js', 'recipe-guidance.js', 'recipe-fallback.js', 'recipe-store.js', 'app.js']) execute(fs.readFileSync(`public/app/${file}`, 'utf8'));
+    for (const file of ['hot-topics.js', 'recipe-protocols.js', 'recipe-quality.js', 'recipe-guidance.js', 'recipe-fallback.js', 'recipe-store.js', 'butcher-guide.js', 'app.js']) execute(fs.readFileSync(`public/app/${file}`, 'utf8'));
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(window.document.querySelector('[data-recipe-login]'), null);
     window.document.getElementById('openSavedRecipesBtn').click();

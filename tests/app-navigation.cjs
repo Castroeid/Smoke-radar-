@@ -18,7 +18,7 @@ async function setup() {
   w.scrollTo = () => {};
   w.fetch = async url => ({ ok: true, json: async () => url.includes('recipe-account-config') ? { enabled: false } : { structuredRecipe: recipe } });
   w.Image = class { set src(value) { queueMicrotask(() => this.onload?.()); } };
-  for (const file of ['hot-topics.js', 'recipe-protocols.js', 'recipe-quality.js', 'recipe-guidance.js', 'recipe-fallback.js', 'recipe-store.js', 'app.js']) execute(fs.readFileSync(`public/app/${file}`, 'utf8'));
+  for (const file of ['hot-topics.js', 'recipe-protocols.js', 'recipe-quality.js', 'recipe-guidance.js', 'recipe-fallback.js', 'recipe-store.js', 'butcher-guide.js', 'app.js']) execute(fs.readFileSync(`public/app/${file}`, 'utf8'));
   await settle();
   const screen = () => d.getElementById('app').dataset.step;
   const click = id => { const e = d.getElementById(id); assert.ok(e, id); e.click(); };
@@ -95,7 +95,7 @@ test('home is hidden on landing and available elsewhere without deleting recipe 
   const c = await setup();
   try {
     c.execute(`state.recipe = ${JSON.stringify(c.recipe)}; state.shopping = buildShoppingList(state.recipe); state.butcherLoaded = true;`);
-    for (const screen of ['landing', 'saved', 'hot', 'preferences', 'expert', 'cook', 'recipe', 'shopping', 'butcher']) {
+    for (const screen of ['landing', 'saved', 'hot', 'preferences', 'expert', 'cook', 'recipe', 'shopping', 'butcher', 'butcherGuide']) {
       c.execute(`currentStep = STEPS.indexOf('${screen}'); render();`);
       assert.equal(c.d.getElementById('homeBtn').getAttribute('aria-label'), 'חזרה למסך הבית');
       assert.equal(c.d.getElementById('homeBtn').hidden, screen === 'landing');
@@ -110,6 +110,66 @@ test('home is hidden on landing and available elsewhere without deleting recipe 
     }
     c.execute('state.lang = "en"; render();');
     assert.equal(c.d.getElementById('homeBtn').textContent, 'Home');
+  } finally { c.dom.window.close(); }
+});
+
+test('butcher guide updates the copied request without changing the recipe, and Back follows its entry route', { skip: !JSDOM }, async () => {
+  const c = await setup();
+  try {
+    let copied;
+    Object.defineProperty(c.w.navigator, 'clipboard', { configurable: true, value: { writeText: async text => { copied = text; } } });
+    c.execute(`state.recipe = ${JSON.stringify(c.recipe)};`);
+    c.click('openButcherGuide');
+    assert.equal(c.screen(), 'butcherGuide');
+    assert.equal(c.d.querySelector('.butcher-guide-notes').open, false);
+    assert.equal(c.d.getElementById('nextBtn').classList.contains('hidden'), true);
+    assert.match(c.d.getElementById('butcherRequestText').textContent, /המבורגר.*800.*אונטריב/);
+    const select = (id, value) => { const e = c.d.getElementById(id); e.value = value; e.dispatchEvent(new c.w.Event('change')); };
+    select('butcherGoal', 'stir_fry'); select('butcherServings', '6');
+    c.click('copyButcherRequest'); await settle();
+    assert.match(copied, /6 מנות.*1200.*שייטל.*13.*רצועות/);
+    assert.equal(c.execute('state.preferences.servings'), 4);
+    assert.equal(c.execute('state.recipe.main.title'), c.recipe.main.title);
+    c.click('guideFindButchers'); assert.equal(c.screen(), 'butcher');
+    assert.equal(c.d.getElementById('nextBtn').textContent, 'סיום');
+    c.click('openButcherGuide'); c.click('backBtn'); assert.equal(c.screen(), 'landing', 'reopening from finder does not create a Back loop');
+    c.click('openButchersBtn');
+    c.execute('state.butcherError = "location_denied"; render();');
+    c.click('openButcherGuide'); assert.equal(c.screen(), 'butcherGuide', 'guide is usable without location');
+    assert.equal(c.d.getElementById('butcherGoal').value, 'stir_fry');
+    c.click('guideFindButchers'); c.click('backBtn'); assert.equal(c.screen(), 'landing', 'finder-origin path still returns home');
+    c.execute('currentStep = STEPS.indexOf("shopping"); render();');
+    c.click('openButcherGuide'); c.click('backBtn'); assert.equal(c.screen(), 'shopping');
+    c.click('openButcherGuide');
+    c.w.navigator.clipboard.writeText = async () => { throw Error('blocked'); };
+    c.click('copyButcherRequest'); await settle();
+    assert.equal(c.d.getElementById('butcherManualCopy').hidden, false);
+    assert.match(c.d.getElementById('butcherManualCopy').value, /שייטל/);
+    c.execute('state.lang = "en"; render();');
+    assert.match(c.d.getElementById('butcherRequestText').textContent, /Shaitel.*Israeli no. 13/);
+  } finally { c.dom.window.close(); }
+});
+
+test('shaitel and untrib selections generate and reopen with their own names and compatible methods', { skip: !JSDOM }, async () => {
+  const c = await setup();
+  const { requestContext } = require('../lib/recipe-generation.js');
+  const Fallback = require('../public/app/recipe-fallback.js');
+  try {
+    let request;
+    c.w.fetch = async url => { request = requestContext(Object.fromEntries(new URL(url, c.w.location.href).searchParams)); return { ok: true, json: async () => ({ structuredRecipe: Fallback.create(request) }) }; };
+    for (const [id, name, method] of [['rump', 'שייטל', 'grill'], ['chuck_roll', 'אונטריב', 'long_cook']]) {
+      c.click('homeBtn'); c.d.querySelector('[data-choice="feel"]').click();
+      const select = (key, value) => { const e = c.d.getElementById(key); e.value = value; e.dispatchEvent(new c.w.Event('change')); };
+      select('cutId', id); select('equipmentMode', 'basic'); select('methodId', method);
+      c.click('nextBtn'); await settle(); await settle();
+      assert.equal(request.cutId, id); assert.equal(request.cut, name);
+      assert.match(c.d.querySelector('h2').textContent, new RegExp(name));
+      assert.equal(c.execute('RecipeQuality.review(state.recipe, state.preferences).passed'), true);
+      await c.execute('saveCurrentRecipe()');
+      c.click('homeBtn'); c.click('openSavedRecipesBtn'); c.d.querySelector('[data-open-recipe]').click();
+      assert.equal(c.execute('state.preferences.cutId'), id);
+      assert.match(c.d.querySelector('h2').textContent, new RegExp(name));
+    }
   } finally { c.dom.window.close(); }
 });
 

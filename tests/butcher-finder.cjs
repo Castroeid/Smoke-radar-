@@ -12,7 +12,8 @@ function setup({ geoError, response, fetchError } = {}) {
     STEPS: ['landing', 'butcher'], currentStep: 1,
     el: { content: { innerHTML: '' } },
     document: { getElementById: () => ({ addEventListener() {} }) },
-    renderButcherLoading: () => 'loading'
+    renderButcherLoading: () => 'loading',
+    butcherGuideEntry: () => '<button id="openButcherGuide">Guide</button>', bindButcherGuideEntry: () => {}
   };
   vm.createContext(ctx);
   vm.runInContext(source.slice(source.indexOf('async function loadButchers()'), source.indexOf('function normalizeSubRecipes(')), ctx);

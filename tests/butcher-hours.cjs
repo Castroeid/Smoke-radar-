@@ -96,6 +96,7 @@ function ui(shops, lang = 'he') {
     URL, Date, AbortController, setTimeout, clearTimeout,
     document: { getElementById: id => ({ addEventListener: (_, fn) => listeners.set(id, fn), focus() {} }) },
     getDistanceValue: () => 1, formatDistance: () => '1 km',
+    butcherGuideEntry: () => '<button id="openButcherGuide">Guide</button>', bindButcherGuideEntry: () => {},
     fetch: () => { throw new Error('Filters must not fetch'); }
   };
   vm.createContext(ctx);

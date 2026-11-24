@@ -15,6 +15,18 @@
 }
 
 * { box-sizing: border-box; }
+.butcher-guide-link { background: transparent; color: var(--accent-soft); border: 0; padding: 12px; min-height: 44px; font: inherit; font-size: 1rem; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.butcher-guide-link:focus-visible, .butcher-guide-notes summary:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 3px; }
+.butcher-guide-entry p { margin-block-end: 0; }
+.butcher-request-card { border-inline-start: 3px solid var(--accent); }
+.butcher-request-card h2 { font-size: 1.2rem; }
+.butcher-request-text { font-size: 1rem; line-height: 1.8; user-select: text; overflow-wrap: anywhere; }
+.butcher-guide-notes { margin-block-start: 16px; border-top: 1px solid var(--line); padding-block-start: 12px; }
+.butcher-guide-notes summary { cursor: pointer; min-height: 44px; font-size: 1rem; color: var(--accent-soft); padding-block: 8px; }
+.butcher-guide-notes p, .butcher-guide-sources { font-size: .9rem; line-height: 1.7; }
+.butcher-guide-sources { padding-inline-start: 22px; }
+.butcher-guide-sources a { color: var(--accent-soft); overflow-wrap: anywhere; }
+#butcherManualCopy { width: 100%; min-height: 160px; font: inherit; }
 body {
   margin: 0;
   min-height: 100vh;
