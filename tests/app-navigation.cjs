@@ -12,6 +12,7 @@ async function setup() {
     url: 'https://smoke-radar.onrender.com/app/', runScripts: 'outside-only', pretendToBeVisual: true
   });
   const w = dom.window, d = w.document;
+  const style = d.createElement("style"); style.textContent = fs.readFileSync("public/app/app.css", "utf8"); d.head.append(style);
   const execute = code => vm.runInContext(code, dom.getInternalVMContext());
   const recipe = Quality.normalize(fixture(), 'he');
   w.scrollTo = () => {};
@@ -61,6 +62,7 @@ test('basic cookware and sous vide change the request, recipe, tips and saved ch
     assert.equal(c.d.getElementById('methodId').value, 'pan_sear');
     assert.equal(c.d.querySelector('#methodId option[value="sous_vide"]'), null);
     assert.equal(c.d.getElementById('thicknessField').hidden, true);
+    assert.equal(c.w.getComputedStyle(c.d.getElementById('thicknessField')).display, 'none');
     assert.equal(c.d.getElementById('userQuestion').disabled, true);
     assert.equal([...c.d.querySelectorAll('button')].filter(b => b.textContent === 'צור מתכון' && !b.hidden).length, 1);
     c.click('nextBtn'); await settle(); await settle();
@@ -73,6 +75,7 @@ test('basic cookware and sous vide change the request, recipe, tips and saved ch
     c.click('regenBtn'); assert.equal(c.screen(), 'preferences');
     select('equipmentMode', 'standard'); select('methodId', 'sous_vide'); select('thicknessCm', '4');
     assert.equal(c.d.getElementById('thicknessField').hidden, false);
+    assert.notEqual(c.w.getComputedStyle(c.d.getElementById('thicknessField')).display, 'none');
     c.click('nextBtn'); await settle(); await settle();
     assert.equal(request.methodId, 'sous_vide'); assert.equal(request.thicknessCm, 4);
     assert.match(c.d.querySelector('.recipe-cooking-facts').textContent, /טמפרטורת האמבט/);
