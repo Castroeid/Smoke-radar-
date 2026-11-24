@@ -120,6 +120,11 @@
     if (!text(m.doneness_cue)) issues.push("main.metadata.doneness_cue: describe how to check readiness with a thermometer and texture");
     const stepsText = list(recipe.main?.steps).join(" ");
     if (number(m.target_internal_c, safety.minimumC, 110) && !new RegExp(`(?:^|[^\\d])${String(m.target_internal_c).replace(".", "\\.")}\\s*(?:°\\s*[cC]|מעלות)`).test(stepsText)) issues.push("main.steps: include the same internal temperature target as metadata, with degrees C");
+    const firstRest = list(recipe.main?.step_timing).findIndex(t => t?.phase === "rest");
+    if (firstRest >= 0 && number(m.target_internal_c, safety.minimumC, 110)) {
+      const targetPattern = new RegExp(`(?:^|[^\\d])${String(m.target_internal_c).replace(".", "\\.")}\\s*(?:°\\s*[cC]|מעלות)`);
+      if (!list(recipe.main?.steps).slice(0, firstRest).some(s => targetPattern.test(s))) issues.push("main.steps: check internal temperature before removing from heat and resting, not only afterwards");
+    }
     for (const match of stepsText.matchAll(/(?:internal|ליבה|פנימי[ת]?)[^.!?\n]{0,45}?(\d+(?:\.\d+)?)\s*(?:°\s*C|מעלות)/gi)) {
       if (Number(match[1]) < safety.minimumC) issues.push("main.steps: internal temperature contradicts minimum guidance");
     }

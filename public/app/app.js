@@ -941,10 +941,10 @@ function renderRecipeQuality(recipe) {
   return `<div class="card">${RecipeGuidance.reviewHTML(recipe, state.preferences, state.lang)}</div>`;
 }
 
-function renderStepTip(step, phase, section = "main") {
+function renderStepTip(step, phase, section = "main", part) {
   // Historical drafts retain their text, but receive no retroactive source claims.
   if (state.recipe?.recipeVersion !== RecipeQuality.VERSION) return "";
-  return RecipeGuidance.stepHTML(step, { recipe: state.recipe, phase, section,
+  return RecipeGuidance.stepHTML(step, { recipe: state.recipe, phase, section, part,
     context: RecipeGuidance.effectiveContext(state.recipe, state.preferences) }, state.lang);
 }
 
@@ -1455,7 +1455,7 @@ function renderSubRecipeDetails(items) {
       <p class="small">${state.lang === "he" ? "מרכיבים" : "Ingredients"}</p>
       <ul class="list">${item.ingredients.map((ingredient) => `<li>${escapeHotText(ingredient)}</li>`).join("")}</ul>
       <p class="small">${state.lang === "he" ? "הכנה" : "Instructions"}</p>
-      <ol class="list">${item.steps.map((step) => `<li>${escapeHotText(step)}${renderStepTip(step, undefined, "side")}</li>`).join("")}</ol>
+      <ol class="list">${item.steps.map((step) => `<li>${escapeHotText(step)}${renderStepTip(step, undefined, "side", item)}</li>`).join("")}</ol>
     </div>
   `).join("");
 }

@@ -49,6 +49,8 @@ This is a maintained collection, not a claim of a fresh web search per request.
 | [Weber manual, page 11](https://digital-assets.weber.com/documents/48990_121219.pdf?fm=pdf#page=11) | Crowding increases grilling time |
 | [Institute of Culinary Education](https://www.ice.edu/blog/how-find-grain-and-slice-steak-chef) | Slice across the grain after resting |
 | [RICARDO / Christina Blais](https://www.ricardocuisine.com/en/articles/food-chemistry/643-how-to-perfect-the-art-of-braising) | Brown in batches, gentle simmer under a lid, rest braised meat in liquid |
+| [King Arthur Baking](https://www.kingarthurbaking.com/recipes/resources/recipe-success-guide) | Independent thermometer during oven preheating |
+| [Good Food BBQ sauce](https://www.bbcgoodfood.com/recipes/barbecue-sauce) / [vinaigrette](https://www.bbcgoodfood.com/recipes/classic-vinaigrette) | Simmer BBQ sauce to thicken; shake oil/vinegar dressings |
 | Weber brisket / ThermoWorks short ribs (below) | Temperature alone does not establish tenderness |
 
 ## Temperature reference and limitations
@@ -99,3 +101,5 @@ languages/portion counts/methods, reviewed tip selection, safe links, both deskt
 and mobile renderers, shopping and save/reopen preservation. Fixtures and browser
 samples test software, not taste or cooking performance. Firestore security rules
 are unchanged; account/storage regression tests remain part of the suite.
+
+Desktop partial regeneration also keeps section-level replacement provenance, so a fallback sauce/side cannot be silently presented as customised AI output. A live preview sample also prompted a guard requiring the internal target before the first rest step, not only after resting.

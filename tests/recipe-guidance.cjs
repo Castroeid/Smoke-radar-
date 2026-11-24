@@ -30,7 +30,7 @@ test("only reviewed catalog links can appear beside steps; action matching is co
   for (const [step, phase, section, expected] of [
     ["משרים במרינדה במקרר", "prep", "main", "marinate"],
     ["משחימים את הבשר בסבבים", "cook", "main", "brown"],
-    ["מחממים תנור ומכינים כלים", "prep", "main", "clean"],
+    ["מחממים תנור ומכינים כלים", "prep", "main", "preheat"],
     ["מודדים טמפרטורת ליבה במדחום", "cook", "main", "thermometer"],
     ["מניחים לנוח בנוזלי הבישול", "rest", "main", "braiseRest"],
     ["פורסים בניצב לסיבים", "rest", "main", "slice"],
@@ -71,7 +71,7 @@ test("desktop normalization preserves caveats, real tips and actual fallback met
   const sandbox = { RecipeQuality: Quality, RecipeGuidance: Guidance, currentLanguage: "he", getRecipeCutLabel: () => "בריסקט", t: x => x,
     escapeHtml: x => String(x ?? "").replaceAll("<", "&lt;").replaceAll(">", "&gt;") };
   vm.createContext(sandbox);
-  vm.runInContext(extract("normalizeStructuredRecipe") + extract("renderSmartRecipe"), sandbox);
+  vm.runInContext(extract("normalizeStructuredRecipe") + extract("mergeStructuredRecipe") + extract("renderSmartRecipe"), sandbox);
   const raw = fixture(); delete raw.main.metadata.piece_thickness_cm;
   const recipe = sandbox.normalizeStructuredRecipe(Quality.normalize(raw, "he"));
   const rendered = sandbox.renderSmartRecipe(recipe, { cut: "בריסקט", method: "תנור" });
@@ -80,4 +80,8 @@ test("desktop normalization preserves caveats, real tips and actual fallback met
   assert.doesNotMatch(rendered, /משך הזמנים אינו|NaN|undefined/);
   const alternate = sandbox.normalizeStructuredRecipe(Fallback.create({ language: "he", cutId: "brisket", methodId: "smoker" }, "service_unavailable"));
   assert.match(sandbox.renderSmartRecipe(alternate, { cut: "בריסקט", method: "מעשנה" }), /מתכון בסיסי חלופי/);
+  const mixed = sandbox.mergeStructuredRecipe(recipe, alternate, "sauces");
+  assert.equal(mixed.generation.kind, "ai");
+  assert.equal(mixed.sectionGenerations.sauces.kind, "baseline");
+  assert.match(sandbox.renderSmartRecipe(mixed, { cut: "בריסקט", method: "תנור" }), /הרוטב הוחלף בגרסה בסיסית/);
 });

@@ -5951,6 +5951,7 @@ updateRecipeActionLabels();
       if (mode === "sauces") {
         return {
           ...currentRecipe,
+          sectionGenerations: { ...currentRecipe.sectionGenerations, [mode]: RecipeGuidance.generation(incomingRecipe.generation) },
           dietaryPreference: incomingRecipe.dietaryPreference || currentRecipe.dietaryPreference,
           drinkPairings: incomingRecipe.drinkPairings.length ? incomingRecipe.drinkPairings : currentRecipe.drinkPairings,
           sauces: incomingRecipe.sauces.length ? incomingRecipe.sauces : currentRecipe.sauces
@@ -5960,6 +5961,7 @@ updateRecipeActionLabels();
       if (mode === "sides") {
         return {
           ...currentRecipe,
+          sectionGenerations: { ...currentRecipe.sectionGenerations, [mode]: RecipeGuidance.generation(incomingRecipe.generation) },
           dietaryPreference: incomingRecipe.dietaryPreference || currentRecipe.dietaryPreference,
           drinkPairings: incomingRecipe.drinkPairings.length ? incomingRecipe.drinkPairings : currentRecipe.drinkPairings,
           sides: incomingRecipe.sides.length ? incomingRecipe.sides : currentRecipe.sides
@@ -5975,7 +5977,7 @@ updateRecipeActionLabels();
       const context = RecipeGuidance.effectiveContext(structuredRecipe, { cut: meta.cut, method: meta.method, dietaryPreference: structuredRecipe.dietaryPreference });
       const report = RecipeQuality.review(structuredRecipe, context);
       const timingUncertain = report.warnings.includes("timing");
-      const stepTip = (step, phase, section = "main") => structuredRecipe.recipeVersion === RecipeQuality.VERSION ? RecipeGuidance.stepHTML(step, { recipe: structuredRecipe, context, phase, section }, currentLanguage) : "";
+      const stepTip = (step, phase, section = "main", part) => structuredRecipe.recipeVersion === RecipeQuality.VERSION ? RecipeGuidance.stepHTML(step, { recipe: structuredRecipe, context, phase, section, part }, currentLanguage) : "";
       const cutLabel = getRecipeCutLabel(meta.cut);
       const dietaryPreference = structuredRecipe?.dietaryPreference || meta.dietaryPreference || (currentLanguage === "he" ? "kosher" : "non_kosher");
       const dietaryLabel = dietaryPreference === "kosher" ? t("recipe.kosherLabel") : t("recipe.nonKosherLabel");
@@ -6003,7 +6005,7 @@ updateRecipeActionLabels();
             <h4>${escapeHtml(t("recipe.ingredients"))}</h4>
             <ul>${(sauce.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
             <h4>${escapeHtml(t("recipe.steps"))}</h4>
-            <ol>${(sauce.steps || []).map(item => `<li>${escapeHtml(item)}${stepTip(item, undefined, "side")}</li>`).join("")}</ol>
+            <ol>${(sauce.steps || []).map(item => `<li>${escapeHtml(item)}${stepTip(item, undefined, "side", sauce)}</li>`).join("")}</ol>
           </div>
         </article>
       `).join("");
@@ -6015,7 +6017,7 @@ updateRecipeActionLabels();
           <ul>${(side.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           <ol class="side-steps">
             ${((side.steps || []).length ? side.steps : [t("recipe.defaultStep")])
-              .map(step => `<li>${escapeHtml(step)}${stepTip(step, undefined, "side")}</li>`)
+              .map(step => `<li>${escapeHtml(step)}${stepTip(step, undefined, "side", side)}</li>`)
               .join("")}
           </ol>
         </article>

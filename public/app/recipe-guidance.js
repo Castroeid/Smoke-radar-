@@ -13,7 +13,10 @@
     slicing: { name: "Institute of Culinary Education", title: "How to Find the Grain and Slice Steak Like a Chef", url: "https://www.ice.edu/blog/how-find-grain-and-slice-steak-chef" },
     brisket: { name: "Weber", title: "Beginner Brisket — tenderness guidance", url: "https://www.weber.com/IE/en/recipes/beef/beginner-brisket/weber-175674.html" },
     ribs: { name: "ThermoWorks", title: "Whole Braised Short Ribs: Temperatures for Tenderness", url: "https://www.thermoworks.com/blogs/thermoblog/whole-braised-short-ribs" },
-    braising: { name: "RICARDO — Christina Blais", title: "How to Perfect the Art of Braising", url: "https://www.ricardocuisine.com/en/articles/food-chemistry/643-how-to-perfect-the-art-of-braising" }
+    braising: { name: "RICARDO — Christina Blais", title: "How to Perfect the Art of Braising", url: "https://www.ricardocuisine.com/en/articles/food-chemistry/643-how-to-perfect-the-art-of-braising" },
+    oven: { name: "King Arthur Baking", title: "Recipe Success Guide — preheating", url: "https://www.kingarthurbaking.com/recipes/resources/recipe-success-guide" },
+    bbq: { name: "Good Food", title: "Barbecue sauce — simmering technique", url: "https://www.bbcgoodfood.com/recipes/barbecue-sauce" },
+    vinaigrette: { name: "Good Food", title: "Classic vinaigrette — mixing technique", url: "https://www.bbcgoodfood.com/recipes/classic-vinaigrette" }
   });
   const TIPS = Object.freeze({
     clean: { source: "hygiene", he: "אחרי מגע בבשר נא, שטפו ידיים וכלים לפני המשך העבודה עם אוכל מוכן.", en: "After handling raw meat, wash hands and utensils before handling ready-to-eat food." },
@@ -24,13 +27,17 @@
     marinate: { source: "marinade", he: "משרים במקרר. אם רוצים להשתמש במרינדה גם כרוטב, שומרים מנה נקייה בנפרד לפני הכנסת הבשר הנא.", en: "Marinate in the refrigerator. Reserve a clean portion for sauce before adding raw meat." },
     serve: { source: "marinade", he: "להגשה השתמשו בצלחת ובמלקחיים נקיים, שלא נגעו בבשר הנא מאז שנשטפו.", en: "Serve with a clean plate and tongs that have not touched raw meat since washing." },
     space: { source: "grill", he: "בגריל, צפיפות על הרשת מאריכה את הצלייה. השאירו מרווחים ועבדו בכמה סבבים לפי הצורך.", en: "On a grill, crowding the grate increases cooking time. Leave space and cook in batches if needed." },
-    rest: { source: "temperature", he: "לנתחים שלמים של בקר, טלה ועגל נדרשות לפחות 3 דקות מנוחה אחרי שהגיעו ל־63°C לפחות על החום.", en: "Whole beef, lamb and veal cuts need at least three minutes rest after reaching at least 63°C on the heat." },
+    rest: { source: "temperature", he: "בנתחים שלמים של בקר, טלה ועגל נדרשות לפחות 3 דקות מנוחה אחרי ההגעה לטמפרטורת הליבה הדרושה; גם כשהמדחום מראה שהבשר מוכן, אין לדלג על המנוחה.", en: "Whole beef, lamb and veal cuts need at least three minutes rest after reaching the required internal temperature; do not skip resting just because the thermometer says the meat is ready." },
     slice: { source: "slicing", he: "לאחר המנוחה, זהו את כיוון הסיבים ופרסו בניצב להם. קיצור הסיבים מקל על הלעיסה.", en: "After resting, identify the grain and slice across it. Shorter muscle fibres make the meat easier to chew." },
     brisket: { source: "brisket", he: "בבריסקט בבישול ארוך, בודקים גם רכות: הגעה לטמפרטורה לבדה אינה מבטיחה שהנתח התרכך.", en: "For slow-cooked brisket, also test tenderness: reaching a temperature alone does not guarantee a tender cut." },
     ribs: { source: "ribs", he: "בצלעות בבישול ארוך, בדקו בכמה נקודות שהמדחום נכנס בקלות; סביב 95°C הוא נקודת בדיקה לרכות, לא הבטחה.", en: "For slow-braised short ribs, check that a probe enters easily in several places. Around 95°C is a tenderness checkpoint, not a guarantee." },
     brown: { source: "braising", he: "בהשחמה לפני בישול ארוך, עבדו בסבבים עם מרווח בין הקוביות. צפיפות גורמת לבשר להתבשל בנוזלים במקום להשחים.", en: "When browning before braising, work in batches with space between cubes. Crowding makes the meat simmer in liquid instead of brown." },
     simmer: { source: "braising", he: "בבישול מכוסה בנוזלים, שמרו על בעבוע עדין ומכסה שסוגר היטב. רתיחה חזקה עלולה לייבש את הבשר.", en: "For covered braising, maintain a gentle simmer and a close-fitting lid. Vigorous boiling can dry the meat." },
-    braiseRest: { source: "braising", he: "בשר שעבר בישול ארוך נוטה להתייבש כשהוא חשוף לאוויר; השאירו אותו בנוזלי הבישול בזמן המנוחה.", en: "Braised meat tends to dry when exposed to air; leave it in its cooking liquid while resting." }
+    braiseRest: { source: "braising", he: "בשר שעבר בישול ארוך נוטה להתייבש כשהוא חשוף לאוויר; השאירו אותו בנוזלי הבישול בזמן המנוחה.", en: "Braised meat tends to dry when exposed to air; leave it in its cooking liquid while resting." },
+    preheat: { source: "oven", he: "אפשר לבדוק במדחום תנור נפרד שהחום בפועל הגיע לטמפרטורה שבמתכון; התצוגה המובנית לא תמיד מדויקת בזמן החימום המקדים.", en: "An independent oven thermometer can confirm the recipe temperature has been reached; the built-in display may be unreliable during preheating." },
+    rub: { source: "brisket", he: "ערבבו את התבלינים היבשים לפני מריחתם, ופזרו את התערובת באופן אחיד על שני צדי הבשר.", en: "Mix dry seasonings before applying them, then distribute the mixture evenly over both sides of the meat." },
+    bbqReduce: { source: "bbq", he: "ברוטב ברביקיו מבושל, מסמיכים בבעבוע עדין אחרי הרתיחה. המרקם הוא סימן חשוב לצד משך הבישול המשוער.", en: "For cooked barbecue sauce, reduce to a gentle simmer after boiling and cook until thickened. Watch consistency as well as the estimated time." },
+    dressing: { source: "vinaigrette", he: "ברוטב על בסיס שמן וחומץ, אפשר לנער את המרכיבים בצנצנת סגורה עד שהם מתערבבים היטב.", en: "For an oil-and-vinegar dressing, shake the ingredients in a closed jar until well combined." }
   });
   const WARNINGS = {
     thickness: ["עובי הנתח חסר", "בלי עובי אי אפשר להתאים היטב את משך הבישול. התחילו למדוד מוקדם והסתמכו על טמפרטורת הליבה וסימני המוכנות.", "Piece thickness is missing", "Without thickness, timing is less reliable. Start checking early and use the internal target and readiness cues."],
@@ -53,12 +60,15 @@
       profile: ["braise", "steak", "poultry", "ground"].includes(value.profile) ? value.profile : "steak",
       method: ["oven", "pan", "grill"].includes(value.method) ? value.method : "pan" };
   }
-  function tipFor(step, { phase, recipe, context = {}, section = "main" } = {}, language = "en") {
+  function tipFor(step, { phase, recipe, context = {}, section = "main", part } = {}, language = "en") {
     const s = String(step || ""), safety = Quality.safetyReference(recipe, context), cooking = Quality.cookingReference(context);
+    const partText = `${part?.title || part?.name || ""} ${(part?.ingredients || []).join(" ")}`;
     let id = "clean", general = true;
     if (/שארי|leftovers/i.test(s)) { id = "chill"; general = false; }
     else if (/השר|משר|מרינדה|marinat/i.test(s)) { id = "marinate"; general = false; }
     else if (/מקרר|refrigerat/i.test(s) && /אחס|שמר|שומרים|store|keep/i.test(s)) { id = "keepCold"; general = false; }
+    else if (/מחממים.*תנור|preheat.*oven/i.test(s)) { id = "preheat"; general = false; }
+    else if (section === "main" && /תבלינים|תערובת תיבול|תערובת התיבול|dry rub|seasoning mixture/i.test(s) && /מערבבים|מעסים|מורחים|mix|rub|coat/i.test(s)) { id = "rub"; general = false; }
     else if (section === "main" && phase === "rest" && /נוזלי הבישול|cooking liquid/i.test(s)) { id = "braiseRest"; general = false; }
     else if (section === "main" && /מנוחה|לנוח|מניחים.*לנוח|\brest\b/i.test(s) && safety.restMinutes) { id = "rest"; general = false; }
     else if (section === "main" && /פורסים|פרסו|פריסה|\bslic(?:e|ing)\b/i.test(s) && safety.minimumC === 63) { id = "slice"; general = false; }
@@ -66,7 +76,9 @@
     else if (section === "main" && phase === "cook" && /משחימ|השחמ|brown/i.test(s) && /קוביות|סבבים|cubes|batches/i.test(s)) { id = "brown"; general = false; }
     else if (section === "main" && phase === "cook" && /בעבוע|רתיחה|simmer|boil/i.test(s) && /מכס|מכוס|cover/i.test(s)) { id = "simmer"; general = false; }
     else if (section === "main" && cooking && phase === "cook" && /תנור|מבשלים|רכות|oven|tender|cook/i.test(s)) { id = cooking.name.startsWith("Weber") ? "brisket" : "ribs"; general = false; }
-    else if (/ירקות|מלפפו|עגבני|תפוחי אדמה|vegetable|cucumber|tomato|potato/i.test(s) && /חותכ|שטפ|שוטפ|קוצצ|cut|chop|rinse|wash/i.test(s)) { id = "produce"; general = false; }
+    else if (/ירקות|מלפפו|עגבני|תפוחי (?:ה)?אדמה|בצל|גזר|vegetable|cucumber|tomato|potato|onion|carrot/i.test(s) && /חותכ|שטפ|שוטפ|קוצצ|cut|chop|rinse|wash/i.test(s)) { id = "produce"; general = false; }
+    else if (section !== "main" && /ברביקיו|barbecue|bbq/i.test(partText) && /מבשלים|מרתיח|מסמיך|סמיך|cook|boil|simmer|thick/i.test(s)) { id = "bbqReduce"; general = false; }
+    else if (section !== "main" && /חומץ|vinegar/i.test(partText) && /שמן|oil/i.test(partText) && !/קטשופ|barbecue|bbq|ketchup/i.test(partText) && /מערבבים|טורפים|mix|whisk|shake/i.test(s)) { id = "dressing"; general = false; }
     else if (/הגש|מגיש|serve|serving/i.test(s)) { id = "serve"; general = false; }
     else if (section === "main" && phase === "cook" && /grill|bbq|גריל|ברביקיו/i.test(`${context.methodId || ""} ${context.method || ""}`)) { id = "space"; general = false; }
     else if (section === "main" && phase === "cook") { id = "thermometer"; general = false; }
@@ -91,6 +103,11 @@
     if (g.kind === "baseline") {
       result.unshift({ code: "replacement", title: he ? "למה מוצג מתכון חלופי?" : "Why a replacement recipe?", text: REASONS[g.reason][he ? 0 : 1] });
       result.push({ code: "preferences", title: he ? "מה השתנה?" : "What changed?", text: he ? "זו גרסה בסיסית בתיבול מלח ופלפל. השיטה והחיתוך המחייבים הם אלה שמופיעים במתכון; סגנון הטעמים והבקשה האישית לא יושמו. בדקו התאמה למגבלות תזונה לפני ההכנה." : "This is a basic salt-and-pepper recipe. Follow its stated method and cut preparation; the requested flavour and custom instructions were not applied. Check dietary suitability before cooking." });
+    }
+    for (const section of ["sauces", "sides"]) {
+      const replacement = generation(recipe?.sectionGenerations?.[section]);
+      if (replacement.kind !== "baseline") continue;
+      result.push({ code: `replacement_${section}`, title: he ? (section === "sauces" ? "הרוטב הוחלף בגרסה בסיסית" : "התוספת הוחלפה בגרסה בסיסית") : (section === "sauces" ? "The sauce was replaced with a basic version" : "The side was replaced with a basic version"), text: he ? "הניסיון ליצור מחדש את החלק הזה לא החזיר מתכון מתאים. מוצגת חלופה מתבנית קבועה, שאינה מיישמת את בקשת הטעמים או הבקשה האישית. המנה העיקרית נשארה כפי שהייתה." : "Regenerating this section did not return a suitable recipe. A fixed-template alternative is shown; requested flavours and custom instructions are not applied to it. The main dish was kept unchanged." });
     }
     return result;
   }

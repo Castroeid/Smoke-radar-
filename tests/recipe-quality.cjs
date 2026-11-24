@@ -213,3 +213,13 @@ test("unsafe targets and preservation protocols cannot be displayed by downgradi
     assert.equal(Quality.review(recipe, context).usable, true);
   }
 });
+
+
+test("the only internal-temperature check cannot occur after resting", async () => {
+  const r = fixture();
+  [r.main.steps[2], r.main.steps[3]] = [r.main.steps[3], r.main.steps[2]];
+  [r.main.step_timing[2], r.main.step_timing[3]] = [r.main.step_timing[3], r.main.step_timing[2]];
+  assert.equal(Quality.review(r, context).usable, false);
+  const result = await run([r, r]);
+  assert.equal(result.response.body.structuredRecipe.generation.reason, "safety");
+});
