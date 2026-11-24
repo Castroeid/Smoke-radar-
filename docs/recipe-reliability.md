@@ -2,8 +2,11 @@
 
 A completeness failure should not strand the user without a recipe. It must also
 not turn an unsafe or unusable draft into a “verified” recipe by adding a badge.
-The UI says **מתכון עם הערות הכנה** or **מתכון בסיסי חלופי**, and explicitly says
-that the recipe has not been kitchen-tested. The source links support individual
+The collapsed **פרטים והערות למתכון** disclosure preserves the generation type,
+replacement reasons, caveats and explicit statement that the recipe has not been
+kitchen-tested. Every step tip and its source are collapsed independently by default.
+Weight, thickness, equipment, internal temperature and cooking instructions remain
+visible; duplicate metadata cards were removed from the mobile screen. The source links support individual
 tips, not the generated recipe, its quantities, or its overall safety.
 
 ## Response policy

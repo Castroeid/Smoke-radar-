@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Smoke Radar — התקנה בטלפון</title>
+  <meta name="description" content="מתכוני בשר, השראה ואיתור קצביות. מוסיפים את Smoke Radar למסך הבית ישירות מהדפדפן.">
+  <meta name="theme-color" content="#080b10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Smoke Radar">
+  <link rel="manifest" href="/app/manifest.json">
+  <link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/app/icons/icon-192.png">
+  <meta property="og:title" content="Smoke Radar — האפליקציה אצלך בטלפון">
+  <meta property="og:description" content="מתכוני בשר, השראה ואיתור קצביות. התקנה ישירות מהדפדפן, בלי חנות אפליקציות.">
+  <meta property="og:image" content="https://smoke-radar.onrender.com/og-preview.jpg">
+  <meta property="og:url" content="https://smoke-radar.onrender.com/install">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/app/install.css">
+  <script src="/app/install.js" defer></script>
+  <script src="/app/pwa.js" defer></script>
+</head>
+<body>
+<main>
+  <img class="app-icon" src="/app/icons/icon-192.png" width="104" height="104" alt="Smoke Radar">
+  <p class="brand" dir="ltr">SMOKE RADAR</p>
+  <h1>הרדאר שלך,<br>ישר במסך הבית.</h1>
+  <p class="intro">מתכוני בשר, רעיונות לבישול וקצביות קרובות.<br>פותחים בלחיצה, כמו אפליקציה.</p>
+  <button id="installBtn" class="button primary" type="button">איך מתקינים בטלפון?</button>
+  <p id="installStatus" role="status" aria-live="polite"></p>
+  <section id="installHelp" class="help" tabindex="-1" aria-label="הוראות התקנה">
+    <p id="embeddedHelp" hidden>פתחתם מתוך פייסבוק, אינסטגרם או וואטסאפ? בתפריט בחרו ״פתיחה בדפדפן״, או העתיקו את הקישור ופתחו אותו ב־Chrome באנדרואיד או ב־Safari באייפון.</p>
+    <details id="androidHelp"><summary>Android</summary><ol><li>פתחו את הקישור ב־Chrome.</li><li>לחצו על ״התקנת האפליקציה״ אם הכפתור מופיע, או בתפריט ⋮ בחרו ״הוספה למסך הבית״ / ״התקנת אפליקציה״.</li><li>אשרו את ההתקנה. הסמל יתווסף למסך הבית.</li></ol></details>
+    <details id="iosHelp"><summary>iPhone / iPad</summary><ol><li>פתחו את הקישור ב־Safari ולחצו על שיתוף.</li><li>בחרו ״הוספה למסך הבית״. אם מופיע ״פתיחה כיישום אינטרנט״, השאירו אותו מופעל.</li><li>לחצו ״הוסף״.</li></ol></details>
+    <details id="desktopHelp"><summary>מחשב ודפדפנים אחרים</summary><p>ב־Chrome או Edge אפשר לבחור התקנה בתפריט הדפדפן. אם אין אפשרות התקנה, אפשר להמשיך להשתמש באתר.</p></details>
+  </section>
+  <a class="button secondary" href="/app/" id="openApp">המשך לאפליקציה</a>
+  <div class="share-actions"><button id="shareLink" type="button">שיתוף קישור</button><button id="copyLink" type="button">העתקת קישור</button></div>
+  <a class="share-url" id="installLink" dir="ltr" href="/install">smoke-radar.onrender.com/install</a>
+  <p class="note">התקנה מהדפדפן, ללא צורך בחנות אפליקציות.<br>נדרש חיבור לאינטרנט. התחברו באותו חשבון Google כדי לגשת למתכונים ששמרתם בחשבון.</p>
+  <noscript><p>כדי להתקין, השתמשו בתפריט הדפדפן לפי ההוראות למעלה.</p></noscript>
+</main>
+</body>
+</html>

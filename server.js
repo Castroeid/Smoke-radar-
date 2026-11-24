@@ -8,6 +8,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.get("/install", (_req, res) => res.redirect(302, "/app/install.html"));
 app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 3000;

@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Smoke Radar App</title>
   <meta name="theme-color" content="#080b10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Smoke Radar" />
+  <link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="/app/icons/icon-192.png" />
   <link rel="manifest" href="/app/manifest.json" />
   <link rel="stylesheet" href="/app/app.css" />
   <link rel="stylesheet" href="/app/recipe-guidance.css" />
@@ -47,6 +51,7 @@
   </main>
   <div id="appToast" class="app-toast" role="status" aria-live="polite"></div>
 
+  <script src="/app/pwa.js" defer></script>
   <script src="/app/hot-topics.js" defer></script>
   <script src="/app/recipe-quality.js" defer></script>
   <script src="/app/recipe-guidance.js" defer></script>

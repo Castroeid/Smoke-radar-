@@ -1,0 +1,27 @@
+:root { color-scheme: dark; font-family: Arial, sans-serif; background: #080b10; color: #f6eee7; }
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(ellipse at top, #3b2115, transparent 65%); }
+main { max-width: 30rem; margin: auto; padding: max(2rem, env(safe-area-inset-top)) 1.5rem max(2rem, env(safe-area-inset-bottom)); text-align: center; }
+.app-icon { border-radius: 24px; border: 1px solid #473a31; }
+.brand { color: #ffc18a; font-size: .875rem; letter-spacing: .15em; margin: 1rem 0 .7rem; }
+h1 { font-size: clamp(2rem, 8vw, 2.7rem); line-height: 1.2; margin: 0 0 1rem; }
+p { line-height: 1.7; }
+.intro { color: #d6ccc2; margin-bottom: 1.5rem; }
+.button { display: block; width: 100%; padding: 1rem; border-radius: 16px; text-decoration: none; font: 600 1rem/1.4 Arial, sans-serif; cursor: pointer; min-height: 48px; }
+.primary { background: linear-gradient(110deg, #ff9f54, #f4520c); color: #191009; border: 0; }
+.secondary { color: #f6eee7; background: #171615; border: 1px solid #49413a; margin-top: 1rem; }
+button:disabled { opacity: .7; cursor: default; }
+#installStatus { font-size: .875rem; margin: .5rem 0; }
+#installStatus:empty { display: none; }
+.help { text-align: start; margin: 1.25rem 0; font-size: 1rem; }
+.help details { border-bottom: 1px solid #39312b; }
+.help summary { cursor: pointer; padding: .85rem .2rem; min-height: 44px; color: #d6ccc2; }
+.help ol { padding-inline-start: 1.4rem; line-height: 1.7; }
+.help li { padding-inline-start: .2rem; margin-bottom: .6rem; }
+#embeddedHelp { background: #24201b; border-radius: 12px; padding: 1rem; }
+.share-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 1rem; }
+.share-actions button { background: none; border: 0; color: #e0b88f; padding: .75rem .25rem; font: inherit; cursor: pointer; min-height: 44px; }
+.share-url { color: #b8b3ae; font-size: .875rem; overflow-wrap: anywhere; }
+.note { color: #b8b3ae; font-size: .875rem; margin-top: 1.5rem; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid #ffb579; outline-offset: 4px; }
+[hidden] { display: none !important; }
