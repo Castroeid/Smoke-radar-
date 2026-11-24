@@ -1,39 +1,57 @@
-# Recipe reliability: first release
+# Recipe reliability — caveats and sourced step tips (version 3)
 
-The app must distinguish a complete AI-generated recipe from a recipe that has
-actually been cooked. No recipe has a kitchen-tested/professional approval badge.
-The new label is **עבר בדיקת שלמות אוטומטית** (automated completeness checks
-passed), with an expandable description of the limited checks and an explicit
-AI-generated / not kitchen-tested note. It is not a guarantee of safety or taste.
+A completeness failure should not strand the user without a recipe. It must also
+not turn an unsafe or unusable draft into a “verified” recipe by adding a badge.
+The UI says **מתכון עם הערות הכנה** or **מתכון בסיסי חלופי**, and explicitly says
+that the recipe has not been kitchen-tested. The source links support individual
+tips, not the generated recipe, its quantities, or its overall safety.
 
-## What changed
+## Response policy
 
-- The request includes the actual serving count and custom cooking request.
-- The backend never fills missing lines using unrelated fallback ingredients or
-  methods. Invalid output gets one repair attempt, then a recoverable error.
-- Every main/sauce/side requires ingredient amounts/units and instruction lists.
-  Side ingredients are retained in both the mobile and desktop interfaces.
-  Common solid vegetables cannot use ml/l unless explicitly described as juice,
-  puree, paste, sauce or stock. This catches an observed cucumber-unit error;
-  it is a targeted consistency check, not validation of all ingredient meanings.
-- Numeric metadata includes servings, assumed total meat weight, piece thickness,
-  equipment, prep (including marination), cooking, rest and total minutes. The
-  main meat weight and time totals must agree with their corresponding fields.
-- Each main step has a prep/cook/rest phase and estimated minutes. The server
-  calculates all totals from those steps; durations are appended by the UI.
-  Structured model output keeps the instruction and timing in the same object,
-  then the server converts it to the existing client/storage representation.
-  This avoids drift between independently generated step and duration arrays.
-  Numeric minute/hour durations also present in model prose are checked against
-  that step's estimate (including per-side cooking and additional phases).
-  Additional finishing and resting therefore
-  cannot disappear from the displayed total. Steps are sequential estimates.
-- The client preserves instructions: it no longer turns an oven brisket into a
-  smoker recipe, replaces reverse searing with quick searing, or inserts an
-  unlisted marinade. Missing metadata is shown as missing, not invented.
-- All main ingredients reach the shopping list, including oil, liquids and onions.
-- Saving/restoring retains these fields; old or altered recipes cannot inherit a
-  passing label without the current version and a fresh mechanical check.
+1. Generate structured instructions and perform the existing checks. One bounded
+   repair attempt is retained. Preserve an earlier usable draft if repair fails.
+2. An explicit allowlist of optional omissions becomes explained caveats:
+   missing thickness/equipment/texture cues, missing entire sauces or sides, and
+   missing or conflicting timing. Suppress time summaries when timings disagree.
+   Do not invent absent metadata or splice generic steps into an AI recipe.
+3. Missing main instructions/amounts, malformed provided accompaniments,
+   serving/weight contradictions, dietary mismatches, detected unsafe targets,
+   missing required rest, and specialised curing/pasteurisation instructions
+   remain blocking. Unknown future check failures default to blocking.
+4. When no usable draft exists, or the model is unavailable, return a complete
+   fixed-template alternative with the reason for replacement. The mobile app
+   also has these templates for a failed network request after the app has loaded.
+   This does not promise that a site that has never loaded works offline.
+5. Alternatives adapt portions and broad meat family. Tough cuts use a covered
+   oven braise with an explicit change to cubes; other cuts use a pan/grill
+   template. The actual method, ingredients and preparation are visible. Flavour
+   requests and custom instructions are explicitly not applied to this alternative.
+   These are original house templates, not published or kitchen-tested recipes.
+
+Main/sauce/side ingredients and instructions, numeric metadata, and replacement
+provenance survive local/cloud serialization. Old saved versions do not inherit
+new review labels or retroactive source attribution. Every displayed current
+main/sauce/side step has either a relevant sourced tip or a clearly named general
+preparation reminder. Raw AI chef tips are no longer presented as sourced advice.
+
+## Source collection
+
+`public/app/recipe-guidance.js` contains concise editorial paraphrases and an
+allowlist of source URLs, reviewed 2026-11-24. Matching is deterministic from the
+step action/phase and cut, not a model-generated citation. Tip text is derived
+again from this catalog on reopening; a recipe cannot supply arbitrary links.
+This is a maintained collection, not a claim of a fresh web search per request.
+
+| Source | Supported tips |
+| --- | --- |
+| [FoodSafety.gov: 4 Steps](https://www.foodsafety.gov/keep-food-safe/4-steps-to-food-safety) | Clean utensils, separate produce boards, thermometer placement, cold storage and leftovers |
+| [FDA: outdoor food handling](https://www.fda.gov/food/buy-store-serve-safe-food/handling-food-safely-while-eating-outdoors) | Refrigerated marinating, reserve clean marinade, clean serving dishes |
+| [Weber manual, page 11](https://digital-assets.weber.com/documents/48990_121219.pdf?fm=pdf#page=11) | Crowding increases grilling time |
+| [Institute of Culinary Education](https://www.ice.edu/blog/how-find-grain-and-slice-steak-chef) | Slice across the grain after resting |
+| [RICARDO / Christina Blais](https://www.ricardocuisine.com/en/articles/food-chemistry/643-how-to-perfect-the-art-of-braising) | Brown in batches, gentle simmer under a lid, rest braised meat in liquid |
+| [King Arthur Baking](https://www.kingarthurbaking.com/recipes/resources/recipe-success-guide) | Independent thermometer during oven preheating |
+| [Good Food BBQ sauce](https://www.bbcgoodfood.com/recipes/barbecue-sauce) / [vinaigrette](https://www.bbcgoodfood.com/recipes/classic-vinaigrette) | Simmer BBQ sauce to thicken; shake oil/vinegar dressings |
+| Weber brisket / ThermoWorks short ribs (below) | Temperature alone does not establish tenderness |
 
 ## Temperature reference and limitations
 
@@ -45,7 +63,7 @@ used. An internal target below the applicable baseline, a missing matching
 target in the steps, or a detected contradictory internal target fails the gate.
 
 A live preview sample exposed a separate culinary error: oven brisket described
-as fall-apart tender at 63°C. Version 2 applies a conservative 90–99°C house range
+as fall-apart tender at 63°C. The temperature check applies a conservative 90–99°C house range
 and a probe/fork tenderness cue to brisket and thick short ribs/asado with slow
 methods. The sources for the thermal principle are
 [Weber's brisket guide](https://www.weber.com/IE/en/recipes/beef/beginner-brisket/weber-175674.html)
@@ -77,9 +95,11 @@ are displayed without actual supporting records.
 
 ## Verification
 
-`tests/recipe-quality.cjs` checks completeness rejection, serving/weight/time
-consistency, relevant temperature baselines, preservation through storage, bounded
-model repair and fail-closed errors. `tests/recipe-quality-ui.cjs` exercises the
-rendered app, step preservation, shopping list, labels, retry and saved reopening.
-The test recipes are synthetic fixtures, not kitchen-tested recipes. Live model
-samples and browser rendering are separate checks; neither replaces cooking.
+The tests cover strict failures versus advisories, bounded repair, preserving an
+initial usable draft, provider/network fallback, all baseline families across
+languages/portion counts/methods, reviewed tip selection, safe links, both desktop
+and mobile renderers, shopping and save/reopen preservation. Fixtures and browser
+samples test software, not taste or cooking performance. Firestore security rules
+are unchanged; account/storage regression tests remain part of the suite.
+
+Desktop partial regeneration also keeps section-level replacement provenance, so a fallback sauce/side cannot be silently presented as customised AI output. A live preview sample also prompted a guard requiring the internal target before the first rest step, not only after resting.

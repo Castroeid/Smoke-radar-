@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory();
-  else root.RecipeStore = factory();
-})(typeof window !== "undefined" ? window : this, function () {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./recipe-guidance.js"));
+  else root.RecipeStore = factory(root.RecipeGuidance);
+})(typeof window !== "undefined" ? window : this, function (Guidance) {
   "use strict";
   const validId = (id) => typeof id === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(id);
   const text = (value) => typeof value === "string" ? value : "";
@@ -19,7 +19,8 @@
     const m = value.main || {};
     const recipe = {
       id: value.id, title: value.title,
-      recipeVersion: [1, 2].includes(value.recipeVersion) ? value.recipeVersion : undefined,
+      recipeVersion: [1, 2, 3].includes(value.recipeVersion) ? value.recipeVersion : undefined,
+      generation: Guidance.generation(value.generation),
       dietaryPreference: text(value.dietaryPreference),
       createdAt: Number.isFinite(Date.parse(value.createdAt)) ? new Date(value.createdAt).toISOString() : new Date(0).toISOString(),
       preferences: {

@@ -2744,6 +2744,9 @@
       console.log('Smoke Radar: Test user DISABLED. Refresh page.');
     };
 </script> 
+<link rel="stylesheet" href="/app/recipe-guidance.css">
+<script src="/app/recipe-quality.js" defer></script>
+<script src="/app/recipe-guidance.js" defer></script>
 </head>
 <body>
   <div class="opening-loader" id="openingLoader">
@@ -5911,12 +5914,15 @@ updateRecipeActionLabels();
       const dietaryPreference = String(recipe?.dietaryPreference || "").trim().toLowerCase();
 
       return {
+        recipeVersion: recipe.recipeVersion,
+        generation: RecipeGuidance.generation(recipe.generation),
         main: {
-          step_timing: Array.isArray(recipe?.main?.step_timing) ? recipe.main.step_timing.map(t => ({ minutes: Number(t?.minutes) || 0 })) : [],
+          step_timing: Array.isArray(recipe?.main?.step_timing) ? recipe.main.step_timing.map(t => ({ phase: String(t?.phase || ""), minutes: Number(t?.minutes) || 0 })) : [],
           equipment: safeList(recipe?.main?.equipment),
           title: String(recipe?.main?.title || "").trim(),
           description: String(recipe?.main?.description || "").trim(),
           metadata: {
+            ...Object.fromEntries(["prep_minutes", "cook_minutes", "rest_minutes", "total_minutes"].map(key => [key, recipe?.main?.metadata?.[key]])),
             meat_weight_g: Number(recipe?.main?.metadata?.meat_weight_g) || null,
             piece_thickness_cm: Number(recipe?.main?.metadata?.piece_thickness_cm) || null,
             target_internal_c: Number(recipe?.main?.metadata?.target_internal_c) || null,
@@ -5945,6 +5951,7 @@ updateRecipeActionLabels();
       if (mode === "sauces") {
         return {
           ...currentRecipe,
+          sectionGenerations: { ...currentRecipe.sectionGenerations, [mode]: RecipeGuidance.generation(incomingRecipe.generation) },
           dietaryPreference: incomingRecipe.dietaryPreference || currentRecipe.dietaryPreference,
           drinkPairings: incomingRecipe.drinkPairings.length ? incomingRecipe.drinkPairings : currentRecipe.drinkPairings,
           sauces: incomingRecipe.sauces.length ? incomingRecipe.sauces : currentRecipe.sauces
@@ -5954,6 +5961,7 @@ updateRecipeActionLabels();
       if (mode === "sides") {
         return {
           ...currentRecipe,
+          sectionGenerations: { ...currentRecipe.sectionGenerations, [mode]: RecipeGuidance.generation(incomingRecipe.generation) },
           dietaryPreference: incomingRecipe.dietaryPreference || currentRecipe.dietaryPreference,
           drinkPairings: incomingRecipe.drinkPairings.length ? incomingRecipe.drinkPairings : currentRecipe.drinkPairings,
           sides: incomingRecipe.sides.length ? incomingRecipe.sides : currentRecipe.sides
@@ -5966,6 +5974,10 @@ updateRecipeActionLabels();
     function renderSmartRecipe(structuredRecipe, meta = {}) {
       const main = structuredRecipe?.main || {};
       const metadata = main.metadata || {};
+      const context = RecipeGuidance.effectiveContext(structuredRecipe, { cut: meta.cut, method: meta.method, dietaryPreference: structuredRecipe.dietaryPreference });
+      const report = RecipeQuality.review(structuredRecipe, context);
+      const timingUncertain = report.warnings.includes("timing");
+      const stepTip = (step, phase, section = "main", part) => structuredRecipe.recipeVersion === RecipeQuality.VERSION ? RecipeGuidance.stepHTML(step, { recipe: structuredRecipe, context, phase, section, part }, currentLanguage) : "";
       const cutLabel = getRecipeCutLabel(meta.cut);
       const dietaryPreference = structuredRecipe?.dietaryPreference || meta.dietaryPreference || (currentLanguage === "he" ? "kosher" : "non_kosher");
       const dietaryLabel = dietaryPreference === "kosher" ? t("recipe.kosherLabel") : t("recipe.nonKosherLabel");
@@ -5974,7 +5986,7 @@ updateRecipeActionLabels();
         : `<p>${escapeHtml(t("recipe.ingredientsMissing"))}</p>`;
 
       const mainSteps = (main.steps || []).length
-        ? `<ol>${(main.steps || []).map((item, i) => `<li>${escapeHtml(item)}${main.step_timing?.[i]?.minutes ? `<p>${currentLanguage === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${main.step_timing[i].minutes} ${currentLanguage === "he" ? "דקות" : "min"}</p>` : ""}</li>`).join("")}</ol>`
+        ? `<ol>${(main.steps || []).map((item, i) => `<li>${escapeHtml(item)}${!timingUncertain && main.step_timing?.[i]?.minutes ? `<p>${currentLanguage === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${main.step_timing[i].minutes} ${currentLanguage === "he" ? "דקות" : "min"}</p>` : ""}${stepTip(item, main.step_timing?.[i]?.phase)}</li>`).join("")}</ol>`
         : `<p>${escapeHtml(t("recipe.stepsMissing"))}</p>`;
       const chefTips = (main.chefTips || []).length
         ? `<ul>${(main.chefTips || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
@@ -5993,7 +6005,7 @@ updateRecipeActionLabels();
             <h4>${escapeHtml(t("recipe.ingredients"))}</h4>
             <ul>${(sauce.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
             <h4>${escapeHtml(t("recipe.steps"))}</h4>
-            <ol>${(sauce.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
+            <ol>${(sauce.steps || []).map(item => `<li>${escapeHtml(item)}${stepTip(item, undefined, "side", sauce)}</li>`).join("")}</ol>
           </div>
         </article>
       `).join("");
@@ -6005,7 +6017,7 @@ updateRecipeActionLabels();
           <ul>${(side.ingredients || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           <ol class="side-steps">
             ${((side.steps || []).length ? side.steps : [t("recipe.defaultStep")])
-              .map(step => `<li>${escapeHtml(step)}</li>`)
+              .map(step => `<li>${escapeHtml(step)}${stepTip(step, undefined, "side", side)}</li>`)
               .join("")}
           </ol>
         </article>
@@ -6024,13 +6036,13 @@ updateRecipeActionLabels();
             <span class="ai-recipe-badge">${escapeHtml(t("recipe.aiPowered"))}</span>
           </div>
 
-          <p>${currentLanguage === "he" ? "נוצר בעזרת AI. המתכון טרם נוסה במטבח; זמני הבישול הם הערכה." : "AI-generated, not kitchen-tested; cooking times are estimates."}</p>
+          ${RecipeGuidance.reviewHTML(structuredRecipe, context, currentLanguage)}
           ${metadata.meat_weight_g ? `<p>${currentLanguage === "he" ? "המתכון מתוכנן עבור" : "Recipe assumptions:"} ${metadata.meat_weight_g} g · ${metadata.piece_thickness_cm} cm · ${escapeHtml((main.equipment || []).join(" · "))}</p>` : ""}
           ${metadata.target_internal_c ? `<p>${currentLanguage === "he" ? "טמפרטורת ליבה במתכון:" : "Recipe internal target:"} ${metadata.target_internal_c}°C. ${escapeHtml(metadata.doneness_cue || "")}</p>` : ""}
           <div class="ai-recipe-meta">
             <span class="ai-recipe-chip">🥩 ${escapeHtml(meta.cut || "cut")}</span>
-            <span class="ai-recipe-chip">🔥 ${escapeHtml(meta.method || "method")}</span>
-            <span class="ai-recipe-chip">🧂 ${escapeHtml(meta.flavor || "flavor")}</span>
+            <span class="ai-recipe-chip">🔥 ${escapeHtml(structuredRecipe.generation?.kind === "baseline" ? main.equipment?.[0] : meta.method || "method")}</span>
+            <span class="ai-recipe-chip">🧂 ${escapeHtml(structuredRecipe.generation?.kind === "baseline" ? (currentLanguage === "he" ? "מלח ופלפל" : "Salt and pepper") : meta.flavor || "flavor")}</span>
             <span class="ai-recipe-chip">✡️ ${escapeHtml(t("recipe.dietaryChip"))}: ${escapeHtml(meta.dietaryLabel || dietaryLabel)}</span>
           </div>
 
@@ -6050,9 +6062,9 @@ updateRecipeActionLabels();
               <div class="ai-recipe-card">
                 <h4>${escapeHtml(t("recipe.metadata"))}</h4>
                 <ul>
-                  <li><strong>${escapeHtml(t("recipe.metaPrep"))}:</strong> ${escapeHtml(metadata.prep_time || "-")}</li>
-                  <li><strong>${escapeHtml(t("recipe.metaCook"))}:</strong> ${escapeHtml(metadata.cook_time || "-")}</li>
-                  <li><strong>${escapeHtml(t("recipe.metaTotal"))}:</strong> ${escapeHtml(metadata.total_time || "-")}</li>
+                  <li><strong>${escapeHtml(t("recipe.metaPrep"))}:</strong> ${escapeHtml(timingUncertain ? "—" : metadata.prep_time || "-")}</li>
+                  <li><strong>${escapeHtml(t("recipe.metaCook"))}:</strong> ${escapeHtml(timingUncertain ? "—" : metadata.cook_time || "-")}</li>
+                  <li><strong>${escapeHtml(t("recipe.metaTotal"))}:</strong> ${escapeHtml(timingUncertain ? "—" : metadata.total_time || "-")}</li>
                   <li><strong>${escapeHtml(t("recipe.metaDifficulty"))}:</strong> ${escapeHtml(metadata.difficulty || "-")}</li>
                   <li><strong>${escapeHtml(t("recipe.metaServings"))}:</strong> ${escapeHtml(metadata.servings || "-")}</li>
                 </ul>
@@ -6065,7 +6077,7 @@ updateRecipeActionLabels();
 
               <div class="ai-recipe-card">
                 <h4>${escapeHtml(t("recipe.chefTips"))}</h4>
-                ${chefTips}
+                ${structuredRecipe.recipeVersion === RecipeQuality.VERSION ? (currentLanguage === "he" ? "טיפים עם קישורי מקור מופיעים לצד שלבי ההכנה." : "Tips with source links appear alongside the preparation steps.") : chefTips}
               </div>
             </div>
           </section>

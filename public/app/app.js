@@ -914,13 +914,22 @@ async function loadRecipe() {
     r: String(Math.floor(Math.random() * 1000000))
   });
 
-  const res = await fetch(`/api/ai-recipe?${query.toString()}`);
-  const data = await res.json();
+  let recipe;
+  const context = { ...p, language: requestLanguage, cut, method };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 125000);
+  try {
+    const res = await fetch(`/api/ai-recipe?${query.toString()}`, { signal: controller.signal });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "recipe_service_unavailable");
+    recipe = data.structuredRecipe;
+    const report = RecipeQuality.review(recipe, RecipeGuidance.effectiveContext(recipe, context));
+    if (!report.usable) recipe = RecipeFallback.create(context, "incomplete");
+  } catch {
+    recipe = RecipeFallback.create(context, "network");
+  } finally { clearTimeout(timeout); }
   if (requestLanguage !== state.lang || JSON.stringify(p) !== JSON.stringify(state.preferences) || state.recipe) return false;
-  if (!res.ok) throw new Error(data.error || "recipe_service_unavailable");
-  const report = RecipeQuality.check(data.structuredRecipe, p);
-  if (!report.passed) throw new Error("recipe_incomplete");
-  state.recipe = enhanceRecipeQuality(data.structuredRecipe);
+  state.recipe = enhanceRecipeQuality(recipe);
   state.shopping = buildShoppingList(state.recipe);
 }
 
@@ -929,29 +938,14 @@ function recipeHeroForCut() {
 }
 
 function renderRecipeQuality(recipe) {
-  const he = state.lang === "he";
-  const report = RecipeQuality.check(recipe, state.preferences);
-  if (recipe.recipeVersion !== RecipeQuality.VERSION || !report.passed) {
-    return `<div class="card recipe-quality"><p>${he ? "למתכון השמור הזה אין בדיקת שלמות עדכנית. יצירה מחדש תפעיל את הבדיקות החדשות." : "This saved recipe has no current completeness check. Regenerate it to apply the new checks."}</p></div>`;
-  }
-  const m = recipe.main.metadata;
-  return `<section class="card recipe-quality" aria-label="${he ? "פרטי בדיקת המתכון" : "Recipe check details"}">
-    <span class="recipe-check-label">${he ? "עבר בדיקת שלמות אוטומטית" : "Automated completeness checks passed"}</span>
-    <p>${he ? "נוצר בעזרת AI. המתכון טרם נוסה במטבח." : "AI-generated. This recipe has not been kitchen-tested."}</p>
-    <details><summary>${he ? "מה נבדק?" : "What was checked?"}</summary>
-      <p>${he ? "נבדקו נוכחות של כמות ויחידה לכל מרכיב, התאמת מספר המנות לבקשה, סכום זמני ההכנה וקיום רשימות המרכיבים והשלבים למנה, לרטבים ולתוספות. זו בדיקת נתונים אוטומטית, לא בדיקת טעם או אישור מקצועי." : "Checks cover a quantity and unit for each ingredient, requested serving count, time totals, and ingredient and instruction lists for the main dish, sauces and sides. This is an automated data check, not a taste test or professional approval."}</p>
-    </details>
-    <p><strong>${he ? "המתכון מתוכנן עבור:" : "Recipe assumptions:"}</strong> ${m.meat_weight_g} ${he ? "גרם בשר בסך הכול; עובי כל יחידה כ־" : "g meat in total; each piece about "}${m.piece_thickness_cm} ${he ? "ס״מ." : "cm thick."}</p>
-    <p><strong>${he ? "ציוד:" : "Equipment:"}</strong> ${recipe.main.equipment.map(escapeHotText).join(" · ")}</p>
-    <p><strong>${he ? "טמפרטורת ליבה במתכון:" : "Recipe internal target:"}</strong> <bdi>${m.target_internal_c}°C</bdi>. ${escapeHotText(m.doneness_cue)}</p>
-    <p class="small">${he ? "הזמנים הם הערכה למנה העיקרית וכוללים מנוחה. משקל, עובי וציוד משפיעים על הבישול; בדקו במדחום ובסימני המוכנות." : "Times estimate the main dish and include resting. Weight, thickness and equipment affect cooking; check with a thermometer and the readiness cues."}</p>
-    <details><summary>${he ? "הנחיית טמפרטורה ממקור חיצוני" : "External temperature guidance"}</summary>
-      <p>${he ? "לסוג הבשר שבמתכון, הנחיית FoodSafety.gov היא לפחות " : "For this recipe's meat type, FoodSafety.gov recommends at least "}<bdi>${report.safety.minimumC}°C</bdi>${report.safety.restMinutes ? (he ? " ומנוחה של 3 דקות לפחות." : " and at least 3 minutes rest.") : "."}</p>
-      ${report.cooking ? `<p>${he ? "בנתח הזה נדרש גם ריכוך בבישול ממושך. טמפרטורת המינימום לבטיחות אינה יעד הריכוך; בדקו שהשיפוד או המדחום נכנסים בקלות." : "This cut also needs extended cooking for tenderness. The safety minimum is not the tenderness target; check that a probe enters easily."}</p><a href="${report.cooking.url}" target="_blank" rel="noopener noreferrer">${he ? "הסבר על ריכוך הנתח: " : "Cut tenderness reference: "}${report.cooking.name}</a><br>` : ""}
-      <a href="${RecipeQuality.SOURCE_URL}" target="_blank" rel="noopener noreferrer">${he ? "טבלת טמפרטורות לבישול — FoodSafety.gov" : "Cooking temperature chart — FoodSafety.gov"}</a>
-      <p class="small">${he ? "המקור מתייחס לטמפרטורת הבישול; הוא אינו מקור למתכון ואינו מאשר אותו." : "The source covers cooking temperatures; it is not the source of, or an endorsement of, this recipe."}</p>
-    </details>
-  </section>`;
+  return `<div class="card">${RecipeGuidance.reviewHTML(recipe, state.preferences, state.lang)}</div>`;
+}
+
+function renderStepTip(step, phase, section = "main", part) {
+  // Historical drafts retain their text, but receive no retroactive source claims.
+  if (state.recipe?.recipeVersion !== RecipeQuality.VERSION) return "";
+  return RecipeGuidance.stepHTML(step, { recipe: state.recipe, phase, section, part,
+    context: RecipeGuidance.effectiveContext(state.recipe, state.preferences) }, state.lang);
 }
 
 function renderRecipe() {
@@ -982,9 +976,10 @@ function renderRecipe() {
   const selectedCut = getCutById(state.preferences.cutId).labels[state.lang];
   const selectedMethod = getMethodById(state.preferences.methodId).labels[state.lang];
   const selectedFlavor = getFlavorById(state.preferences.flavorId).labels[state.lang];
-  const prep = main.prepTime || main.metadata?.prep_time || "—";
-  const cook = main.cookTime || main.metadata?.cook_time || "—";
-  const total = main.totalTime || main.metadata?.total_time || "—";
+  const timingUncertain = RecipeQuality.review(r, RecipeGuidance.effectiveContext(r, state.preferences)).warnings.includes("timing");
+  const prep = timingUncertain ? "—" : main.prepTime || main.metadata?.prep_time || "—";
+  const cook = timingUncertain ? "—" : main.cookTime || main.metadata?.cook_time || "—";
+  const total = timingUncertain ? "—" : main.totalTime || main.metadata?.total_time || "—";
   const difficulty = main.difficulty || main.metadata?.difficulty || "—";
   const kosherLabel = state.preferences.dietaryPreference === "kosher" ? (state.lang === "he" ? "כשר" : "Kosher") : (state.lang === "he" ? "לא כשר" : "Non-kosher");
   const badges = [
@@ -1016,15 +1011,15 @@ function renderRecipe() {
       <div class="meta-item"><strong>${state.lang === "he" ? "זמן בישול" : "Cook Time"}</strong>${escapeHotText(cook)}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "סה״כ זמן" : "Total Time"}</strong>${escapeHotText(total)}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "קושי" : "Difficulty"}</strong>${escapeHotText(difficulty)}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "נתח" : "Cut"}</strong>${selectedCut}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</strong>${selectedMethod}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</strong>${selectedFlavor}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "נתח" : "Cut"}</strong>${r.generation?.kind === "baseline" ? escapeHotText(main.title) : selectedCut}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</strong>${r.generation?.kind === "baseline" ? escapeHotText(main.equipment?.[0] || "—") : selectedMethod}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</strong>${r.generation?.kind === "baseline" ? (state.lang === "he" ? "מלח ופלפל" : "Salt and pepper") : selectedFlavor}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "מנות" : "Servings"}</strong>${state.preferences.servings}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "העדפת כשרות" : "Dietary preference"}</strong>${kosherLabel}</div>
     </div>
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${escapeHotText(i)}</li>`).join("")}</ul></div>
-    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s, i) => `<li>${escapeHotText(s)}${main.step_timing?.[i]?.minutes ? `<p class="small">${state.lang === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${Number(main.step_timing[i].minutes)} ${state.lang === "he" ? "דקות" : "min"}</p>` : ""}</li>`).join("")}</ol></div>
+    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s, i) => `<li>${escapeHotText(s)}${!timingUncertain && main.step_timing?.[i]?.minutes ? `<p class="small">${state.lang === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${Number(main.step_timing[i].minutes)} ${state.lang === "he" ? "דקות" : "min"}</p>` : ""}${renderStepTip(s, main.step_timing?.[i]?.phase)}</li>`).join("")}</ol></div>
     ${glossary.length ? `<div class="card"><h3>${glossaryTitle}</h3><ul class="list">${glossary.map((item) => `<li>${escapeHotText(item)}</li>`).join("")}</ul></div>` : ""}
     <div class="card">
       <h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3>
@@ -1035,10 +1030,7 @@ function renderRecipe() {
       ${renderSubRecipeDetails(sides)}
     </div>
     <div class="card"><h3>${state.lang === "he" ? "שתייה מתאימה" : "Drink Pairings"}</h3><ul class="list">${(r.drinkPairings || []).map((d) => `<li>${escapeHotText(d.name)}</li>`).join("")}</ul></div>
-    <div class="card">
-      <h3>${state.lang === "he" ? "טיפים להכנה" : "Cooking Tips"}</h3>
-      <ul class="list">${chefTips.map((tip) => `<li>${escapeHotText(tip)}</li>`).join("")}</ul>
-    </div>
+
 
     <div class="inline-actions">
       <button class="btn btn-ghost" id="saveRecipeBtn">${state.lang === "he" ? "שמור מתכון" : "Save Recipe"}</button>
@@ -1463,7 +1455,7 @@ function renderSubRecipeDetails(items) {
       <p class="small">${state.lang === "he" ? "מרכיבים" : "Ingredients"}</p>
       <ul class="list">${item.ingredients.map((ingredient) => `<li>${escapeHotText(ingredient)}</li>`).join("")}</ul>
       <p class="small">${state.lang === "he" ? "הכנה" : "Instructions"}</p>
-      <ol class="list">${item.steps.map((step) => `<li>${escapeHotText(step)}</li>`).join("")}</ol>
+      <ol class="list">${item.steps.map((step) => `<li>${escapeHotText(step)}${renderStepTip(step, undefined, "side", item)}</li>`).join("")}</ol>
     </div>
   `).join("");
 }
@@ -2078,6 +2070,7 @@ async function saveCurrentRecipe() {
     title: main.title || (state.lang === "he" ? "מתכון ללא שם" : "Untitled Recipe"),
     preferences: { ...state.preferences },
     recipeVersion: state.recipe.recipeVersion,
+    generation: RecipeGuidance.generation(state.recipe.generation),
     dietaryPreference: state.recipe.dietaryPreference,
     main: state.recipe.main || {},
     sauces: state.recipe.sauces || [],
@@ -2104,6 +2097,7 @@ function openSavedRecipe(id) {
   state.preferences = { ...state.preferences, ...(saved.preferences || {}) };
   state.recipe = {
     recipeVersion: saved.recipeVersion,
+    generation: RecipeGuidance.generation(saved.generation),
     dietaryPreference: saved.dietaryPreference || saved.preferences?.dietaryPreference,
     main: saved.main || {},
     sauces: saved.sauces || [],
