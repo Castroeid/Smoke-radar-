@@ -18,6 +18,9 @@ AI-generated / not kitchen-tested note. It is not a guarantee of safety or taste
   main meat weight and time totals must agree with their corresponding fields.
 - Each main step has a prep/cook/rest phase and estimated minutes. The server
   calculates all totals from those steps; durations are appended by the UI.
+  Structured model output keeps the instruction and timing in the same object,
+  then the server converts it to the existing client/storage representation.
+  This avoids drift between independently generated step and duration arrays.
   Numeric minute/hour durations also present in model prose are checked against
   that step's estimate (including per-side cooking and additional phases).
   Additional finishing and resting therefore

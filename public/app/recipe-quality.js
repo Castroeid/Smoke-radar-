@@ -54,10 +54,17 @@
 
   function prepareDraft(recipe) {
     if (!recipe?.main) return recipe;
-    const totals = stepTotals(recipe.main.step_timing);
+    let main = recipe.main;
+    // Keep the generated action and its duration together. The public recipe
+    // shape stays compatible with saved recipes and both existing renderers.
+    if (Array.isArray(main.steps) && main.steps.length && main.steps.every(s => s && typeof s === "object" && !Array.isArray(s))) {
+      main = { ...main, steps: main.steps.map(s => s.text), step_timing: main.steps.map(s => ({ phase: s.phase, minutes: s.minutes })) };
+    }
+    const totals = stepTotals(main.step_timing);
+    if (main !== recipe.main) recipe = { ...recipe, main };
     if (!totals) return recipe;
     // Totals come from the ordered steps, not a separately generated summary.
-    return { ...recipe, main: { ...recipe.main, metadata: { ...recipe.main.metadata, ...totals } } };
+    return { ...recipe, main: { ...main, metadata: { ...main.metadata, ...totals } } };
   }
 
   function check(recipe, context = {}) {

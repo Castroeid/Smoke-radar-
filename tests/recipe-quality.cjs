@@ -53,6 +53,21 @@ test("total time comes from every step, including additional finishing and resti
   assert.equal(Quality.check(calculated, context).passed, false, "every finishing stage must be counted");
 });
 
+test("generated step objects retain each action and its duration without parallel-array drift", () => {
+  const r = fixture();
+  const originalSteps = [...r.main.steps], originalTiming = structuredClone(r.main.step_timing);
+  r.main.steps = r.main.steps.map((text, i) => ({ text, ...r.main.step_timing[i] }));
+  delete r.main.step_timing;
+  delete r.main.metadata.total_minutes;
+  const prepared = Quality.prepareDraft(r);
+  assert.deepEqual(prepared.main.steps, originalSteps);
+  assert.deepEqual(prepared.main.step_timing, originalTiming);
+  assert.equal(prepared.main.metadata.total_minutes, 290);
+  assert.equal(Quality.check(prepared, context).passed, true);
+  delete r.main.steps[1].minutes;
+  assert.equal(Quality.check(Quality.prepareDraft(r), context).passed, false, "missing timing is not invented");
+});
+
 test("slow brisket and short ribs cannot use the safety minimum as their tenderness target", () => {
   for (const cutId of ["brisket", "short_ribs", "asado"]) {
     const r = fixture();
@@ -114,6 +129,18 @@ test("request sends actual servings and custom instructions to the model", async
   const sent = JSON.parse(calls[0].messages[1].content);
   assert.equal(sent.servings, 6); assert.equal(sent.userQuestion, "בלי השריה"); assert.equal(sent.method, "תנור");
   assert.equal(response.headers["Cache-Control"], "no-store");
+});
+
+test("structured model output is validated and returned in the existing client recipe format", async () => {
+  const r = fixture();
+  r.main.steps = r.main.steps.map((text, i) => ({ text, ...r.main.step_timing[i] }));
+  delete r.main.step_timing;
+  const { response, calls } = await run([r]);
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body.structuredRecipe.main.steps, fixture().main.steps);
+  assert.deepEqual(response.body.structuredRecipe.main.step_timing, fixture().main.step_timing);
+  assert.equal(calls[0].response_format.type, "json_schema");
+  assert.equal(calls[0].response_format.json_schema.strict, true);
 });
 
 test("malformed output gets one bounded repair and is never filled with a generic recipe", async () => {
