@@ -361,6 +361,14 @@ function buildSearchQuery() {
   return "beef steak brisket bbq smoked ribeye picanha";
 }
 
+function buildSeasoningSearchQuery() {
+  // YouTube's OR operator keeps these alternatives in one supplemental search.
+  // Every phrase includes a cooking context; avoid broad terms like "dry" or "vacuum".
+  return ["bbq rub", "beef brine", "meat dry brine", "meat wet brine", "meat marinade",
+    "meat drying", "beef jerky", "beef dry aging", "meat vacuum marinating",
+    "בשר ראב", "בשר בריין", "בשר מרינדה", "בשר השריה בוואקום"].join("|");
+}
+
 async function fetchLiveVideosFromYouTube() {
   if (!API_KEY) {
     throw new Error("Missing API key");
@@ -372,9 +380,22 @@ async function fetchLiveVideosFromYouTube() {
 
   const searchData = await fetchJson(searchUrl);
 
-  const ids = (searchData.items || [])
+  // Reuse the radar's refresh window and cache. No searches on topic clicks.
+  let seasoningItems = [];
+  try {
+    const seasoningUrl =
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&order=date` +
+      `&maxResults=20&q=${encodeURIComponent(buildSeasoningSearchQuery())}&key=${API_KEY}`;
+    const seasoningData = await fetchJson(seasoningUrl);
+    seasoningItems = seasoningData.items || [];
+  } catch {
+    // A supplemental failure must not discard the successful main radar search.
+    console.warn("Seasoning video search unavailable; continuing with main radar results.");
+  }
+
+  const ids = [...new Set([...(searchData.items || []), ...seasoningItems]
     .map(item => item?.id?.videoId)
-    .filter(Boolean);
+    .filter(id => /^[\w-]{11}$/.test(String(id || ""))))];
 
   if (!ids.length) return [];
 
