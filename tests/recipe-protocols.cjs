@@ -10,7 +10,7 @@ const base = { language: 'he', meatType: 'beef', cutId: 'ribeye', servings: 4, d
 
 test('equipment recipes stay complete across cuts, meats, quantities, languages and flavour choices', () => {
   for (const language of ['he', 'en']) for (const meatType of ['beef', 'lamb', 'veal']) {
-    for (const cutId of ['ribeye', 'brisket', 'asado', 'picanha', 'sirloin', 'filet', 'short_ribs', 'chuck', 'flank', 'striploin', 'tenderloin']) {
+    for (const cutId of ['ribeye', 'brisket', 'asado', 'picanha', 'sirloin', 'filet', 'short_ribs', 'chuck', 'flank', 'striploin', 'tenderloin', 'rump', 'chuck_roll']) {
       for (const servings of [1, 4, 20]) for (const flavorId of ['classic', 'garlic_herbs', 'sweet_smoky']) {
         for (const mode of ['basic', 'sous_vide']) {
           const c = { ...base, language, meatType, cutId, servings, flavorId, equipmentMode: mode === 'basic' ? 'basic' : 'standard', methodId: mode === 'basic' ? (Protocols.tough(cutId) ? 'long_cook' : 'pan_sear') : 'sous_vide' };
@@ -56,7 +56,7 @@ test('sous-vide bath duration follows thickness, not number of portions', () => 
 
 test('every basic cooking method generates its own equipment and instructions and survives saving', () => {
   for (const language of ['he', 'en']) for (const meatType of ['beef', 'lamb', 'veal']) {
-    for (const cutId of ['ribeye', 'brisket', 'asado', 'picanha', 'sirloin', 'filet', 'short_ribs', 'chuck', 'flank', 'striploin', 'tenderloin']) {
+    for (const cutId of ['ribeye', 'brisket', 'asado', 'picanha', 'sirloin', 'filet', 'short_ribs', 'chuck', 'flank', 'striploin', 'tenderloin', 'rump', 'chuck_roll']) {
       for (const methodId of Protocols.basicMethods(cutId)) for (const servings of [1, 4, 20]) {
         const c = { ...base, language, meatType, cutId, methodId, servings };
         const r = Fallback.create(c, 'network');

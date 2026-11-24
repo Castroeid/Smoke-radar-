@@ -25,6 +25,7 @@
     const cut = `${context.cutId || ""} ${context.cut || ""}`;
     const method = `${context.methodId || ""} ${context.method || ""}`;
     if (!/oven|roast|smok|long|low|brais|תנור|מעשנ|עישון|ארוך|איטי/i.test(method)) return null;
+    if (/chuck_roll|chuck roll|untrib|אונטריב|אונטרייב/i.test(cut)) return { minimumC: 90, maximumC: 99, name: "ThermoWorks — Chuck", url: "https://blog.thermoworks.com/smoked-chuck-roast-a-cheaper-cut-shines/" };
     if (/brisket|בריסקט/i.test(cut)) return { minimumC: 90, maximumC: 99, name: "Weber — Brisket", url: "https://www.weber.com/IE/en/recipes/beef/beginner-brisket/weber-175674.html" };
     if (/asado|short.?ribs|אסאדו|שפונדרה/i.test(cut)) return { minimumC: 90, maximumC: 99, name: "ThermoWorks — Braised Short Ribs", url: "https://www.thermoworks.com/blogs/thermoblog/whole-braised-short-ribs" };
     return null;

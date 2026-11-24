@@ -14,8 +14,8 @@
   // Rounded upwards with an additional margin; this is total bath time, not
   // a hold time to start before the centre has heated. Never scale by servings.
   const BATH_MINUTES = Object.freeze({ 2: 75, 2.5: 90, 3: 105, 4: 120, 5: 150 });
-  const names = { ribeye: ["אנטריקוט", "ribeye"], brisket: ["בריסקט", "brisket"], asado: ["אסאדו", "short ribs"], picanha: ["פיקניה", "picanha"], sirloin: ["סינטה", "sirloin"], filet: ["פילה", "fillet"], short_ribs: ["שפונדרה", "short ribs"], chuck: ["כתף / צוואר", "chuck"], flank: ["פלנק", "flank"], striploin: ["סינטה", "striploin"], tenderloin: ["פילה", "tenderloin"] };
-  const tough = cut => ["brisket", "asado", "short_ribs", "chuck"].includes(cut);
+  const names = { rump: ["שייטל", "shaitel / rump"], chuck_roll: ["אונטריב", "untrib / chuck roll"], ribeye: ["אנטריקוט", "ribeye"], brisket: ["בריסקט", "brisket"], asado: ["אסאדו", "short ribs"], picanha: ["פיקניה", "picanha"], sirloin: ["סינטה", "sirloin"], filet: ["פילה", "fillet"], short_ribs: ["שפונדרה", "short ribs"], chuck: ["כתף / צוואר", "chuck"], flank: ["פלנק", "flank"], striploin: ["סינטה", "striploin"], tenderloin: ["פילה", "tenderloin"] };
+  const tough = cut => ["brisket", "asado", "short_ribs", "chuck", "chuck_roll"].includes(cut);
   const basicMethods = cut => tough(cut) ? ["long_cook", "oven", "grill", "bbq", "bbq_finish"] : ["pan_sear", "grill", "bbq", "oven"];
   function basicMethodLabel(method, cut, language = "he") {
     const slow = tough(cut), labels = {

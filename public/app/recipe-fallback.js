@@ -10,11 +10,11 @@
     const t = (hebrew, english) => he ? hebrew : english;
     const input = `${context.meatType || ""} ${context.cut || ""} ${context.cutId || ""}`;
     const safety = Quality.safetyReference(null, { meatType: input });
-    const tough = /brisket|asado|short.?ribs|chuck|בריסקט|אסאדו|שפונדרה|כתף|צוואר/i.test(input);
+    const tough = /brisket|asado|short.?ribs|chuck|אונטריב|אונטרייב|בריסקט|אסאדו|שפונדרה|כתף|צוואר/i.test(input);
     const profile = safety.minimumC === 74 ? "poultry" : safety.minimumC === 71 ? "ground" : tough || /lamb|veal|טלה|עגל/i.test(input) ? "braise" : "steak";
     const method = profile === "braise" ? "oven" : /^(grill|bbq)$/.test(context.methodId || "") || /^(grill|bbq|גריל|ברביקיו)$/i.test(context.method || "") ? "grill" : "pan";
     const weight = n * (profile === "braise" ? 300 : 250), target = profile === "braise" ? 95 : safety.minimumC;
-    const names = { ribeye: ["אנטריקוט", "ribeye"], picanha: ["פיקניה", "picanha"], sirloin: ["סינטה", "sirloin"], striploin: ["סינטה", "striploin"], filet: ["פילה", "fillet"], tenderloin: ["פילה", "tenderloin"], flank: ["פלנק", "flank"], brisket: ["בריסקט", "brisket"], asado: ["אסאדו ללא עצם", "boneless short ribs"], short_ribs: ["שפונדרה ללא עצם", "boneless short ribs"], chuck: ["כתף בקר", "beef chuck"] };
+    const names = { rump: ["שייטל", "shaitel / rump"], chuck_roll: ["אונטריב", "untrib / chuck roll"], ribeye: ["אנטריקוט", "ribeye"], picanha: ["פיקניה", "picanha"], sirloin: ["סינטה", "sirloin"], striploin: ["סינטה", "striploin"], filet: ["פילה", "fillet"], tenderloin: ["פילה", "tenderloin"], flank: ["פלנק", "flank"], brisket: ["בריסקט", "brisket"], asado: ["אסאדו ללא עצם", "boneless short ribs"], short_ribs: ["שפונדרה ללא עצם", "boneless short ribs"], chuck: ["כתף בקר", "beef chuck"] };
     const named = names[context.cutId];
     const meat = profile === "poultry" ? t("חזה עוף ללא עצם", "boneless chicken breast") : profile === "ground" ? t("בשר בקר טחון", "ground beef") : /lamb|טלה/i.test(input) ? t("כתף טלה ללא עצם", "boneless lamb shoulder") : /veal|עגל/i.test(input) ? t("כתף עגל ללא עצם", "boneless veal shoulder") : named ? named[he ? 0 : 1] : profile === "braise" ? t("כתף בקר", "beef chuck") : t("אנטריקוט", "ribeye");
     const g = t("גרם", "g"), ml = t("מ״ל", "ml"), cookMinutes = Math.ceil(n / 4) * (profile === "poultry" ? 20 : 12);

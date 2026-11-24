@@ -1,4 +1,4 @@
-const STEPS = ["landing", "saved", "hot", "preferences", "expert", "cook", "recipe", "shopping", "butcher"];
+const STEPS = ["landing", "saved", "hot", "preferences", "expert", "cook", "recipe", "shopping", "butcher", "butcherGuide"];
 let currentStep = 0;
 const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
 const SHARE_TEXT = "Check out Smoke Radar — meat trends, recipes, and butcher discovery in one radar-style app.";
@@ -15,6 +15,8 @@ const assetCandidates = {
 
 const cutsCatalog = [
   { id: "ribeye", labels: { he: "אנטריקוט", en: "Ribeye" }, aliases: ["ribeye", "אנטריקוט"] },
+  { id: "rump", labels: { he: "שייטל", en: "Shaitel / Rump" }, aliases: ["rump", "שייטל", "כנף העוקץ"] },
+  { id: "chuck_roll", labels: { he: "אונטריב", en: "Untrib / Chuck roll" }, aliases: ["chuck roll", "אונטריב", "אונטרייב"] },
   { id: "brisket", labels: { he: "בריסקט", en: "Brisket" }, aliases: ["brisket", "בריסקט"] },
   { id: "asado", labels: { he: "אסאדו", en: "Asado" }, aliases: ["asado", "אסאדו"] },
   { id: "picanha", labels: { he: "פיקניה", en: "Picanha" }, aliases: ["picanha", "פיקניה"] },
@@ -54,6 +56,8 @@ const flavorProfiles = [
 ];
 
 const cutHelperText = {
+  rump: { he: "שייטל (מס׳ 13 בבקר): מתאים לסטייקים, שיפודים, רצועות ורוסטביף.", en: "Shaitel / rump: Israeli beef cut 13, for steaks, skewers, strips and roast beef." },
+  chuck_roll: { he: "אונטריב / צלעות (מס׳ 2 בבקר): מתאים לקדירה ולבישול ארוך; בטחינה גם להמבורגר. החלק המדויק חשוב.", en: "Untrib / chuck roll: commonly Israeli beef cut 2, for slow cooking or grinding. Confirm the exact section." },
   ribeye: {
     he: "מתאים לצריבה במחבת, גריל, ריברס סיר.",
     en: "Best for pan sear, grill, and reverse sear."
@@ -75,6 +79,8 @@ const cutHelperText = {
 
 
 const cutMethodRules = {
+  rump: ["grill", "bbq", "cast_iron", "pan_sear", "oven_roast", "reverse_sear"],
+  chuck_roll: ["long_cook", "smoker", "smoking", "low_slow", "oven", "oven_roast"],
   ribeye: ["grill", "bbq", "cast_iron", "pan_sear", "reverse_sear"],
   striploin: ["grill", "bbq", "cast_iron", "pan_sear", "reverse_sear"],
   entrecote: ["grill", "bbq", "cast_iron", "pan_sear", "reverse_sear"],
@@ -141,7 +147,8 @@ const copy = {
       expert: "שאל את המומחים",
       recipe: "מתכון מלא",
       shopping: "רשימת קניות",
-      butcher: "Butcher Radar™"
+      butcher: "Butcher Radar™",
+      butcherGuide: "מה לבקש מהקצב?"
     }
   },
   en: {
@@ -183,7 +190,8 @@ const copy = {
       expert: "Ask the Experts",
       recipe: "Cooking Guide",
       shopping: "Shopping List",
-      butcher: "Butcher Radar™"
+      butcher: "Butcher Radar™",
+      butcherGuide: "What should I ask the butcher?"
     }
   }
 };
@@ -224,6 +232,8 @@ const state = {
   butcherLoaded: false,
   butcherError: null,
   butcherFromHome: false,
+  butcherReturnTo: null,
+  butcherGuide: { goal: "burgers", servings: 4, returnTo: "landing" },
   butcherFilters: { openNow: false, saturday: false },
   butcherCheckedAt: null,
   navigation: {
@@ -278,7 +288,8 @@ el.backBtn.addEventListener("click", () => {
     landing: "landing", saved: "landing", preferences: "landing", cook: "preferences",
     expert: expertState.returnToStep || "preferences",
     recipe: state.navigation.recipeReturnTo || "preferences",
-    shopping: "recipe", butcher: state.butcherFromHome ? "landing" : "shopping"
+    shopping: "recipe", butcher: state.butcherReturnTo || (state.butcherFromHome ? "landing" : "shopping"),
+    butcherGuide: state.butcherGuide.returnTo
   }[step] || "landing";
   if (step === "expert") {
     state.navigation.askExpertMode = false;
@@ -296,6 +307,7 @@ function goHome() {
   state.navigation.generatorMode = true;
   state.selectedHot = null;
   state.butcherFromHome = false;
+  state.butcherReturnTo = null;
   // Navigating home does not delete a recipe or reset the user's preferences.
   stopRecipeLoadingState();
   render();
@@ -357,13 +369,13 @@ function render() {
   el.homeBtn.setAttribute("aria-label", state.lang === "he" ? "חזרה למסך הבית" : "Back to home");
   el.homeBtn.hidden = step === "landing";
   el.backBtn.textContent = t("back");
-  el.nextBtn.textContent = currentStep === STEPS.length - 1
+  el.nextBtn.textContent = step === "butcher"
     ? t("finish")
     : step === "preferences"
       ? (state.lang === "he" ? "צור מתכון" : "Generate Recipe")
       : t("next");
   el.backBtn.classList.toggle("hidden", currentStep === 0);
-  el.nextBtn.classList.toggle("hidden", step === "landing" || step === "saved" || step === "hot");
+  el.nextBtn.classList.toggle("hidden", step === "landing" || step === "saved" || step === "hot" || step === "butcherGuide");
 
   el.content.classList.remove("fade-in");
   void el.content.offsetWidth;
@@ -381,6 +393,7 @@ function render() {
   if (step === "recipe") return renderRecipe();
   if (step === "shopping") return renderShopping();
   if (step === "butcher") return renderButchers();
+  if (step === "butcherGuide") return renderButcherGuide();
 }
 
 function renderOpeningStepList() {
@@ -467,6 +480,7 @@ function renderLanding() {
     <button class="btn btn-choice btn-choice-hot" data-choice="hot">${t("hotAction")}</button>
     <button class="btn btn-choice btn-choice-know" data-choice="feel">${t("knowAction")}</button>
     <button class="btn btn-choice" id="openButchersBtn">${state.lang === "he" ? "📍 מצא קצבייה לידי" : "📍 Find a butcher near me"}</button>
+    ${butcherGuideEntry(true)}
     ${latest ? `
       <div class="card last-recipe-prompt">
         <p>${state.lang === "he" ? "להמשיך מהמתכון האחרון?" : "Continue your last recipe?"}</p>
@@ -508,6 +522,7 @@ function renderLanding() {
 
   document.getElementById("openButchersBtn")?.addEventListener("click", () => {
     state.butcherFromHome = true;
+    state.butcherReturnTo = null;
     currentStep = STEPS.indexOf("butcher");
     render();
   });
@@ -524,6 +539,7 @@ function renderLanding() {
   document.getElementById("privacyBtn")?.addEventListener("click", () => openLegalModal("privacy"));
   document.getElementById("shareBtn")?.addEventListener("click", () => shareSmokeRadar());
   bindRecipeAccount();
+  bindButcherGuideEntry();
 }
 
 function renderSavedRecipes() {
@@ -1110,8 +1126,8 @@ function buildShoppingList(recipe) {
   const drinks = (recipe?.drinkPairings || []).map((d) => d.name).filter(Boolean);
 
   return {
-    meat: mainIng.filter((i) => /beef|lamb|veal|בקר|טלה|עגל|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
-    seasoning: mainIng.filter((i) => !/beef|lamb|veal|בקר|טלה|עגל|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
+    meat: mainIng.filter((i) => /beef|lamb|veal|בקר|טלה|עגל|meat|rib|steak|brisket|rump|chuck|פיקניה|בשר|נתח|אנטריקוט|שייטל|אונטריב|אונטרייב|פילה/i.test(i)),
+    seasoning: mainIng.filter((i) => !/beef|lamb|veal|בקר|טלה|עגל|meat|rib|steak|brisket|rump|chuck|פיקניה|בשר|נתח|אנטריקוט|שייטל|אונטריב|אונטרייב|פילה/i.test(i)),
     sauceIngredients: [...new Set(sauces)],
     sideIngredients: [...new Set(sides)],
     drinks: [...new Set(drinks)]
@@ -1128,6 +1144,7 @@ function renderShopping() {
   ];
 
   el.content.innerHTML = `
+    ${butcherGuideEntry()}
     ${groups.map((group) => {
       const items = state.shopping[group.key] || [];
       return `
@@ -1150,11 +1167,106 @@ function renderShopping() {
     });
   });
 
+  bindButcherGuideEntry();
   document.getElementById("copyList").addEventListener("click", async () => copyShoppingListToClipboard());
   document.getElementById("toButchers").addEventListener("click", () => {
     state.butcherFromHome = false;
+    state.butcherReturnTo = null;
     currentStep = STEPS.indexOf("butcher");
     render();
+  });
+}
+
+function butcherGuideEntry(compact = false) {
+  const label = state.lang === "he" ? "מה לבקש מהקצב?" : "What should I ask the butcher?";
+  if (compact) return `<button type="button" class="butcher-guide-link" id="openButcherGuide">${label}</button>`;
+  return `<div class="card butcher-guide-entry"><button type="button" class="btn btn-ghost" id="openButcherGuide">${label}</button><p class="small">${state.lang === "he" ? "בוחרים מה להכין ומקבלים בקשה מוכנה לקצב." : "Choose a dish and get a ready-to-use butcher request."}</p></div>`;
+}
+
+function bindButcherGuideEntry() {
+  document.getElementById("openButcherGuide")?.addEventListener("click", () => {
+    const origin = STEPS[currentStep];
+    // Reopening the guide from its own finder must not create a Back loop.
+    if (origin !== "butcher" || state.butcherReturnTo !== "butcherGuide") state.butcherGuide.returnTo = origin;
+    currentStep = STEPS.indexOf("butcherGuide");
+    render();
+    window.scrollTo({ top: 0, behavior: "instant" });
+  });
+}
+
+function renderButcherGuide() {
+  const he = state.lang === "he", guide = state.butcherGuide;
+  el.content.innerHTML = `
+    <div class="card">
+      <p class="small">${he ? "מדריך לקניית בשר בקר. בוחרים מנה ומראים לקצב את הבקשה." : "A beef buying guide. Choose a dish and show the request to your butcher."}</p>
+      <div class="field"><label for="butcherGoal">${he ? "אני רוצה להכין…" : "I want to make…"}</label>
+        <select id="butcherGoal">${ButcherGuide.goals.map(g => `<option value="${g.id}" ${g.id === guide.goal ? "selected" : ""}>${escapeHotText(g.label[he ? 0 : 1])}</option>`).join("")}</select>
+      </div>
+      <div class="field"><label for="butcherServings">${he ? "כמה מנות?" : "How many servings?"}</label>
+        <input id="butcherServings" type="number" min="1" max="20" step="1" inputmode="numeric" value="${guide.servings}" />
+      </div>
+    </div>
+    <div id="butcherGuideResult" aria-live="polite"></div>
+    <button class="btn btn-primary" id="guideFindButchers">${he ? "מצא קצבייה לידי" : "Find a butcher near me"}</button>
+  `;
+  document.getElementById("butcherGoal").addEventListener("change", event => {
+    guide.goal = event.target.value;
+    renderButcherGuideResult();
+  });
+  const servingsInput = document.getElementById("butcherServings");
+  // Keep the request (and its copy action) current while a phone keyboard is still open.
+  servingsInput.addEventListener("input", event => {
+    if (!event.target.value.trim()) return;
+    guide.servings = ButcherGuide.build(guide.goal, event.target.value).servings;
+    renderButcherGuideResult();
+  });
+  servingsInput.addEventListener("change", event => {
+    guide.servings = ButcherGuide.build(guide.goal, event.target.value).servings;
+    event.target.value = guide.servings;
+    renderButcherGuideResult();
+  });
+  document.getElementById("guideFindButchers").addEventListener("click", () => {
+    if (guide.returnTo !== "butcher") state.butcherReturnTo = "butcherGuide";
+    currentStep = STEPS.indexOf("butcher");
+    render();
+    window.scrollTo({ top: 0, behavior: "instant" });
+  });
+  renderButcherGuideResult();
+}
+
+function renderButcherGuideResult() {
+  const he = state.lang === "he";
+  const result = ButcherGuide.build(state.butcherGuide.goal, state.butcherGuide.servings, state.lang);
+  document.getElementById("butcherGuideResult").innerHTML = `
+    <div class="card butcher-request-card">
+      <h2>${he ? "זה מה להגיד לקצב" : "Your butcher request"}</h2>
+      <p id="butcherRequestText" class="butcher-request-text">${escapeHotText(result.request)}</p>
+      <button type="button" class="btn btn-ghost" id="copyButcherRequest">${he ? "העתק בקשה לקצב" : "Copy butcher request"}</button>
+      <p class="small" id="butcherCopyStatus" role="status"></p>
+      <textarea id="butcherManualCopy" aria-label="${he ? "בקשה לקצב להעתקה ידנית" : "Butcher request for manual copying"}" readonly hidden>${escapeHotText(result.request)}</textarea>
+      <p class="small">${he ? `הערכת קנייה: ${result.gramsPerServing} גרם בשר נא ללא עצם למנה. התאימו לתיאבון ולתוספות; הכמות אינה מחליפה את כמויות המתכון.` : `Buying estimate: ${result.gramsPerServing} g raw boneless meat per serving. Adjust for appetite and sides; follow your recipe's quantities when available.`}</p>
+      <details class="butcher-guide-notes">
+        <summary>${he ? "למה הנתח הזה? חלופות ומקורות" : "Why this cut? Alternatives and sources"}</summary>
+        <p>${escapeHotText(result.why)}</p>
+        <p><strong>${he ? "אם אין: " : "Alternatives: "}</strong>${result.alternatives.map(escapeHotText).join(" / ")}</p>
+        <p>${escapeHotText(result.check)}</p>
+        <p class="small">${he ? "המספרים מתייחסים לחלוקה המקובלת של בקר בישראל. שמות וחלקים עשויים להשתנות בין קצביות; מציינים גם את המנה ואת החיתוך הרצוי." : "Numbers refer to the usual Israeli beef-cut system. Names and subdivisions can vary; describe the dish and preparation as well."}</p>
+        <p class="small">${he ? "המקורות מסבירים התאמת נתחים ותערובות. ניסוח הבקשה והערכת הכמות הם של Smoke Radar." : "Sources explain cut and blend choices. The request wording and quantity estimate are by Smoke Radar."}</p>
+        <ul class="butcher-guide-sources">${result.sources.map(source => `<li><a href="${escapeHotText(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHotText(source.name)}</a></li>`).join("")}</ul>
+      </details>
+    </div>
+  `;
+  document.getElementById("copyButcherRequest").addEventListener("click", async () => {
+    const status = document.getElementById("butcherCopyStatus");
+    try {
+      await navigator.clipboard.writeText(result.request);
+      status.textContent = he ? "הבקשה הועתקה — אפשר להדביק בוואטסאפ או להראות לקצב." : "Copied — paste it in a message or show your butcher.";
+    } catch {
+      const field = document.getElementById("butcherManualCopy");
+      if (!field) return;
+      field.hidden = false; field.focus(); field.select();
+      status.textContent = he ? "אפשר להעתיק ידנית את הטקסט המסומן." : "Copy the selected text manually.";
+    }
   });
 }
 
@@ -1212,19 +1324,22 @@ async function searchButchers() {
 
 function renderButchers() {
   if (state.butcherLoading) {
-    el.content.innerHTML = renderButcherLoading();
+    el.content.innerHTML = butcherGuideEntry() + renderButcherLoading();
+    bindButcherGuideEntry();
     return;
   }
   if (state.butcherError || !state.butcherLoaded || !state.butchers.length) {
     const mapsQuery = state.location
       ? `butcher shops near ${state.location.lat},${state.location.lng}` : "butcher shops near me";
     el.content.innerHTML = `
+      ${butcherGuideEntry()}
       <div class="card visual-map" aria-label="Butcher map"></div>
       ${state.butcherError ? `<div class="card" role="alert">${butcherErrorMessage(state.butcherError)}</div>` : ""}
       ${!state.butcherError && state.butcherLoaded ? `<div class="card">${state.lang === "he" ? "לא נמצאו קצביות באזור שלך. אפשר לחפש שוב או לפתוח מפות." : "No butcher shops found nearby. Try again or open Maps."}</div>` : ""}
       <button id="findButchers" class="btn btn-primary">${state.lang === "he" ? (state.butcherError || state.butcherLoaded ? "נסה שוב" : "📍 מצא קצביות קרובות") : (state.butcherError || state.butcherLoaded ? "Try again" : "📍 Find nearby butcher shops")}</button>
       ${state.butcherError || state.butcherLoaded ? `<a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}" target="_blank" rel="noopener">${state.lang === "he" ? "חפש קצביות ב־Google Maps" : "Search butcher shops in Google Maps"}</a>` : ""}
     `;
+    bindButcherGuideEntry();
     document.getElementById("findButchers").addEventListener("click", searchButchers);
     return;
   }
@@ -1245,6 +1360,7 @@ function renderButchers() {
     .sort((a, b) => b.rankingScore - a.rankingScore);
 
   el.content.innerHTML = `
+    ${butcherGuideEntry()}
     <div class="card visual-map" aria-label="Butcher map"></div>
     <div class="card butcher-filter-panel">
       <div class="butcher-filters" role="group" aria-label="${he ? "סינון קצביות" : "Filter butcher shops"}">
@@ -1283,6 +1399,7 @@ function renderButchers() {
         </article>`;
     }).join("")}
   `;
+  bindButcherGuideEntry();
   for (const [id, key] of [["filterOpenNow", "openNow"], ["filterSaturday", "saturday"]]) {
     document.getElementById(id).addEventListener("click", () => {
       state.butcherFilters[key] = !state.butcherFilters[key];
@@ -1497,7 +1614,7 @@ function renderSubRecipeDetails(items) {
 
 async function handleNext() {
   const step = STEPS[currentStep];
-  if (["landing", "saved", "hot"].includes(step)) return;
+  if (["landing", "saved", "hot", "butcherGuide"].includes(step)) return;
   if (step === "cook" && state.selectedMealIdea === null) return;
   if (step === "expert") {
     state.navigation.askExpertMode = false;
@@ -1523,6 +1640,7 @@ async function handleNext() {
   }
   if (step === "shopping") {
     state.butcherFromHome = false;
+    state.butcherReturnTo = null;
     currentStep = STEPS.indexOf("butcher");
     render();
     return;
@@ -2373,7 +2491,7 @@ async function shareSmokeRadar() {
 }
 
 function recipeThumbnailForCut(cutId) {
-  if (["brisket", "short_ribs", "chuck"].includes(cutId)) return "/app/assets/recipe-bg.jpg.png";
+  if (["brisket", "short_ribs", "chuck", "chuck_roll"].includes(cutId)) return "/app/assets/recipe-bg.jpg.png";
   return "/app/assets/hero-steak.jpg.png";
 }
 

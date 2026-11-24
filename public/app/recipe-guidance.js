@@ -6,6 +6,7 @@
   // Editorial paraphrases, checked against these pages on 2026-11-24.
   // The model never supplies a citation, URL, tip text, or an endorsement.
   const SOURCES = Object.freeze({
+    chuck: { name: "ThermoWorks", title: "Smoked Chuck Roast — tenderness", url: "https://blog.thermoworks.com/smoked-chuck-roast-a-cheaper-cut-shines/" },
     grillGas: { name: "Weber", title: "Direct and Indirect Cooking on a Gas Barbecue", url: "https://contact-emea.weber.com/hc/en-us/articles/39518225669789-Direct-and-Indirect-Cooking-on-a-Gas-Barbecue" },
     grillCharcoal: { name: "Weber", title: "Charcoal Grilling Methods", url: "https://contact-emea.weber.com/hc/en-us/articles/360000623338-Charcoal-Grilling-Methods" },
     barbecue: { name: "Food Standards Scotland", title: "Barbecue food safety", url: "https://www.foodstandards.gov.scot/consumer-advice/food-safety/in-the-kitchen/parties-and-events/barbecue-food-safety" },
@@ -24,6 +25,7 @@
     vinaigrette: { name: "Good Food", title: "Classic vinaigrette — mixing technique", url: "https://www.bbcgoodfood.com/recipes/classic-vinaigrette" }
   });
   const TIPS = Object.freeze({
+    chuck: { source: "chuck", he: "בנתח לבישול ארוך בודקים גם רכות בכמה מקומות. אם השיפוד עדיין נתקל בהתנגדות, ממשיכים בבישול גם כשהזמן המשוער הסתיים.", en: "For a slow-cooking cut, check tenderness in several places. Continue cooking if a probe still meets resistance, even after the estimated time." },
     grillGas: { source: "grillGas", he: "בבישול עקיף מכבים את המבער שמתחת לבשר ומשאירים מקור חום לצדו. סוגרים את מכסה הגריל כדי שהחום יקיף את המזון.", en: "For indirect cooking, turn off the burner below the food and keep heat beside it. Close the grill lid so heat circulates around the food." },
     grillCharcoal: { source: "grillCharcoal", he: "לצלייה עקיפה מסדרים את הגחלים בצד ומשאירים שטח ללא גחלים מתחת למזון. בישול ממושך כזה נעשה עם מכסה המנגל סגור.", en: "For indirect cooking, bank the coals to one side and leave none directly below the food. Keep the barbecue lid closed during this longer cook." },
     charcoalReady: { source: "barbecue", he: "ממתינים לגחלים זוהרות עם אפר אפור. להבות עלולות להשחיר את החוץ לפני שהמרכז מוכן; מזיזים את הבשר כשיש התלקחות.", en: "Wait for glowing coals with grey ash. Flames can blacken the outside before the centre is cooked; move the meat away from flare-ups." },
@@ -104,7 +106,7 @@
     else if (/מדחום|ליבה|thermometer|internal|probe/i.test(s)) { id = "thermometer"; general = false; }
     else if (section === "main" && phase === "cook" && /משחימ|השחמ|brown/i.test(s) && /קוביות|סבבים|cubes|batches/i.test(s)) { id = "brown"; general = false; }
     else if (section === "main" && phase === "cook" && /בעבוע|רתיחה|simmer|boil/i.test(s) && /מכס|מכוס|cover/i.test(s)) { id = "simmer"; general = false; }
-    else if (section === "main" && cooking && phase === "cook" && /תנור|מבשלים|רכות|oven|tender|cook/i.test(s)) { id = cooking.name.startsWith("Weber") ? "brisket" : "ribs"; general = false; }
+    else if (section === "main" && cooking && phase === "cook" && /תנור|מבשלים|רכות|oven|tender|cook/i.test(s)) { id = cooking.name.endsWith("Chuck") ? "chuck" : cooking.name.startsWith("Weber") ? "brisket" : "ribs"; general = false; }
     else if (/ירקות|מלפפו|עגבני|תפוחי (?:ה)?אדמה|בצל|גזר|vegetable|cucumber|tomato|potato|onion|carrot/i.test(s) && /חותכ|שטפ|שוטפ|קוצצ|cut|chop|rinse|wash/i.test(s)) { id = "produce"; general = false; }
     else if (section !== "main" && /ברביקיו|barbecue|bbq/i.test(partText) && /מבשלים|מרתיח|מסמיך|סמיך|cook|boil|simmer|thick/i.test(s)) { id = "bbqReduce"; general = false; }
     else if (section !== "main" && /חומץ|vinegar/i.test(partText) && /שמן|oil/i.test(partText) && !/קטשופ|barbecue|bbq|ketchup/i.test(partText) && /מערבבים|טורפים|mix|whisk|shake/i.test(s)) { id = "dressing"; general = false; }
@@ -123,7 +125,7 @@
     // A substituted method must be assessed and labelled as the actual recipe.
     if (g.kind !== "baseline") return context;
     const title = recipe?.main?.title || "";
-    const cutId = /brisket|בריסקט/i.test(title) ? "brisket" : /short ribs|אסאדו|שפונדרה/i.test(title) ? "short_ribs" : g.profile === "braise" ? "chuck" : "";
+    const cutId = /untrib|אונטריב|אונטרייב/i.test(title) ? "chuck_roll" : /shaitel|rump|שייטל/i.test(title) ? "rump" : /brisket|בריסקט/i.test(title) ? "brisket" : /short ribs|אסאדו|שפונדרה/i.test(title) ? "short_ribs" : g.profile === "braise" ? "chuck" : "";
     return { ...context, userQuestion: "", cutId, cut: title, methodId: g.method, method: g.method };
   }
   function notes(recipe, context = {}, language = "en") {
