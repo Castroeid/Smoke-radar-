@@ -475,7 +475,6 @@ function renderLanding() {
   const latest = state.savedRecipes[0];
   el.content.innerHTML = `
     <div class="card recipe-hero hero-card" style="--recipe-image:var(--asset-hero)">
-      <p class="small">${state.lang === "he" ? "Smoke Radar Premium" : "Smoke Radar Premium"}</p>
       <h2>${t("landingTitle")}</h2>
       <p class="small">${t("landingSubtitle")}</p>
     </div>
@@ -643,7 +642,7 @@ function renderHotNow() {
   const groups = [
     { id: "cut", title: he ? "🥩 נתחים" : "🥩 Cuts" },
     { id: "style", title: he ? "🔥 סגנונות הכנה" : "🔥 Cooking styles" },
-    { id: "spice", title: he ? "🧂 תבלינים ותיבול" : "🧂 Spices and seasoning" }
+    { id: "spice", title: he ? "🧂 תיבול, השריה וייבוש" : "🧂 Seasoning, marinating and drying" }
   ];
   el.content.innerHTML = `
     <div class="card"><p>${he ? "מה חוזר בסרטונים שהרדאר אסף? בחר נושא כדי לראות את הסרטונים שלו." : "What appears in the videos collected by the radar? Choose a topic to see its videos."}</p>

@@ -27,6 +27,34 @@ test('only playable videos are counted and URLs are canonical YouTube URLs', () 
   assert.equal(topic.videos[0].url, 'https://www.youtube.com/watch?v=aaaaaaaaaaa');
   assert.equal(HotTopics.build([null, {}, {title: 42}]).length, 0);
 });
+test('seasoning and preparation topics recognize Hebrew and English spellings', () => {
+  const examples = [
+    ['rub', ['BBQ RUB for brisket', 'dry-rub for steak', '#dryrub', 'ראב לבשר', 'תערובת תיבול']],
+    ['brine', ['How to brine beef', 'Brining brisket', 'Brined meat', 'בריין לבשר']],
+    ['dry-brine', ['Dry-brining steak', '#drybrine', 'בריין יבש', 'המלחה יבשה']],
+    ['wet-brine', ['Wet brined brisket', 'wet_brine beef', 'בריין רטוב']],
+    ['marinade', ['Beef marinade', 'Marinating steak', 'נוזל השרייה לבשר', 'נוזל השריה', 'מרינדה']],
+    ['vacuum-marinade', ['Vacuum marinating beef', 'Vacuum-marinated steak', 'Vacuum brining meat', 'השרייה בוואקום', 'השריה בואקום']],
+    ['drying', ['Drying meat', 'Dehydrated meat', 'Beef jerky', 'Making jerky at home', 'ייבוש בשר']],
+    ['dry-aging', ['Dry-aged beef', '#dryaging', 'יישון יבש']]
+  ];
+  for (const [topic, titles] of examples) for (const title of titles) {
+    assert.ok(HotTopics.build([v('aaaaaaaaaaa', title)]).some(t => t.id === `spice-${topic}`), title);
+  }
+});
+test('rub, dry brine, wet brine, drying and dry aging are distinct topics', () => {
+  for (const [title, expected] of [
+    ['Beef dry rub', 'rub'], ['Beef dry brine', 'dry-brine'], ['Beef wet brine', 'wet-brine'],
+    ['ייבוש בשר', 'drying'], ['Dry aged beef', 'dry-aging'], ['השריה בוואקום', 'vacuum-marinade']
+  ]) {
+    assert.deepEqual(HotTopics.build([v('aaaaaaaaaaa', title)]).filter(t => t.category === 'spice').map(t => t.id), [`spice-${expected}`]);
+  }
+  for (const title of ['Scrubbing shrubs', 'Dry steak', 'Vacuum sealed steak', 'Sous vide beef', 'Vacuum cleaner']) {
+    assert.equal(HotTopics.build([v('aaaaaaaaaaa', title)]).filter(t => t.category === 'spice').length, 0, title);
+  }
+  const comparison = HotTopics.build([v('aaaaaaaaaaa', 'Dry brine vs wet brine')]);
+  assert.deepEqual(comparison.map(t => t.id).sort(), ['spice-dry-brine', 'spice-wet-brine']);
+});
 const source = fs.readFileSync('public/app/app.js', 'utf8');
 function setup(response) {
   const nodes = new Map();
@@ -62,6 +90,17 @@ test('topic detail contains only matching videos and escapes external titles', (
   assert.match(c.el.content.innerHTML, /watch\?v=aaaaaaaaaaa/);
   assert.doesNotMatch(c.el.content.innerHTML, /watch\?v=bbbbbbbbbbb/);
   assert.match(c.el.content.innerHTML, /&lt;img onerror=alert\(1\)&gt;/);
+});
+test('English seasoning titles appear under Hebrew topics with only matching videos', () => {
+  const c = setup();
+  c.state.hotList = HotTopics.build([v('aaaaaaaaaaa', 'Dry brine steak'), v('bbbbbbbbbbb', 'Wet brine beef')]);
+  c.renderHotNow();
+  assert.match(c.el.content.innerHTML, /תיבול, השריה וייבוש/);
+  assert.match(c.el.content.innerHTML, /data-topic="spice-dry-brine"/);
+  c.state.selectedHot = 'spice-dry-brine'; c.renderHotNow();
+  assert.match(c.el.content.innerHTML, /בריין יבש/);
+  assert.match(c.el.content.innerHTML, /watch\?v=aaaaaaaaaaa/);
+  assert.doesNotMatch(c.el.content.innerHTML, /watch\?v=bbbbbbbbbbb/);
 });
 test('back goes from topic to overview, then home, without altering recipe preferences', () => {
   let back;
