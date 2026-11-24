@@ -99,6 +99,8 @@ const expertState = {
   question: "",
   loading: false,
   answer: null,
+  kind: null,
+  history: [],
   suggestedCutId: null,
   suggestedMethodId: null,
   returnToStep: "preferences"
@@ -808,50 +810,65 @@ function updateCutHelperText() {
 
 
 function renderAskExpert() {
-  const placeholder = state.lang === "he" ? "למשל: איזה בשר מתאים לקדירה?" : "Example: which cut is best for stew?";
+  const he = state.lang === "he";
+  const placeholder = he ? "למשל: איך מכינים רוסטביף בתנור?" : "For example: how do I make roast beef?";
+  const titles = he
+    ? { answer: "תשובה לשאלה שלך", clarification: "כדי שאוכל לעזור", out_of_scope: "במה אפשר לעזור כאן", error: "לא התקבלה תשובה" }
+    : { answer: "Your answer", clarification: "A little more detail", out_of_scope: "What I can help with", error: "No answer received" };
+  const canUseRecipe = expertState.kind === "answer" && cutsCatalog.some(c => c.id === expertState.suggestedCutId)
+    && getAllowedMethodsForCut(expertState.suggestedCutId).includes(expertState.suggestedMethodId);
   const answerHtml = expertState.answer ? `
-    <div class="card">
-      <h3>${state.lang === "he" ? "תשובת מומחה" : "Expert Answer"}</h3>
-      <p>${expertState.answer}</p>
+    <div class="card" id="expertAnswer" role="status">
+      <h3>${titles[expertState.kind] || titles.answer}</h3>
+      <p class="expert-answer-text">${escapeHotText(expertState.answer)}</p>
       <div class="inline-actions">
-        <button class="btn btn-primary" id="expertUseBtn">${state.lang === "he" ? "להכין מתכון על בסיס זה" : "Generate Recipe from This"}</button>
-        <button class="btn btn-ghost" id="expertAnotherBtn">${state.lang === "he" ? "יש לי שאלה נוספת" : "Ask Another Question"}</button>
-        <button class="btn btn-ghost" id="expertBackBtn">${state.lang === "he" ? "חזרה למחולל" : "Back to Generator"}</button>
+        ${canUseRecipe ? `<button class="btn btn-primary" id="expertUseBtn">${he ? "להכין מתכון על בסיס זה" : "Generate Recipe from This"}</button>` : ""}
+        <button class="btn btn-ghost" id="expertAnotherBtn">${he ? "שאלה בנושא חדש" : "Ask about a new topic"}</button>
+        <button class="btn btn-ghost" id="expertBackBtn">${he ? "חזרה למחולל" : "Back to Generator"}</button>
       </div>
     </div>` : "";
 
   el.content.innerHTML = `
-    <div class="card">
-      <h3>${state.lang === "he" ? "שאל את המומחים" : "Ask the Experts"}</h3>
+    <form class="card" id="expertForm" aria-busy="${expertState.loading}">
+      <p class="small">${he ? "שאלות על בשר, בישול, עישון וגריל. אפשר גם להמשיך את השאלה הקודמת." : "Questions about meat, cooking, smoking and grilling. You can also follow up on the previous answer."}</p>
       <div class="field">
-        <input id="expertQuestion" type="text" maxlength="220" placeholder="${placeholder}" value="${expertState.question || ""}" />
+        <label for="expertQuestion">${he ? "מה תרצה לדעת?" : "What would you like to know?"}</label>
+        <input id="expertQuestion" type="text" maxlength="600" placeholder="${placeholder}" value="${escapeHotText(expertState.question)}" ${expertState.loading ? "disabled" : ""} />
       </div>
-      <button class="btn btn-primary" id="expertSubmitBtn">${state.lang === "he" ? "שלח" : "Send"}</button>
-    </div>
-    ${expertState.loading ? renderRecipeLoadingCard(state.lang === "he" ? "המומחים חושבים..." : "Experts are thinking...") : ""}
+      <button type="submit" class="btn btn-primary" id="expertSubmitBtn" ${expertState.loading ? "disabled" : ""}>${expertState.loading ? (he ? "בודק את השאלה…" : "Considering your question…") : (he ? "שלח" : "Send")}</button>
+    </form>
+    ${expertState.loading ? renderRecipeLoadingCard(he ? "מכינים תשובה לשאלה שלך..." : "Preparing your answer...") : ""}
     ${answerHtml}
   `;
 
   document.getElementById("expertQuestion")?.addEventListener("input", (event) => {
     expertState.question = event.target.value;
   });
-  document.getElementById("expertSubmitBtn")?.addEventListener("click", async () => {
+  document.getElementById("expertForm")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (expertState.loading) return;
     const q = String(document.getElementById("expertQuestion")?.value || "").trim();
-    if (!q) return;
     expertState.question = q;
     expertState.loading = true;
     expertState.answer = null;
+    expertState.kind = null;
+    expertState.suggestedCutId = null;
+    expertState.suggestedMethodId = null;
+    const language = state.lang;
+    const history = [...expertState.history];
     renderAskExpert();
-    await new Promise((resolve) => window.setTimeout(resolve, 900));
-    const result = buildExpertAnswer(q);
+    const result = await requestExpertAnswer(q, language, history);
     expertState.answer = result.answer;
+    expertState.kind = result.kind;
     expertState.suggestedCutId = result.cutId;
     expertState.suggestedMethodId = result.methodId;
+    if (result.kind !== "error") expertState.history = [...history, { role: "user", content: q }, { role: "assistant", content: result.answer }].slice(-4);
     expertState.loading = false;
     if (STEPS[currentStep] === "expert") renderAskExpert();
   });
 
   document.getElementById("expertUseBtn")?.addEventListener("click", () => {
+    if (!canUseRecipe) return;
     if (expertState.suggestedCutId) state.preferences.cutId = expertState.suggestedCutId;
     if (expertState.suggestedMethodId) state.preferences.methodId = expertState.suggestedMethodId;
     state.preferences.userQuestion = expertState.question || state.preferences.userQuestion;
@@ -862,6 +879,8 @@ function renderAskExpert() {
   });
   document.getElementById("expertAnotherBtn")?.addEventListener("click", () => {
     expertState.answer = null;
+    expertState.kind = null;
+    expertState.history = [];
     expertState.question = "";
     expertState.suggestedCutId = null;
     expertState.suggestedMethodId = null;
@@ -875,36 +894,25 @@ function renderAskExpert() {
   });
 }
 
-function buildExpertAnswer(question) {
-  const q = question.toLowerCase();
-  const isLongCook = /קדירה|בישול ארוך|נמוך|איטי|long|braise|slow/.test(q);
-  const isSmoker = /מעשנה|עישון|smok/.test(q);
-  const isQuick = /מהיר|סטייק|צריבה|grill|מחבת/.test(q);
-  if (isLongCook || isSmoker) {
-    return {
-      cutId: isSmoker ? "brisket" : "asado",
-      methodId: isSmoker ? "smoker" : "long_cook",
-      answer: state.lang === "he"
-        ? "לבישול ארוך בקדירה מתאימים נתחים עם הרבה קולגן כמו אסאדו, צוואר או כתף. אם יש מעשנה, בריסקט הוא בחירה מעולה לזמן ארוך."
-        : "For long braising, collagen-rich cuts like short ribs or chuck are best. If you have a smoker, brisket is ideal for a long cook."
-    };
+async function requestExpertAnswer(question, language, history) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 30000);
+  try {
+    const response = await fetch("/api/ask-expert", {
+      method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store", signal: controller.signal,
+      body: JSON.stringify({ question, lang: language, history })
+    });
+    if (!response.ok) throw Error("expert_unavailable");
+    const result = await response.json();
+    if (!["answer", "clarification", "out_of_scope"].includes(result.kind) || typeof result.answer !== "string" || !result.answer.trim()) throw Error("invalid_answer");
+    return result;
+  } catch {
+    return { kind: "error", cutId: null, methodId: null, answer: language === "he"
+      ? "לא הצלחתי לקבל תשובה לשאלה שלך כרגע. השאלה נשארה בשדה — אפשר ללחוץ שוב על שלח."
+      : "I could not get an answer right now. Your question is still in the field; press Send to try again." };
+  } finally {
+    window.clearTimeout(timeout);
   }
-  if (isQuick) {
-    return {
-      cutId: "ribeye",
-      methodId: "grill",
-      answer: state.lang === "he"
-        ? "למנה מהירה ומדויקת עדיף אנטריקוט או פילה על גריל/מחבת: צריבה קצרה ומנוחה קצרה יתנו תוצאה עסיסית."
-        : "For a fast, accurate result, use ribeye or filet on grill/pan with a short sear and short rest."
-    };
-  }
-  return {
-    cutId: "picanha",
-    methodId: "grill",
-    answer: state.lang === "he"
-      ? "אם אין מגבלה מיוחדת, פיקניה על גריל היא בחירה מצוינת: טעם עשיר, זמן הכנה קצר ותוצאה יציבה."
-      : "If there are no constraints, picanha on the grill is a strong choice: rich flavor and reliable results."
-  };
 }
 
 function buildIdeas() {
