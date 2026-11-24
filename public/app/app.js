@@ -110,7 +110,6 @@ const copy = {
     next: "המשך",
     finish: "סיום",
     back: "חזרה",
-    stepLabel: "שלב",
     loadingMessages: [
       "מנתחים את הנתונים...",
       "מחפשים השראה חמה 🔥",
@@ -153,7 +152,6 @@ const copy = {
     next: "Next",
     finish: "Finish",
     back: "Back",
-    stepLabel: "Step",
     loadingMessages: [
       "Analyzing trends...",
       "Finding something hot 🔥",
@@ -226,7 +224,8 @@ const state = {
   butcherCheckedAt: null,
   navigation: {
     generatorMode: true,
-    askExpertMode: false
+    askExpertMode: false,
+    recipeReturnTo: "preferences"
   }
 };
 
@@ -236,12 +235,10 @@ const el = {
   header: document.getElementById("appHeader"),
   title: document.getElementById("screenTitle"),
   subtitle: document.getElementById("screenSubtitle"),
-  progressWrap: document.querySelector(".progress-wrap"),
   content: document.getElementById("screenContent"),
   nextBtn: document.getElementById("nextBtn"),
   backBtn: document.getElementById("backBtn"),
-  progressFill: document.getElementById("progressFill"),
-  progressText: document.getElementById("progressText"),
+  homeBtn: document.getElementById("homeBtn"),
   openingMessage: document.getElementById("openingMessage"),
   openingSteps: document.getElementById("openingSteps"),
   openingProgressFill: document.getElementById("openingProgressFill"),
@@ -271,13 +268,35 @@ el.backBtn.addEventListener("click", () => {
     render();
     return;
   }
-  if (currentStep > 0) {
-    currentStep = STEPS[currentStep] === "butcher" && state.butcherFromHome
-      ? STEPS.indexOf("landing") : currentStep - 1;
-    render();
+  const step = STEPS[currentStep];
+  // Back follows the entry route, never the screen's position in STEPS.
+  const target = {
+    landing: "landing", saved: "landing", preferences: "landing", cook: "preferences",
+    expert: expertState.returnToStep || "preferences",
+    recipe: state.navigation.recipeReturnTo || "preferences",
+    shopping: "recipe", butcher: state.butcherFromHome ? "landing" : "shopping"
+  }[step] || "landing";
+  if (step === "expert") {
+    state.navigation.askExpertMode = false;
+    state.navigation.generatorMode = true;
   }
+  currentStep = STEPS.indexOf(target);
+  render();
 });
 el.nextBtn.addEventListener("click", handleNext);
+el.homeBtn.addEventListener("click", goHome);
+
+function goHome() {
+  currentStep = STEPS.indexOf("landing");
+  state.navigation.askExpertMode = false;
+  state.navigation.generatorMode = true;
+  state.selectedHot = null;
+  state.butcherFromHome = false;
+  // Navigating home does not delete a recipe or reset the user's preferences.
+  stopRecipeLoadingState();
+  render();
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
 
 function t(path) {
   return path.split(".").reduce((acc, key) => acc?.[key], copy[state.lang]);
@@ -323,8 +342,6 @@ async function applyResolvedAssets() {
 
 function render() {
   const step = STEPS[currentStep];
-  const totalFlowSteps = STEPS.length - 1;
-  const progress = step === "landing" ? 0 : Math.round((currentStep / totalFlowSteps) * 100);
 
   document.documentElement.lang = state.lang;
   document.documentElement.dir = t("dir");
@@ -332,9 +349,8 @@ function render() {
   el.title.textContent = step === "landing" ? "" : t(`titles.${step}`);
   el.subtitle.textContent = "";
   el.header.classList.toggle("landing-minimal", step === "landing" || step === "saved" || step === "hot");
-  el.progressWrap?.classList.toggle("hidden", step === "landing" || step === "saved" || step === "hot" || (step === "butcher" && state.butcherFromHome));
-  el.progressFill.style.width = `${progress}%`;
-  el.progressText.textContent = `${t("stepLabel")} ${Math.max(currentStep, 1)}/${totalFlowSteps}`;
+  el.homeBtn.textContent = state.lang === "he" ? "בית" : "Home";
+  el.homeBtn.setAttribute("aria-label", state.lang === "he" ? "חזרה למסך הבית" : "Back to home");
   el.backBtn.textContent = t("back");
   el.nextBtn.textContent = currentStep === STEPS.length - 1
     ? t("finish")
@@ -695,6 +711,7 @@ function renderPreferences() {
     state.navigation.generatorMode = true;
     state.navigation.askExpertMode = false;
     state.recipe = null;
+    state.navigation.recipeReturnTo = "preferences";
     currentStep = STEPS.indexOf("recipe");
     render();
   });
@@ -792,7 +809,7 @@ function renderAskExpert() {
     expertState.suggestedCutId = result.cutId;
     expertState.suggestedMethodId = result.methodId;
     expertState.loading = false;
-    renderAskExpert();
+    if (STEPS[currentStep] === "expert") renderAskExpert();
   });
 
   document.getElementById("expertUseBtn")?.addEventListener("click", () => {
@@ -1453,8 +1470,7 @@ function renderSubRecipeDetails(items) {
 
 async function handleNext() {
   const step = STEPS[currentStep];
-  if (step === "saved") return;
-  if (step === "hot") return;
+  if (["landing", "saved", "hot"].includes(step)) return;
   if (step === "cook" && state.selectedMealIdea === null) return;
   if (step === "expert") {
     state.navigation.askExpertMode = false;
@@ -1468,6 +1484,7 @@ async function handleNext() {
     state.navigation.generatorMode = true;
     state.navigation.askExpertMode = false;
     state.recipe = null;
+    state.navigation.recipeReturnTo = "preferences";
     currentStep = STEPS.indexOf("recipe");
     render();
     return;
@@ -1478,23 +1495,19 @@ async function handleNext() {
     return;
   }
   if (step === "shopping") {
+    state.butcherFromHome = false;
     currentStep = STEPS.indexOf("butcher");
     render();
     return;
   }
   if (step === "butcher") {
-    currentStep = 0;
-    state.recipe = null;
-    render();
+    goHome();
     return;
   }
-
-  if (currentStep < STEPS.length - 1) {
-    currentStep += 1;
-    render();
-  } else {
-    currentStep = 0;
+  if (step === "cook") {
+    state.navigation.recipeReturnTo = "cook";
     state.recipe = null;
+    currentStep = STEPS.indexOf("recipe");
     render();
   }
 }
@@ -2085,6 +2098,7 @@ async function saveCurrentRecipe() {
 function openSavedRecipe(id) {
   const saved = state.savedRecipes.find((item) => item.id === id);
   if (!saved) return;
+  state.navigation.recipeReturnTo = STEPS[currentStep] === "landing" ? "landing" : "saved";
   state.preferences = { ...state.preferences, ...(saved.preferences || {}) };
   state.recipe = {
     recipeVersion: saved.recipeVersion,
