@@ -9,7 +9,7 @@ The app previously selected one of three canned answers using local keyword rule
 
 The provider classifies complete questions semantically. Short context (up to four prior messages) supports follow-ups and is supplied as user data, not system instructions. “Ask about a new topic” clears it. Questions and responses stay in page memory; this change adds no database or transcript logging. The existing AI provider receives the question and the bounded context.
 
-Requests are capped at 600 question characters, provider calls at 25 seconds and 1,800 output tokens. The UI has a 30-second timeout, blocks duplicate submission, escapes both question and answer text, and never navigates back to the expert screen after the user has left it. Responses are not cached. No new client key or dependency is needed.
+Requests are capped at 600 question characters and 1,800 output tokens per call. An explicit internal-temperature contradiction triggers one repair within the same 25-second provider budget; an unresolved contradiction returns an unavailable response. This is a narrow consistency check, not a safety certification. The UI has a 30-second timeout, blocks duplicate submission, escapes both question and answer text, and never navigates back to the expert screen after the user has left it. Responses are not cached. No new client key or dependency is needed.
 
 The recipe action appears only for an actual answer with a recognized cut and a method supported by the current equipment mode. Clarifications, unrelated questions and failures cannot alter recipe preferences. The model is instructed not to recommend whole-cut recipes for ground-meat questions.
 

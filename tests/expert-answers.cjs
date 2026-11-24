@@ -1,13 +1,14 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createExpertHandler, requestContext, normalizeResult } = require('../lib/expert-answers.js');
+const { createExpertHandler, requestContext, normalizeResult, temperatureIssue } = require('../lib/expert-answers.js');
 
 async function ask(body, output, configured = true) {
   const calls = [];
   const client = { chat: { completions: { create: async (args, options) => {
-    calls.push({ args, options });
-    if (output instanceof Error) throw output;
-    return { choices: [{ finish_reason: 'stop', message: { content: typeof output === 'string' ? output : JSON.stringify(output) } }] };
+    calls.push({ args: structuredClone(args), options });
+    const value = Array.isArray(output) ? output[calls.length - 1] : output;
+    if (value instanceof Error) throw value;
+    return { choices: [{ finish_reason: 'stop', message: { content: typeof value === 'string' ? value : JSON.stringify(value) } }] };
   } } } };
   const response = { statusCode: 200, headers: {}, set(k, v) { this.headers[k] = v; return this; }, status(code) { this.statusCode = code; return this; }, json(value) { this.body = value; return this; } };
   await createExpertHandler({ client, isConfigured: () => configured })({ body }, response);
@@ -33,7 +34,7 @@ test('real questions reach the model intact, with bounded history as data and no
     const sent = calls[0].args.messages.at(-1);
     assert.deepEqual(sent, { role: 'user', content: question });
     assert.equal(calls[0].args.response_format.json_schema.strict, true);
-    assert.equal(calls[0].options.timeout, 25000);
+    assert.ok(calls[0].options.timeout <= 25000 && calls[0].options.timeout > 0);
     assert.equal(response.headers['Cache-Control'], 'no-store');
   }
 });
@@ -80,4 +81,20 @@ test('invalid inputs are rejected and suggestion IDs/history are bounded', async
   assert.deepEqual(bounded.history.map(t => t.content.length), [600, 2000]);
   assert.deepEqual(normalizeResult({ kind: 'answer', answer: 'A useful answer', cutId: 'invented', methodId: 'grill' }, 'en'),
     { kind: 'answer', answer: 'A useful answer', cutId: null, methodId: null });
+});
+
+test('explicit low internal-temperature ranges are repaired before display, and failed repairs are not shown', async () => {
+  const unsafe = { kind: 'answer', answer: 'אופים עד שהטמפרטורה הפנימית מגיעה ל-55-60 מעלות צלזיוס ואז מוציאים.', cutId: null, methodId: null };
+  const safe = { ...unsafe, answer: 'צולים עד לטמפרטורה פנימית של לפחות 63°C לפני ההוצאה, ואז נותנים לפחות 3 דקות מנוחה.' };
+  const fixed = await ask({ question: 'איך מכינים רוסטביף?' }, [unsafe, safe]);
+  assert.equal(fixed.calls.length, 2); assert.deepEqual(fixed.response.body, safe);
+  assert.match(fixed.calls[1].args.messages.at(-1).content, /at least 63/);
+  const failed = await ask({ question: 'איך מכינים רוסטביף?' }, [unsafe, unsafe]);
+  assert.equal(failed.response.statusCode, 503);
+  assert.equal(failed.response.body.answer, undefined);
+  assert.ok(temperatureIssue('Cook until internal temperature reaches 130°F.', 'How do I roast beef?'));
+  assert.ok(temperatureIssue('מוציאים בטמפרטורה פנימית של 65°C.', 'איך מכינים המבורגר?'));
+  assert.ok(temperatureIssue('מוציאים בטמפרטורה פנימית של 71°C.', 'איך מכינים עוף?'));
+  assert.equal(temperatureIssue('Store at 4°C, then roast in a 180°C oven to internal temperature 145°F.', 'How do I roast beef?'), null);
+  assert.equal(temperatureIssue('בקר בטמפרטורה פנימית של 63°C. עוף בטמפרטורה פנימית של 74°C.', 'מה ההבדל בין עוף לבקר?'), null);
 });
