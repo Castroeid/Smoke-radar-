@@ -6,6 +6,8 @@
   // Editorial paraphrases, checked against these pages on 2026-11-24.
   // The model never supplies a citation, URL, tip text, or an endorsement.
   const SOURCES = Object.freeze({
+    basic: { name: "Food Standards Agency", title: "Cooking your food — cooking without a thermometer", url: "https://www.gov.uk/government/publications/cooking-your-food/cooking-your-food" },
+    sousVide: { name: "Douglas Baldwin", title: "A Practical Guide to Sous Vide Cooking — Table 5.1 and tough meat", url: "https://douglasbaldwin.com/sous-vide.html" },
     hygiene: { name: "FoodSafety.gov", title: "4 Steps to Food Safety", url: "https://www.foodsafety.gov/keep-food-safe/4-steps-to-food-safety" },
     temperature: { name: "FoodSafety.gov", title: "Safe Minimum Internal Temperatures", url: Quality.SOURCE_URL },
     marinade: { name: "FDA", title: "Handling Food Safely While Eating Outdoors", url: "https://www.fda.gov/food/buy-store-serve-safe-food/handling-food-safely-while-eating-outdoors" },
@@ -19,6 +21,10 @@
     vinaigrette: { name: "Good Food", title: "Classic vinaigrette — mixing technique", url: "https://www.bbcgoodfood.com/recipes/classic-vinaigrette" }
   });
   const TIPS = Object.freeze({
+    basic: { source: "basic", he: "בלי מדחום משלבים כמה בדיקות: פותחים את החלק העבה ובודקים אדים גם במרכז ובישול לכל העובי. זמן או צבע לבדם אינם מספיקים; אין בכך מדידה של מידת עשייה מדויקת.", en: "Without a thermometer, combine checks: cut into the thickest part and check for steam at the centre and cooking throughout. Time or colour alone is insufficient; this does not measure precise doneness." },
+    sousVide: { source: "sousVide", he: "זמן סו־ויד תלוי גם בעובי ובטמפרטורת ההתחלה. לוח הזמנים כאן מיועד לבשר מופשר מהמקרר, בשכבה אחת ובאמבט מבוקר; אין להעתיק אותו לבשר קפוא או עבה יותר.", en: "Sous-vide time also depends on thickness and starting temperature. This schedule is for thawed, refrigerated meat in a single layer in a controlled bath; do not reuse it for frozen or thicker meat." },
+    sousVideBag: { source: "sousVide", he: "שקית צפה או בשר חופף מתחממים אחרת. הוציאו אוויר, השאירו את הבשר שקוע ואת המים חופשיים לזרום מסביב.", en: "Floating bags and overlapping pieces heat differently. Remove air, keep the meat submerged and leave room for water circulation." },
+    sousVideSear: { source: "sousVide", he: "ייבוש יסודי לפני הצריבה מאפשר להשחים את המשטח מהר, בלי להאריך את הבישול במחבת.", en: "Dry the surface thoroughly before searing so it browns quickly without a long additional pan cook." },
     clean: { source: "hygiene", he: "אחרי מגע בבשר נא, שטפו ידיים וכלים לפני המשך העבודה עם אוכל מוכן.", en: "After handling raw meat, wash hands and utensils before handling ready-to-eat food." },
     produce: { source: "hygiene", he: "שטפו ירקות במים זורמים לפני החיתוך, והשתמשו בקרש נפרד מזה של הבשר הנא.", en: "Rinse produce under running water before cutting; use a separate board from raw meat." },
     thermometer: { source: "hygiene", he: "מדדו בחלק העבה ביותר, בלי לגעת בעצם או בשומן. זמן וצבע לבדם אינם בדיקת מוכנות בטוחה.", en: "Measure in the thickest part, away from bone and fat. Time and colour alone cannot establish safe doneness." },
@@ -55,6 +61,7 @@
   };
   const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   function generation(value) {
+    if (value?.kind === "guided" && ["basic", "sous_vide"].includes(value.mode)) return { kind: "guided", mode: value.mode };
     if (!value || value.kind !== "baseline" || !Object.hasOwn(REASONS, value.reason)) return { kind: "ai" };
     return { kind: "baseline", reason: value.reason,
       profile: ["braise", "steak", "poultry", "ground"].includes(value.profile) ? value.profile : "steak",
@@ -63,6 +70,14 @@
   function tipFor(step, { phase, recipe, context = {}, section = "main", part } = {}, language = "en") {
     const s = String(step || ""), safety = Quality.safetyReference(recipe, context), cooking = Quality.cookingReference(context);
     const partText = `${part?.title || part?.name || ""} ${(part?.ingredients || []).join(" ")}`;
+    const protocol = recipe?.main?.metadata?.cooking_protocol;
+    if (section === "main" && ["basic_v1", "sous_vide_v1"].includes(protocol)) {
+      let id = "clean";
+      if (protocol === "sous_vide_v1") id = /מייבשים|pat thoroughly dry/i.test(s) ? "sousVideSear" : /אוטמים|seal following/i.test(s) ? "sousVideBag" : /אמבט|bath/i.test(s) ? "sousVide" : /מגישים|serve/i.test(s) ? "serve" : "clean";
+      else id = phase === "rest" ? "braiseRest" : /פותחים|cut open/i.test(s) ? "basic" : /בעבוע|simmer/i.test(s) ? "simmer" : phase === "cook" ? "basic" : "clean";
+      const tip = TIPS[id];
+      return { id, text: tip[language === "he" ? "he" : "en"], source: SOURCES[tip.source], general: id === "clean" };
+    }
     let id = "clean", general = true;
     if (/שארי|leftovers/i.test(s)) { id = "chill"; general = false; }
     else if (/השר|משר|מרינדה|marinat/i.test(s)) { id = "marinate"; general = false; }
@@ -100,6 +115,10 @@
   function notes(recipe, context = {}, language = "en") {
     const he = language === "he", report = Quality.review(recipe, effectiveContext(recipe, context)), g = generation(recipe?.generation);
     const result = report.warnings.map(code => ({ code, title: WARNINGS[code][he ? 0 : 2], text: WARNINGS[code][he ? 1 : 3] }));
+    if (g.kind === "guided") {
+      result.push({ code: "equipment_path", title: he ? "התאמה לציוד" : "Equipment adaptation", text: he ? (g.mode === "basic" ? "החיתוך והבישול מותאמים לכלים רגילים ולבשר מבושל לכל עוביו. בדיקות האדים והמרקם הן חלופה מעשית לפי הנחיות FSA, ולא מדידת טמפרטורה או הבטחה למידת עשייה מדויקת." : "זמני האמבט מבוססים על מדריך Douglas Baldwin ומותאמים לנתח ולעובי שנבחרו. הם דורשים מכשיר מבוקר, בשר מופשר מהמקרר ועובי שאינו עולה על הרשום. זמן האמבט הוא משך מלא שאין לקצר; שאר זמני העבודה משוערים.") : (g.mode === "basic" ? "Cut size and cooking are adapted to ordinary cookware and meat cooked throughout. Steam and texture checks follow practical FSA guidance; they are not a temperature measurement or a promise of precise doneness." : "Bath times are based on Douglas Baldwin’s guide and adapted to the selected cut and thickness. They require a controlled circulator, thawed refrigerated meat and the stated maximum thickness. Do not shorten the full bath time; other preparation times are estimates.") });
+      if (context.userQuestion) result.push({ code: "custom_request", title: he ? "הבקשה החופשית" : "Custom request", text: he ? "במסלול הזה הותאמו הנתח, התיבול, הכמות והציוד. הבקשה החופשית הקודמת לא יושמה; בדקו במיוחד התאמה לאלרגיות ולהגבלות תזונה." : "This path adapts cut, seasoning, quantity and equipment. The previous custom request was not applied; check allergies and dietary restrictions in particular." });
+    }
     if (g.kind === "baseline") {
       result.unshift({ code: "replacement", title: he ? "למה מוצג מתכון חלופי?" : "Why a replacement recipe?", text: REASONS[g.reason][he ? 0 : 1] });
       result.push({ code: "preferences", title: he ? "מה השתנה?" : "What changed?", text: he ? "זו גרסה בסיסית בתיבול מלח ופלפל. השיטה והחיתוך המחייבים הם אלה שמופיעים במתכון; סגנון הטעמים והבקשה האישית לא יושמו. בדקו התאמה למגבלות תזונה לפני ההכנה." : "This is a basic salt-and-pepper recipe. Follow its stated method and cut preparation; the requested flavour and custom instructions were not applied. Check dietary suitability before cooking." });
@@ -116,18 +135,20 @@
     if (recipe?.recipeVersion !== Quality.VERSION) return `<details class="recipe-quality"><summary>${he ? "פרטים והערות למתכון" : "Recipe details and notes"}</summary><div class="recipe-quality-content"><p>${he ? "למתכון הזה אין בדיקת שלמות עדכנית. יצירה מחדש תפעיל את הבדיקות החדשות." : "This recipe has no current completeness check. Regenerate to apply the new checks."}</p></div></details>`;
     const report = Quality.review(recipe, effectiveContext(recipe, context)), m = recipe.main?.metadata || {};
     const details = notes(recipe, context, language);
+    const guided = g.kind === "guided";
+    const provenance = guided ? (he ? "מתכון מתבנית שהותאמה לנתח, לתיבול ולציוד שבחרת. המתכון טרם נוסה במטבח." : "An authored template adapted to your cut, seasoning and equipment. Not kitchen-tested.") : (he ? (g.kind === "baseline" ? "מתכון מתבנית קבועה. המתכון טרם נוסה במטבח." : "נוצר בעזרת AI. המתכון טרם נוסה במטבח.") : (g.kind === "baseline" ? "A fixed-template recipe. Not kitchen-tested." : "AI-generated. Not kitchen-tested."));
     return `<details class="recipe-quality"><summary>${he ? "פרטים והערות למתכון" : "Recipe details and notes"}</summary><div class="recipe-quality-content">
       <strong class="recipe-caveat-label">${he ? (g.kind === "baseline" ? "מתכון בסיסי חלופי" : "מתכון עם הערות הכנה") : (g.kind === "baseline" ? "Basic alternative recipe" : "Recipe with preparation notes")}</strong>
-      <p>${he ? (g.kind === "baseline" ? "מתכון מתבנית קבועה. המתכון טרם נוסה במטבח." : "נוצר בעזרת AI. המתכון טרם נוסה במטבח.") : (g.kind === "baseline" ? "A fixed-template recipe. Not kitchen-tested." : "AI-generated. Not kitchen-tested.")}</p>
+      <p>${provenance}</p>
       ${details.length ? `<ul class="recipe-caveats">${details.map(n => `<li><strong>${escape(n.title)}</strong><p>${escape(n.text)}</p></li>`).join("")}</ul>` : ""}
       <h4>${he ? "מה נבדק?" : "What was checked?"}</h4>
-        <p>${he ? "המשקל, עובי הנתח והציוד בפועל עשויים להיות שונים מההנחות במתכון. לכן הזמנים הם הערכה למנה העיקרית בלבד, וצריך לבדוק טמפרטורה ומוכנות בזמן הבישול." : "Actual weight, thickness and equipment may differ from this recipe’s assumptions. Times estimate the main dish only; check temperature and readiness during cooking."}</p>
+        <p>${guided ? (he ? "יש להתאים את הבשר לחיתוך ולציוד המפורטים במתכון ולבצע את בדיקות המוכנות שבשלבים." : "Match the stated cut size and equipment, and follow the readiness checks in the steps.") : he ? "המשקל, עובי הנתח והציוד בפועל עשויים להיות שונים מההנחות במתכון. לכן הזמנים הם הערכה למנה העיקרית בלבד, וצריך לבדוק טמפרטורה ומוכנות בזמן הבישול." : "Actual weight, thickness and equipment may differ from this recipe’s assumptions. Times estimate the main dish only; check temperature and readiness during cooking."}</p>
         <p>${he ? (report.passed ? "הבדיקה האוטומטית לא זיהתה חוסרים בכמויות, במספר המנות, בסכום הזמנים וברשימות המרכיבים והשלבים. " : "הבדיקה האוטומטית מצאה את החוסרים שמפורטים למעלה. ") : (report.passed ? "Automated checks found no omissions in quantities, servings, time totals or ingredient and step lists. " : "Automated checks found the omissions listed above. ")}${he ? "זו אינה בדיקת טעם, בדיקת כל הקשרים בין המרכיבים לשלבים או אישור מקצועי." : "This is not a taste test, a check of every ingredient-to-step relationship, or professional approval."}</p>
         <p>${he ? "הטיפים ליד השלבים נבחרים מאוסף מקורות שנבדקו. הקישור תומך בטיפ בלבד, לא במתכון כולו; אין כאן טענה שהמתכון נוסה או אושר בידי המקור." : "Step tips are selected from a checked source collection. Each link supports that tip only, not the whole recipe; no source is claimed to have tested or approved this recipe."}</p>
       <p><strong>${he ? "הנחות המתכון:" : "Recipe assumptions:"}</strong> ${Number.isFinite(m.meat_weight_g) ? `${m.meat_weight_g} ${he ? "גרם בסך הכול" : "g total"}` : "—"} · ${Number.isFinite(m.piece_thickness_cm) ? `${m.piece_thickness_cm} ${he ? "ס״מ עובי" : "cm thick"}` : (he ? "עובי לא צוין" : "thickness unspecified")}</p>
       <p><strong>${he ? "ציוד:" : "Equipment:"}</strong> ${(recipe.main?.equipment || []).map(escape).join(" · ") || "—"}</p>
-      <p><strong>${he ? "טמפרטורת ליבה במתכון:" : "Internal target:"}</strong> ${escape(m.target_internal_c)}°C. ${escape(m.doneness_cue)}</p>
-      <a href="${Quality.SOURCE_URL}" target="_blank" rel="noopener noreferrer">${he ? "טבלת טמפרטורות לבישול — FoodSafety.gov" : "Cooking temperature chart — FoodSafety.gov"}</a>
+      <p>${Number.isFinite(m.target_internal_c) ? `<strong>${he ? "טמפרטורת ליבה במתכון:" : "Internal target:"}</strong> ${escape(m.target_internal_c)}°C. ` : ""}${escape(m.doneness_cue)}</p>
+      <a href="${guided ? (g.mode === "basic" ? SOURCES.basic.url : SOURCES.sousVide.url) : Quality.SOURCE_URL}" target="_blank" rel="noopener noreferrer">${guided ? (he ? "מקור להנחיות השיטה: " : "Method guidance: ") + (g.mode === "basic" ? "Food Standards Agency" : "Douglas Baldwin") : (he ? "טבלת טמפרטורות לבישול — FoodSafety.gov" : "Cooking temperature chart — FoodSafety.gov")}</a>
     </div></details>`;
   }
   return { SOURCES, TIPS, generation, effectiveContext, notes, tipFor, stepHTML, reviewHTML };

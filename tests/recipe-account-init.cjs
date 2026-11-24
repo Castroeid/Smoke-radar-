@@ -18,7 +18,7 @@ test("stalled SDK loading or authentication releases device recipes and ignores 
       window.localStorage.setItem("smoke_radar_saved_recipes_v1", JSON.stringify([
         { id: "guest", title: "Device recipe", main: { title: "Device recipe", ingredients: ["salt"], steps: ["Cook"] } }
       ]));
-      for (const file of ["hot-topics.js", "recipe-quality.js", "recipe-guidance.js", "recipe-fallback.js", "recipe-store.js", "app.js"]) execute(fs.readFileSync(`public/app/${file}`, "utf8"));
+      for (const file of ["hot-topics.js", "recipe-protocols.js", "recipe-quality.js", "recipe-guidance.js", "recipe-fallback.js", "recipe-store.js", "app.js"]) execute(fs.readFileSync(`public/app/${file}`, "utf8"));
       await settle();
       window.fetch = async () => ({ ok: true, json: async () => ({ enabled: true, providers: ["google"], config: {} }) });
       let expire, release, calls = 0, signal;

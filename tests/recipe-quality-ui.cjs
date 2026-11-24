@@ -16,7 +16,7 @@ async function setup() {
   window.fetch = async () => ({ ok: true, json: async () => ({ enabled: false }) });
   window.Image = class { set src(value) { queueMicrotask(() => this.onload?.()); } };
   const execute = code => vm.runInContext(code, dom.getInternalVMContext());
-  for (const file of ["hot-topics.js", "recipe-quality.js", "recipe-guidance.js", "recipe-fallback.js", "recipe-store.js", "app.js"]) execute(fs.readFileSync(`public/app/${file}`, "utf8"));
+  for (const file of ["hot-topics.js", "recipe-protocols.js", "recipe-quality.js", "recipe-guidance.js", "recipe-fallback.js", "recipe-store.js", "app.js"]) execute(fs.readFileSync(`public/app/${file}`, "utf8"));
   await settle();
   execute('state.lang = "he"; state.preferences.cutId = "brisket"; state.preferences.methodId = "oven"; state.preferences.dietaryPreference = "kosher";');
   return { dom, window, execute, document: window.document };

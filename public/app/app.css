@@ -731,3 +731,6 @@ html[dir="rtl"] .butcher-rating {
 .recipe-quality summary { cursor: pointer; min-height: 44px; padding-block: .65rem; font-weight: 600; }
 .recipe-quality a { color: #ffd0a0; text-underline-offset: .2em; }
 .recipe-quality summary:focus-visible { outline: 2px solid #ffd0a0; outline-offset: 3px; }
+/* Layout classes must not reveal conditional form fields or actions. */
+[hidden] { display: none !important; }
+

@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory(require("./recipe-quality.js"));
-  else root.RecipeFallback = factory(root.RecipeQuality);
-})(typeof window !== "undefined" ? window : this, function (Quality) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./recipe-quality.js"), require("./recipe-protocols.js"));
+  else root.RecipeFallback = factory(root.RecipeQuality, root.RecipeProtocols);
+})(typeof window !== "undefined" ? window : this, function (Quality, Protocols) {
   "use strict";
   // Coherent alternatives, never filler spliced into an incomplete AI recipe.
   // Original templates, not represented as published or kitchen-tested recipes.
@@ -53,6 +53,11 @@
       sides: [{ name: t("סלט מלפפון ועגבנייה", "Cucumber and tomato salad"), description: t("מכינים בקרש נפרד מהבשר.", "Use a separate board from the meat."), ingredients: [`${n * 100} ${g} ${t("מלפפון", "cucumber")}`, `${n * 100} ${g} ${t("עגבנייה", "tomato")}`, `${n * 5} ${ml} ${t("שמן זית", "olive oil")}`, `${n * 5} ${ml} ${t("מיץ לימון", "lemon juice")}`], steps: [t("שוטפים את המלפפון והעגבנייה וחותכים לקוביות על קרש נקי, כ־5 דקות.", "Rinse the cucumber and tomato and dice on a clean board, about five minutes."), t("מערבבים עם כל שמן הזית ומיץ הלימון. שומרים במקרר עד ההגשה.", "Mix with all the olive oil and lemon juice. Refrigerate until serving.")] }],
       drinkPairings: [{ name: t("מים", "Water"), description: "" }]
     };
+    const controlled = Protocols.createMain(context);
+    if (controlled) {
+      recipe.main = controlled;
+      return { ...Quality.normalize(Quality.prepareDraft(recipe), he ? "he" : "en"), generation: { kind: "guided", mode: context.methodId === "sous_vide" ? "sous_vide" : "basic" } };
+    }
     return { ...Quality.normalize(Quality.prepareDraft(recipe), he ? "he" : "en"), generation: { kind: "baseline", reason, profile, method } };
   }
   return { create };

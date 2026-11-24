@@ -7,7 +7,7 @@
   const text = (value) => typeof value === "string" ? value : "";
   const strings = (items) => Array.isArray(items) ? items.filter(item => typeof item === "string") : [];
   const metadata = value => Object.fromEntries(Object.entries(value || {}).filter(([key, item]) =>
-    ["servings", "prep_minutes", "cook_minutes", "rest_minutes", "total_minutes", "meat_weight_g", "piece_thickness_cm", "target_internal_c", "doneness_cue", "difficulty", "prep_time", "cook_time", "rest_time", "total_time"].includes(key)
+    ["cooking_protocol", "cooking_language", "bath_temperature_c", "bath_minutes", "bath_step_index", "servings", "prep_minutes", "cook_minutes", "rest_minutes", "total_minutes", "meat_weight_g", "piece_thickness_cm", "target_internal_c", "doneness_cue", "difficulty", "prep_time", "cook_time", "rest_time", "total_time"].includes(key)
     && (typeof item === "string" || (typeof item === "number" && Number.isFinite(item)))));
   const part = (item = {}) => ({
     name: text(item?.name), title: text(item?.title), description: text(item?.description),
@@ -24,6 +24,7 @@
       dietaryPreference: text(value.dietaryPreference),
       createdAt: Number.isFinite(Date.parse(value.createdAt)) ? new Date(value.createdAt).toISOString() : new Date(0).toISOString(),
       preferences: {
+        equipmentMode: p.equipmentMode === "basic" ? "basic" : "standard", thicknessCm: [2, 2.5, 3, 4, 5].includes(Number(p.thicknessCm)) ? Number(p.thicknessCm) : 2.5,
         meatType: text(p.meatType), cutId: text(p.cutId), methodId: text(p.methodId), flavorId: text(p.flavorId),
         dietaryPreference: text(p.dietaryPreference), servings: Math.max(1, Math.min(20, Number(p.servings) || 4)), userQuestion: text(p.userQuestion)
       },

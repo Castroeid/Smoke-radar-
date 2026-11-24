@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory();
-  else root.RecipeQuality = factory();
-})(typeof window !== "undefined" ? window : this, function () {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./recipe-protocols.js"));
+  else root.RecipeQuality = factory(root.RecipeProtocols);
+})(typeof window !== "undefined" ? window : this, function (Protocols) {
   "use strict";
   const VERSION = 3;
   const SOURCE_URL = "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures";
@@ -113,28 +113,34 @@
     const grams = weight ? Number(weight[1].replace(",", ".")) * (/kg|kilograms?|ק/i.test(weight[2]) ? 1000 : 1) : NaN;
     if (!Number.isFinite(grams) || Math.abs(grams - m.meat_weight_g) > 0.01) issues.push("main.ingredients[0]: meat amount in g/kg must equal meat_weight_g");
     const safety = safetyReference(recipe, context);
-    const cooking = cookingReference(context);
-    if (cooking && (!number(m.target_internal_c, cooking.minimumC, cooking.maximumC) || !/probe|fork|שיפוד|מזלג|מדחום/i.test(m.doneness_cue || ""))) issues.push(`main.metadata: slow-cooked cut requires a ${cooking.minimumC}-${cooking.maximumC} C tenderness target AND a probe/fork tenderness cue; minimum food-safety temperature alone does not tenderize this cut`);
-    if (!number(m.target_internal_c, safety.minimumC, 110)) issues.push(`main.metadata.target_internal_c: must be at least ${safety.minimumC} C`);
-    if (safety.restMinutes && !number(m.rest_minutes, safety.restMinutes, 4320)) issues.push(`main.metadata.rest_minutes: at least ${safety.restMinutes} minutes required`);
-    if (!text(m.doneness_cue)) issues.push("main.metadata.doneness_cue: describe how to check readiness with a thermometer and texture");
-    const stepsText = list(recipe.main?.steps).join(" ");
-    if (number(m.target_internal_c, safety.minimumC, 110) && !new RegExp(`(?:^|[^\\d])${String(m.target_internal_c).replace(".", "\\.")}\\s*(?:°\\s*[cC]|מעלות)`).test(stepsText)) issues.push("main.steps: include the same internal temperature target as metadata, with degrees C");
-    const firstRest = list(recipe.main?.step_timing).findIndex(t => t?.phase === "rest");
-    if (firstRest >= 0 && number(m.target_internal_c, safety.minimumC, 110)) {
-      const targetPattern = new RegExp(`(?:^|[^\\d])${String(m.target_internal_c).replace(".", "\\.")}\\s*(?:°\\s*[cC]|מעלות)`);
-      if (!list(recipe.main?.steps).slice(0, firstRest).some(s => targetPattern.test(s))) issues.push("main.steps: check internal temperature before removing from heat and resting, not only afterwards");
+    const controlled = Protocols.requested(context);
+    const protocolMatches = controlled && Protocols.matches(recipe.main, context);
+    if (controlled && !protocolMatches) issues.push("safety: cooking protocol does not match the selected equipment, cut, thickness and complete authored schedule");
+    const cooking = controlled ? null : cookingReference(context);
+    if (!protocolMatches) {
+      if (cooking && (!number(m.target_internal_c, cooking.minimumC, cooking.maximumC) || !/probe|fork|שיפוד|מזלג|מדחום/i.test(m.doneness_cue || ""))) issues.push(`main.metadata: slow-cooked cut requires a ${cooking.minimumC}-${cooking.maximumC} C tenderness target AND a probe/fork tenderness cue; minimum food-safety temperature alone does not tenderize this cut`);
+      if (!number(m.target_internal_c, safety.minimumC, 110)) issues.push(`main.metadata.target_internal_c: must be at least ${safety.minimumC} C`);
+      if (safety.restMinutes && !number(m.rest_minutes, safety.restMinutes, 4320)) issues.push(`main.metadata.rest_minutes: at least ${safety.restMinutes} minutes required`);
+      if (!text(m.doneness_cue)) issues.push("main.metadata.doneness_cue: describe how to check readiness with a thermometer and texture");
+      const stepsText = list(recipe.main?.steps).join(" ");
+      if (number(m.target_internal_c, safety.minimumC, 110) && !new RegExp(`(?:^|[^\\d])${String(m.target_internal_c).replace(".", "\\.")}\\s*(?:°\\s*[cC]|מעלות)`).test(stepsText)) issues.push("main.steps: include the same internal temperature target as metadata, with degrees C");
+      const firstRest = list(recipe.main?.step_timing).findIndex(t => t?.phase === "rest");
+      if (firstRest >= 0 && number(m.target_internal_c, safety.minimumC, 110)) {
+        const targetPattern = new RegExp(`(?:^|[^\\d])${String(m.target_internal_c).replace(".", "\\.")}\\s*(?:°\\s*[cC]|מעלות)`);
+        if (!list(recipe.main?.steps).slice(0, firstRest).some(s => targetPattern.test(s))) issues.push("main.steps: check internal temperature before removing from heat and resting, not only afterwards");
+      }
+      for (const match of stepsText.matchAll(/(?:internal|ליבה|פנימי[ת]?)[^.!?\n]{0,45}?(\d+(?:\.\d+)?)\s*(?:°\s*C|מעלות)/gi)) {
+        if (Number(match[1]) < safety.minimumC) issues.push("main.steps: internal temperature contradicts minimum guidance");
+      }
     }
-    for (const match of stepsText.matchAll(/(?:internal|ליבה|פנימי[ת]?)[^.!?\n]{0,45}?(\d+(?:\.\d+)?)\s*(?:°\s*C|מעלות)/gi)) {
-      if (Number(match[1]) < safety.minimumC) issues.push("main.steps: internal temperature contradicts minimum guidance");
-    }
+    if (protocolMatches && !text(m.doneness_cue)) issues.push("main.metadata.doneness_cue: describe readiness");
     if (!strings(recipe.main?.equipment) || !recipe.main.equipment.length) issues.push("main.equipment: list required equipment");
     if (context.dietaryPreference && recipe.dietaryPreference !== context.dietaryPreference) issues.push("dietaryPreference: must match the request");
     const allIngredients = [recipe.main, ...list(recipe.sauces), ...list(recipe.sides)].flatMap(p => list(p?.ingredients)).join(" ");
     if (context.dietaryPreference === "kosher" && /\b(butter|cream|yogurt|cheese|parmesan|milk)\b|חמאה|שמנת|יוגורט|גבינ|חלב(?! קוקוס| סויה| שקדים)/i.test(allIngredients)) issues.push("dietaryPreference: use a complete non-dairy formulation, not a word substitution");
     // These processes need a validated protocol, not a generated time/temperature guess.
     const instructions = [recipe.main, ...list(recipe.sauces), ...list(recipe.sides)].flatMap(p => list(p?.steps)).join(" ");
-    if (/\b(sous.?vide|cold.?smok|curing salt|sodium nitrite|prague powder)\b|סו[סז]\s*ויד|עישון קר|מלח כבישה|ניטריט/i.test(`${allIngredients} ${instructions}`)) issues.push("safety: specialised preservation or pasteurisation protocol required");
+    if ((/\b(sous.?vide)\b|סו[סז]?[־ -]*ויד/i.test(`${allIngredients} ${instructions}`) && !(protocolMatches && context.methodId === "sous_vide")) || /\b(cold.?smok|curing salt|sodium nitrite|prague powder)\b|עישון קר|מלח כבישה|ניטריט/i.test(`${allIngredients} ${instructions}`)) issues.push("safety: specialised preservation or pasteurisation protocol required");
     return { passed: issues.length === 0, issues, version: VERSION, safety, cooking };
   }
 
@@ -159,7 +165,11 @@
     return { ...report, warnings, blocking, usable: blocking.length === 0 };
   }
 
-  function minutes(value, language) { return number(value, 0, 4320) ? `${value} ${language === "he" ? "דקות" : "min"}` : ""; }
+  function minutes(value, language) {
+    if (!number(value, 0, 4320)) return "";
+    if (value >= 600) return `${Math.floor(value / 60)} ${language === "he" ? "שעות" : "hours"}${value % 60 ? ` ${value % 60} ${language === "he" ? "דקות" : "min"}` : ""}`;
+    return `${value} ${language === "he" ? "דקות" : "min"}`;
+  }
   function normalize(recipe, language = "en") {
     // Call after review().usable. Missing optional fields stay missing.
     const m = recipe.main.metadata;
