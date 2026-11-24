@@ -38,7 +38,8 @@ const methods = [
   { id: "oven_roast", labels: { he: "צלייה בתנור", en: "Oven Roast" } },
   { id: "low_slow", labels: { he: "נמוך ואיטי", en: "Low & Slow" } },
   { id: "pan_sear", labels: { he: "צריבה במחבת", en: "Pan Sear" } },
-  { id: "reverse_sear", labels: { he: "ריברס סיר", en: "Reverse Sear" } }
+  { id: "reverse_sear", labels: { he: "ריברס סיר", en: "Reverse Sear" } },
+  { id: "sous_vide", labels: { he: "סו־ויד", en: "Sous vide" } }
 ];
 
 const flavorProfiles = [
@@ -199,6 +200,8 @@ const state = {
     meatType: "beef",
     cutId: "ribeye",
     methodId: "grill",
+    equipmentMode: "standard",
+    thicknessCm: 2.5,
     flavorId: "smoky",
     dietaryPreference: defaultDietaryPreference(document.documentElement.lang === "en" ? "en" : "he"),
     servings: 4,
@@ -657,9 +660,19 @@ function renderPreferences() {
         <select id="cutId">${cutsCatalog.map((cut) => `<option value="${cut.id}">${cut.labels[state.lang]}</option>`).join("")}</select>
         <p class="small cut-helper-text" id="cutHelperText"></p>
       </div>
-      <div class="field"><label>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</label>
+      <div class="field"><label for="equipmentMode">${state.lang === "he" ? "עם איזה ציוד מבשלים?" : "Your cooking equipment"}</label>
+        <select id="equipmentMode">
+          <option value="standard">${state.lang === "he" ? "רגיל — עם מדחום / ציוד לשיטה שנבחרה" : "Standard — thermometer / equipment for the chosen method"}</option>
+          <option value="basic">${state.lang === "he" ? "ציוד בסיסי — בלי מדחום" : "Basic cookware — no thermometer"}</option>
+        </select>
+      </div>
+      <div class="field"><label for="methodId">${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</label>
         <select id="methodId"></select>
         <p class="small method-helper-text" id="methodHelperText"></p>
+      </div>
+      <div class="field" id="thicknessField" hidden><label for="thicknessCm">${state.lang === "he" ? "עובי מרבי לכל יחידת בשר" : "Maximum thickness of each piece"}</label>
+        <select id="thicknessCm">${RecipeProtocols.THICKNESSES.map(value => `<option value="${value}">${value} ${state.lang === "he" ? "ס״מ" : "cm"}</option>`).join("")}</select>
+        <p class="small">${state.lang === "he" ? "לסו־ויד: בשר מופשר, ללא עצם, בשכבה אחת. אם העובי בין שתי אפשרויות, בוחרים בגבוהה; מעל 5 ס״מ חותכים ליחידות דקות יותר." : "Sous vide: thawed, boneless meat in one layer. Round thickness up to the next option; cut pieces thicker than 5 cm into thinner portions."}</p>
       </div>
       <div class="field"><label>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</label>
         <select id="flavorId">${flavorProfiles.map((f) => `<option value="${f.id}">${f.labels[state.lang]}</option>`).join("")}</select>
@@ -679,15 +692,15 @@ function renderPreferences() {
         </div>
       </div>
       <div class="field">
-        <label>${state.lang === "he" ? "בקשה חופשית" : "Custom request"}</label>
+        <label for="userQuestion">${state.lang === "he" ? "בקשה חופשית" : "Custom request"}</label>
         <input id="userQuestion" type="text" maxlength="220" placeholder="${state.lang === "he" ? "שאלה או בקשה מיוחדת? למשל: איזה בשר מתאים לבישול ארוך בקדירה?" : "Any question or special request? Example: what cut works best for long braising?"}" />
       </div>
       <button type="button" class="btn btn-ghost" id="toExpertBtn">${state.lang === "he" ? "שאל את המומחים" : "Ask the Experts"}</button>
-      <button type="button" class="btn btn-primary" id="generateRecipeBtn">${state.lang === "he" ? "צור מתכון" : "Generate Recipe"}</button>
+
     </div>
   `;
 
-  ["meatType", "cutId", "methodId", "flavorId", "dietaryPreference"].forEach((id) => {
+  ["meatType", "cutId", "methodId", "equipmentMode", "thicknessCm", "flavorId", "dietaryPreference"].forEach((id) => {
     const input = document.getElementById(id);
     input.value = state.preferences[id];
     input.addEventListener("change", collectPreferences);
@@ -701,20 +714,12 @@ function renderPreferences() {
   updateMethodHelperText();
   document.getElementById("cutId")?.addEventListener("change", () => { updateCutHelperText(); setupMethodOptions(); updateMethodHelperText(); });
   document.getElementById("methodId")?.addEventListener("change", updateMethodHelperText);
+  document.getElementById("equipmentMode")?.addEventListener("change", () => { setupMethodOptions(); updateCutHelperText(); updateMethodHelperText(); });
   document.getElementById("toExpertBtn")?.addEventListener("click", () => {
     state.navigation.askExpertMode = true;
     state.navigation.generatorMode = false;
     expertState.returnToStep = "preferences";
     currentStep = STEPS.indexOf("expert");
-    render();
-  });
-  document.getElementById("generateRecipeBtn")?.addEventListener("click", () => {
-    collectPreferences();
-    state.navigation.generatorMode = true;
-    state.navigation.askExpertMode = false;
-    state.recipe = null;
-    state.navigation.recipeReturnTo = "preferences";
-    currentStep = STEPS.indexOf("recipe");
     render();
   });
   document.getElementById("servingsMinus")?.addEventListener("click", () => updateServings(-1, false));
@@ -723,7 +728,8 @@ function renderPreferences() {
 
 
 function getAllowedMethodsForCut(cutId) {
-  return cutMethodRules[cutId] || methods.map((m) => m.id);
+  if (state.preferences.equipmentMode === "basic") return RecipeProtocols.tough(cutId) ? ["long_cook"] : ["pan_sear"];
+  return [...(cutMethodRules[cutId] || methods.map((m) => m.id)), "sous_vide"];
 }
 
 function setupMethodOptions() {
@@ -744,6 +750,17 @@ function updateMethodHelperText() {
   if (!helperEl) return;
   const cutId = document.getElementById("cutId")?.value || state.preferences.cutId;
   const allowed = getAllowedMethodsForCut(cutId).map((id) => getMethodById(id).labels[state.lang]);
+  const sv = state.preferences.methodId === "sous_vide", basic = state.preferences.equipmentMode === "basic";
+  document.getElementById("thicknessField").hidden = !sv;
+  const question = document.getElementById("userQuestion");
+  question.disabled = sv || basic;
+  question.title = sv || basic ? (state.lang === "he" ? "במסלול הזה בוחרים נתח ותיבול; בקשה חופשית זמינה במסלול הרגיל." : "Choose a cut and seasoning in this path; custom requests are available in the standard path.") : "";
+  let note = document.getElementById("customRequestNote");
+  if (!note) { note = document.createElement("p"); note.id = "customRequestNote"; note.className = "small"; question.after(note); }
+  note.textContent = question.title;
+  note.hidden = !question.disabled;
+  if (sv) { helperEl.textContent = state.lang === "he" ? "נדרשים מכשיר סו־ויד ושקיות מתאימות. הזמן נקבע לפי הנתח והעובי; טמפרטורת האמבט תופיע במתכון." : "Requires a sous-vide circulator and suitable bags. Time follows the cut and thickness; the recipe specifies the bath temperature."; return; }
+  if (basic) { helperEl.textContent = state.lang === "he" ? (RecipeProtocols.tough(cutId) ? "הנתח יוכן בקדירה בסיר רגיל, עם בדיקות רכות וחום במרכז." : "הנתח ייחתך לרצועות דקות ויבושל במחבת רגילה. המתכון מיועד לבשר מבושל לכל עוביו, ללא יעד של מדיום.") : (RecipeProtocols.tough(cutId) ? "A stew in an ordinary pot, with tenderness and central heat checks." : "Thin strips cooked throughout in an ordinary pan, without a medium-doneness target."); return; }
   helperEl.textContent = state.lang === "he"
     ? `מתאים ל: ${allowed.join(" / ")}`
     : `Best methods: ${allowed.join(" / ")}`;
@@ -753,6 +770,8 @@ function collectPreferences() {
   state.preferences.meatType = document.getElementById("meatType").value;
   state.preferences.cutId = document.getElementById("cutId").value;
   state.preferences.methodId = document.getElementById("methodId").value;
+  state.preferences.equipmentMode = document.getElementById("equipmentMode").value;
+  state.preferences.thicknessCm = Number(document.getElementById("thicknessCm").value);
   state.preferences.flavorId = document.getElementById("flavorId").value;
   state.preferences.dietaryPreference = document.getElementById("dietaryPreference").value === "kosher" ? "kosher" : "non_kosher";
   state.preferences.userQuestion = String(document.getElementById("userQuestion")?.value || "").trim();
@@ -763,6 +782,7 @@ function updateCutHelperText() {
   const helperEl = document.getElementById("cutHelperText");
   if (!helperEl) return;
   const cutId = document.getElementById("cutId")?.value || state.preferences.cutId;
+  if (state.preferences.equipmentMode === "basic") { helperEl.textContent = ""; return; }
   const helper = cutHelperText[cutId]?.[state.lang] || (state.lang === "he"
     ? "טיפ: בחר שיטת בישול שתואמת את מאפייני הנתח."
     : "Tip: choose a method that matches your selected cut.");
@@ -923,6 +943,9 @@ async function loadRecipe() {
     meatType: p.meatType,
     cutId: p.cutId,
     methodId: p.methodId,
+    equipmentMode: p.equipmentMode || "standard",
+    thicknessCm: String(p.thicknessCm || 2.5),
+    flavorId: p.flavorId,
     cut,
     method,
     flavor,
@@ -935,7 +958,7 @@ async function loadRecipe() {
   });
 
   let recipe;
-  const context = { ...p, language: requestLanguage, cut, method };
+  const context = { ...p, language: requestLanguage, cut, method, flavor };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 125000);
   try {
@@ -1024,12 +1047,12 @@ function renderRecipe() {
     <div class="recipe-cooking-facts">
       <p>${state.lang === "he" ? "זמנים משוערים" : "Estimated times"} · ${state.lang === "he" ? "הכנה" : "Prep"}: ${escapeHotText(prep)} · ${state.lang === "he" ? "בישול" : "Cook"}: ${escapeHotText(cook)}${Number.isFinite(main.metadata?.rest_minutes) ? ` · ${state.lang === "he" ? "מנוחה" : "Rest"}: ${main.metadata.rest_minutes} ${state.lang === "he" ? "דק׳" : "min"}` : ""}</p>
       <p>${Number.isFinite(main.metadata?.meat_weight_g) ? `${main.metadata.meat_weight_g} ${state.lang === "he" ? "גרם בשר" : "g meat"} · ` : ""}${Number.isFinite(main.metadata?.piece_thickness_cm) ? `${main.metadata.piece_thickness_cm} ${state.lang === "he" ? "ס״מ עובי" : "cm thick"} · ` : ""}${escapeHotText((main.equipment || []).join(" · ") || selectedMethod)}</p>
-      ${Number.isFinite(main.metadata?.target_internal_c) ? `<p><strong>${state.lang === "he" ? "טמפרטורת ליבה" : "Internal target"}: ${main.metadata.target_internal_c}°C</strong> · ${escapeHotText(main.metadata.doneness_cue || "")}</p>` : ""}
+      ${Number.isFinite(main.metadata?.target_internal_c) ? `<p><strong>${state.lang === "he" ? "טמפרטורת ליבה" : "Internal target"}: ${main.metadata.target_internal_c}°C</strong> · ${escapeHotText(main.metadata.doneness_cue || "")}</p>` : `<p>${Number.isFinite(main.metadata?.bath_temperature_c) ? `<strong>${state.lang === "he" ? "טמפרטורת האמבט" : "Bath temperature"}: ${main.metadata.bath_temperature_c}°C</strong> · ` : ""}${escapeHotText(main.metadata?.doneness_cue || "")}</p>`}
     </div>
     ${renderRecipeQuality(r)}
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${escapeHotText(i)}</li>`).join("")}</ul></div>
-    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s, i) => `<li>${escapeHotText(s)}${!timingUncertain && main.step_timing?.[i]?.minutes ? `<p class="small">${state.lang === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${Number(main.step_timing[i].minutes)} ${state.lang === "he" ? "דקות" : "min"}</p>` : ""}${renderStepTip(s, main.step_timing?.[i]?.phase)}</li>`).join("")}</ol></div>
+    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s, i) => `<li>${escapeHotText(s)}${!timingUncertain && main.step_timing?.[i]?.minutes ? `<p class="small">${i === main.metadata?.bath_step_index ? (state.lang === "he" ? "משך מלא באמבט — אין לקצר:" : "Full bath time — do not shorten:") : (state.lang === "he" ? "זמן משוער לשלב:" : "Estimated step time:")} ${i === main.metadata?.bath_step_index && main.step_timing[i].minutes % 60 === 0 ? `${main.step_timing[i].minutes / 60} ${state.lang === "he" ? "שעות" : "hours"}` : `${Number(main.step_timing[i].minutes)} ${state.lang === "he" ? "דקות" : "min"}`}</p>` : ""}${renderStepTip(s, main.step_timing?.[i]?.phase)}</li>`).join("")}</ol></div>
     ${glossary.length ? `<div class="card"><h3>${glossaryTitle}</h3><ul class="list">${glossary.map((item) => `<li>${escapeHotText(item)}</li>`).join("")}</ul></div>` : ""}
     <div class="card">
       <h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3>
@@ -1045,8 +1068,8 @@ function renderRecipe() {
     <div class="inline-actions">
       <button class="btn btn-ghost" id="saveRecipeBtn">${state.lang === "he" ? "שמור מתכון" : "Save Recipe"}</button>
       <button class="btn btn-ghost" id="copyShoppingBtn">${state.lang === "he" ? "📋 העתק רשימת קניות" : "📋 Copy Shopping List"}</button>
-      <button class="btn btn-ghost" id="variationBtn">${state.lang === "he" ? "🔄 נסה וריאציה" : "🔄 Try Variation"}</button>
-      <button class="btn btn-ghost" id="regenBtn">${state.lang === "he" ? "צור מתכון מחדש" : "Regenerate Recipe"}</button>
+      <button class="btn btn-ghost" id="variationBtn" ${r.generation?.kind === "guided" ? "hidden" : ""}>${state.lang === "he" ? "🔄 נסה וריאציה" : "🔄 Try Variation"}</button>
+      <button class="btn btn-ghost" id="regenBtn">${r.generation?.kind === "guided" ? (state.lang === "he" ? "שנה נתח או תיבול" : "Change cut or seasoning") : (state.lang === "he" ? "צור מתכון מחדש" : "Regenerate Recipe")}</button>
       <div class="servings-inline recipe-servings-inline">
         <span class="small servings-label">${state.lang === "he" ? "מנות" : "Servings"}</span>
         <button class="btn btn-ghost servings-btn" type="button" id="recipeServingsMinus">−</button>
@@ -1067,6 +1090,7 @@ function renderRecipe() {
     renderRecipe();
   });
   document.getElementById("regenBtn").addEventListener("click", async () => {
+    if (state.recipe?.generation?.kind === "guided") { currentStep = STEPS.indexOf("preferences"); render(); return; }
     state.recipe = null;
     renderRecipe();
   });
@@ -1085,8 +1109,8 @@ function buildShoppingList(recipe) {
   const drinks = (recipe?.drinkPairings || []).map((d) => d.name).filter(Boolean);
 
   return {
-    meat: mainIng.filter((i) => /beef|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
-    seasoning: mainIng.filter((i) => !/beef|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
+    meat: mainIng.filter((i) => /beef|lamb|veal|בקר|טלה|עגל|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
+    seasoning: mainIng.filter((i) => !/beef|lamb|veal|בקר|טלה|עגל|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
     sauceIngredients: [...new Set(sauces)],
     sideIngredients: [...new Set(sides)],
     drinks: [...new Set(drinks)]
@@ -2101,7 +2125,7 @@ function openSavedRecipe(id) {
   const saved = state.savedRecipes.find((item) => item.id === id);
   if (!saved) return;
   state.navigation.recipeReturnTo = STEPS[currentStep] === "landing" ? "landing" : "saved";
-  state.preferences = { ...state.preferences, ...(saved.preferences || {}) };
+  state.preferences = { ...state.preferences, equipmentMode: "standard", thicknessCm: 2.5, ...(saved.preferences || {}) };
   state.recipe = {
     recipeVersion: saved.recipeVersion,
     generation: RecipeGuidance.generation(saved.generation),

@@ -85,6 +85,44 @@ compliance with that prompt is not independent culinary validation. Generic
 whole-cut rules must not be presented as a validated curing, raw-meat, cold
 smoking or sous-vide protocol. Those methods need separate reviewed protocols.
 
+## Equipment-specific paths (2026-11-24)
+
+The app offers basic cookware without a thermometer and sous vide, alongside the
+existing standard AI route. `recipe-protocols.js` supplies authored main dishes;
+both server responses and network fallback use the same instructions. These paths
+adapt cut, portions, seasoning and equipment, but not free-text requests. The UI
+states this before generation. Their origin and limitations remain inside the
+collapsed recipe notes, without a tested/verified badge.
+
+- **Basic cookware:** tender cuts become 0.5 cm strips in an ordinary pan; tough
+  cuts become 3 cm cubes simmered in a covered pot. Readiness combines steaming
+  at the centre, cooking throughout and texture, with explicit continuation checks.
+  This follows the [FSA's practical no-thermometer guidance](https://www.gov.uk/government/publications/cooking-your-food/cooking-your-food),
+  accessed 2026-11-24. Neither colour nor elapsed time alone is treated as proof;
+  no precise medium/rare result is promised. The thermometer tips from the standard
+  route are not injected into these steps.
+- **Sous vide:** uses [Douglas Baldwin's guide](https://douglasbaldwin.com/sous-vide.html),
+  accessed 2026-11-24. Tender cuts use a 65°C bath with 75/90/105/120/150 minutes
+  for maximum thickness 2/2.5/3/4/5 cm. These exceed Table 5.1's corresponding
+  45/55/75/90/120-minute pasteurisation calculations for thawed meat starting at
+  5°C. Tough cuts use a braise-like 80°C/24-hour adaptation of the tough-meat
+  discussion; brisket uses 36 hours from the explicit 24–36-hour brisket guidance.
+  These are adaptations, not a published recipe or kitchen validation. Bone-free
+  pieces must be fully thawed, refrigerated, in a single layer and within the
+  selected thickness. Timing starts after bath recovery; water circulation,
+  submersion and uninterrupted heating are explicit. This is cook-and-serve only.
+  Bath temperature is separately labelled, never reported as a measured core
+  temperature. Bath duration is not multiplied or divided by portions.
+
+The quality checker exempts only an exact match of the authored main ingredients,
+steps, equipment, timing and metadata from the ordinary core-temperature gate.
+An equipment flag or provenance tag alone cannot bypass checks. Preservation
+instructions remain blocked. Shared quantity/dietary/timing checks still apply;
+standard AI requests keep their thermometer requirements. Equipment, thickness,
+bath metadata and guided provenance persist with saved recipes. Automated tests
+cover tampered schedules, contradictory equipment, request validation, both
+languages, serving boundaries, save/reopen and the single generation button.
+
 ## Next step toward a kitchen-tested label
 
 Build a small fixed collection with complete quantities, weight/thickness,

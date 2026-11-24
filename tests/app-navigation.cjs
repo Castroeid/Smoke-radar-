@@ -17,17 +17,17 @@ async function setup() {
   w.scrollTo = () => {};
   w.fetch = async url => ({ ok: true, json: async () => url.includes('recipe-account-config') ? { enabled: false } : { structuredRecipe: recipe } });
   w.Image = class { set src(value) { queueMicrotask(() => this.onload?.()); } };
-  for (const file of ['hot-topics.js', 'recipe-quality.js', 'recipe-guidance.js', 'recipe-fallback.js', 'recipe-store.js', 'app.js']) execute(fs.readFileSync(`public/app/${file}`, 'utf8'));
+  for (const file of ['hot-topics.js', 'recipe-protocols.js', 'recipe-quality.js', 'recipe-guidance.js', 'recipe-fallback.js', 'recipe-store.js', 'app.js']) execute(fs.readFileSync(`public/app/${file}`, 'utf8'));
   await settle();
   const screen = () => d.getElementById('app').dataset.step;
   const click = id => { const e = d.getElementById(id); assert.ok(e, id); e.click(); };
   return { dom, w, d, execute, recipe, screen, click };
 }
 
-test('both generate buttons return to the generator with its choices intact, then home', { skip: !JSDOM }, async () => {
+test('the single generate button returns to the generator with its choices intact, then home', { skip: !JSDOM }, async () => {
   const c = await setup();
   try {
-    for (const button of ['generateRecipeBtn', 'nextBtn']) {
+    for (const button of ['nextBtn']) {
       c.d.querySelector('[data-choice="feel"]').click();
       const cut = c.d.getElementById('cutId'); cut.value = 'brisket'; cut.dispatchEvent(new c.w.Event('change'));
       const question = c.d.getElementById('userQuestion'); question.value = 'עם מעט חריפות'; question.dispatchEvent(new c.w.Event('input'));
@@ -37,10 +37,52 @@ test('both generate buttons return to the generator with its choices intact, the
       assert.equal(c.screen(), 'preferences');
       assert.equal(c.d.getElementById('cutId').value, 'brisket');
       assert.equal(c.d.getElementById('userQuestion').value, 'עם מעט חריפות');
-      assert.ok(c.d.getElementById('generateRecipeBtn'));
+      assert.equal(c.d.getElementById('generateRecipeBtn'), null);
+      assert.equal(c.d.getElementById('nextBtn').textContent, 'צור מתכון');
       assert.equal(c.d.getElementById('cookExpertBtn'), null);
       c.click('backBtn'); assert.equal(c.screen(), 'landing');
     }
+  } finally { c.dom.window.close(); }
+});
+
+test('basic cookware and sous vide change the request, recipe, tips and saved choices', { skip: !JSDOM }, async () => {
+  const c = await setup();
+  const { requestContext } = require('../lib/recipe-generation.js');
+  const Fallback = require('../public/app/recipe-fallback.js');
+  try {
+    let request;
+    c.w.fetch = async url => {
+      request = requestContext(Object.fromEntries(new URL(url, c.w.location.href).searchParams));
+      return { ok: true, json: async () => ({ structuredRecipe: Fallback.create(request) }) };
+    };
+    const select = (id, value) => { const input = c.d.getElementById(id); input.value = value; input.dispatchEvent(new c.w.Event('change')); };
+    c.d.querySelector('[data-choice="feel"]').click();
+    select('cutId', 'picanha'); select('equipmentMode', 'basic');
+    assert.equal(c.d.getElementById('methodId').value, 'pan_sear');
+    assert.equal(c.d.querySelector('#methodId option[value="sous_vide"]'), null);
+    assert.equal(c.d.getElementById('thicknessField').hidden, true);
+    assert.equal(c.d.getElementById('userQuestion').disabled, true);
+    assert.equal([...c.d.querySelectorAll('button')].filter(b => b.textContent === 'צור מתכון' && !b.hidden).length, 1);
+    c.click('nextBtn'); await settle(); await settle();
+    assert.equal(request.equipmentMode, 'basic');
+    assert.equal(c.execute('state.recipe.main.metadata.cooking_protocol'), 'basic_v1');
+    assert.match(c.d.querySelector('.recipe-cooking-facts').textContent, /רצועות דקות/);
+    assert.doesNotMatch(c.d.querySelector('.recipe-cooking-facts').textContent, /מדחום|undefined/);
+    assert.equal(c.d.getElementById('variationBtn').hidden, true);
+    assert.equal(c.d.querySelector('details.recipe-quality').open, false);
+    c.click('regenBtn'); assert.equal(c.screen(), 'preferences');
+    select('equipmentMode', 'standard'); select('methodId', 'sous_vide'); select('thicknessCm', '4');
+    assert.equal(c.d.getElementById('thicknessField').hidden, false);
+    c.click('nextBtn'); await settle(); await settle();
+    assert.equal(request.methodId, 'sous_vide'); assert.equal(request.thicknessCm, 4);
+    assert.match(c.d.querySelector('.recipe-cooking-facts').textContent, /טמפרטורת האמבט/);
+    assert.match(c.d.getElementById('screenContent').textContent, /אין לקצר/);
+    await c.execute('saveCurrentRecipe()');
+    c.click('homeBtn'); c.click('openSavedRecipesBtn'); c.d.querySelector('[data-open-recipe]').click();
+    assert.equal(c.execute('state.preferences.thicknessCm'), 4);
+    assert.equal(c.execute('state.recipe.main.metadata.bath_minutes'), 120);
+    assert.equal(c.execute('state.recipe.generation.kind'), 'guided');
+    assert.equal(c.execute('RecipeQuality.review(state.recipe, state.preferences).passed'), true);
   } finally { c.dom.window.close(); }
 });
 
