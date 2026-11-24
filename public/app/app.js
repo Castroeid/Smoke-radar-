@@ -106,7 +106,7 @@ const copy = {
     landingTitle: "מה בא לך להכין היום?",
     landingSubtitle: "האפליקציה שבוחרת עבורך מה חם, מה לבשל, ואיפה לקנות.",
     hotAction: "🔥 מה חם עכשיו",
-    knowAction: "😋 אני יודע מה בא לי",
+    knowAction: "😋 יש לי נתח, צור לי מתכון מתאים",
     next: "המשך",
     finish: "סיום",
     back: "חזרה",
