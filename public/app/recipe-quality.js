@@ -3,7 +3,7 @@
   else root.RecipeQuality = factory();
 })(typeof window !== "undefined" ? window : this, function () {
   "use strict";
-  const VERSION = 2;
+  const VERSION = 3;
   const SOURCE_URL = "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures";
   const text = value => typeof value === "string" && value.trim().length > 0;
   const list = value => Array.isArray(value) ? value : [];
@@ -116,7 +116,7 @@
     const cooking = cookingReference(context);
     if (cooking && (!number(m.target_internal_c, cooking.minimumC, cooking.maximumC) || !/probe|fork|שיפוד|מזלג|מדחום/i.test(m.doneness_cue || ""))) issues.push(`main.metadata: slow-cooked cut requires a ${cooking.minimumC}-${cooking.maximumC} C tenderness target AND a probe/fork tenderness cue; minimum food-safety temperature alone does not tenderize this cut`);
     if (!number(m.target_internal_c, safety.minimumC, 110)) issues.push(`main.metadata.target_internal_c: must be at least ${safety.minimumC} C`);
-    if (m.rest_minutes < safety.restMinutes) issues.push(`main.metadata.rest_minutes: at least ${safety.restMinutes} minutes required`);
+    if (safety.restMinutes && !number(m.rest_minutes, safety.restMinutes, 4320)) issues.push(`main.metadata.rest_minutes: at least ${safety.restMinutes} minutes required`);
     if (!text(m.doneness_cue)) issues.push("main.metadata.doneness_cue: describe how to check readiness with a thermometer and texture");
     const stepsText = list(recipe.main?.steps).join(" ");
     if (number(m.target_internal_c, safety.minimumC, 110) && !new RegExp(`(?:^|[^\\d])${String(m.target_internal_c).replace(".", "\\.")}\\s*(?:°\\s*[cC]|מעלות)`).test(stepsText)) issues.push("main.steps: include the same internal temperature target as metadata, with degrees C");
@@ -127,22 +127,46 @@
     if (context.dietaryPreference && recipe.dietaryPreference !== context.dietaryPreference) issues.push("dietaryPreference: must match the request");
     const allIngredients = [recipe.main, ...list(recipe.sauces), ...list(recipe.sides)].flatMap(p => list(p?.ingredients)).join(" ");
     if (context.dietaryPreference === "kosher" && /\b(butter|cream|yogurt|cheese|parmesan|milk)\b|חמאה|שמנת|יוגורט|גבינ|חלב(?! קוקוס| סויה| שקדים)/i.test(allIngredients)) issues.push("dietaryPreference: use a complete non-dairy formulation, not a word substitution");
+    // These processes need a validated protocol, not a generated time/temperature guess.
+    const instructions = [recipe.main, ...list(recipe.sauces), ...list(recipe.sides)].flatMap(p => list(p?.steps)).join(" ");
+    if (/\b(sous.?vide|cold.?smok|curing salt|sodium nitrite|prague powder)\b|סו[סז]\s*ויד|עישון קר|מלח כבישה|ניטריט/i.test(`${allIngredients} ${instructions}`)) issues.push("safety: specialised preservation or pasteurisation protocol required");
     return { passed: issues.length === 0, issues, version: VERSION, safety, cooking };
   }
 
-  function minutes(value, language) { return `${value} ${language === "he" ? "דקות" : "min"}`; }
+  function review(recipe, context = {}) {
+    const report = check(recipe, context);
+    // Only an explicit allowlist of nonessential omissions can pass as caveats.
+    // Unknown/new failures remain blocking rather than silently becoming advice.
+    const advisoryCode = issue => {
+      if (/piece_thickness_cm/.test(issue)) return "thickness";
+      if (/^main\.equipment/.test(issue)) return "equipment";
+      if (/doneness_cue:/.test(issue)) return "readiness";
+      if (/^(sauces|sides): include/.test(issue)) {
+        const name = issue.startsWith("sauces") ? "sauces" : "sides";
+        return list(recipe?.[name]).length > 3 ? null : name;
+      }
+      if (/^main\.step_timing|^main\.steps\[\d+\]: text states|^main\.metadata\.(prep|cook|rest|total)_minutes: (integer|must equal)|^main\.metadata: total must equal/.test(issue)) return "timing";
+      return null;
+    };
+    const warnings = [...new Set(report.issues.map(advisoryCode).filter(Boolean))];
+    const blocking = report.issues.filter(issue => !advisoryCode(issue));
+    // Missing subrecipes can be omitted; malformed supplied subrecipes cannot.
+    return { ...report, warnings, blocking, usable: blocking.length === 0 };
+  }
+
+  function minutes(value, language) { return number(value, 0, 4320) ? `${value} ${language === "he" ? "דקות" : "min"}` : ""; }
   function normalize(recipe, language = "en") {
-    // Call only after check() passes. Preserve instructions and quantities exactly.
+    // Call after review().usable. Missing optional fields stay missing.
     const m = recipe.main.metadata;
     const part = item => ({ name: item.name || item.title, title: item.title || item.name, description: item.description || "", ingredients: [...item.ingredients], steps: [...item.steps] });
     const metadata = { ...m, servings: String(m.servings), prep_time: minutes(m.prep_minutes, language), cook_time: minutes(m.cook_minutes, language), rest_time: minutes(m.rest_minutes, language), total_time: minutes(m.total_minutes, language) };
     return {
       recipeVersion: VERSION, dietaryPreference: recipe.dietaryPreference,
-      main: { ...part(recipe.main), metadata, step_timing: recipe.main.step_timing.map(t => ({ phase: t.phase, minutes: t.minutes })), equipment: [...recipe.main.equipment], chefTips: strings(recipe.main.chefTips) ? [...recipe.main.chefTips] : [],
+      main: { ...part(recipe.main), metadata, step_timing: list(recipe.main.step_timing).map(t => ({ phase: t?.phase, minutes: number(t?.minutes, 0, 4320) ? t.minutes : null })), equipment: list(recipe.main.equipment).filter(text), chefTips: strings(recipe.main.chefTips) ? [...recipe.main.chefTips] : [],
         prepTime: metadata.prep_time, cookTime: metadata.cook_time, totalTime: metadata.total_time, difficulty: m.difficulty || "" },
-      sauces: recipe.sauces.map(part), sides: recipe.sides.map(part),
+      sauces: list(recipe.sauces).map(part), sides: list(recipe.sides).map(part),
       drinkPairings: list(recipe.drinkPairings).filter(d => text(d?.name)).map(d => ({ name: d.name, description: d.description || "" }))
     };
   }
-  return { VERSION, SOURCE_URL, INGREDIENT_PATTERN: quantity.source, check, normalize, safetyReference, cookingReference, prepareDraft };
+  return { VERSION, SOURCE_URL, INGREDIENT_PATTERN: quantity.source, check, review, normalize, safetyReference, cookingReference, prepareDraft };
 });

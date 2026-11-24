@@ -154,23 +154,62 @@ test("structured model output is validated and returned in the existing client r
   assert.equal(calls[0].response_format.json_schema.strict, true);
 });
 
-test("malformed output gets one bounded repair and is never filled with a generic recipe", async () => {
+test("malformed output gets one bounded repair, then a clearly identified complete alternative", async () => {
   const result = await run(["{broken", fixture()]);
   assert.equal(result.response.statusCode, 200);
   assert.equal(result.calls.length, 2);
   assert.deepEqual(result.response.body.structuredRecipe.main.steps, fixture().main.steps);
   assert.match(result.calls[1].messages.at(-1).content, /missing object/);
   const failed = await run([{ main: {} }, "{}"]);
-  assert.equal(failed.response.statusCode, 422);
-  assert.deepEqual(failed.response.body, { error: "recipe_incomplete" });
+  assert.equal(failed.response.statusCode, 200);
+  assert.equal(failed.response.body.source, "baseline");
+  assert.equal(failed.response.body.structuredRecipe.generation.kind, "baseline");
+  assert.equal(Quality.check(failed.response.body.structuredRecipe, context).passed, true);
   assert.equal(failed.calls.length, 2);
 });
 
-test("API failures are recoverable errors and invalid servings make no model calls", async () => {
-  assert.equal((await run([new Error("provider failed")])).response.statusCode, 503);
+test("API failures return an honest baseline and invalid servings make no model calls", async () => {
+  const failed = await run([new Error("provider failed")]);
+  assert.equal(failed.response.statusCode, 200);
+  assert.equal(failed.response.body.structuredRecipe.generation.reason, "service_unavailable");
   for (const value of ["0", "21", "NaN", "2.5", ""]) {
     const result = await run([], { servings: value });
     assert.equal(result.response.statusCode, 400); assert.equal(result.calls.length, 0);
   }
   assert.equal(requestContext({}).servings, 4);
+});
+
+
+test("nonessential gaps return the actual AI recipe with specific caveats after bounded repair", async () => {
+  const r = fixture(); delete r.main.metadata.piece_thickness_cm; delete r.main.equipment; r.sides = [];
+  const { response, calls } = await run([r, r]);
+  assert.equal(response.statusCode, 200); assert.equal(calls.length, 2);
+  const recipe = response.body.structuredRecipe;
+  assert.equal(recipe.generation.kind, "ai");
+  assert.deepEqual(recipe.main.steps, r.main.steps);
+  assert.equal(recipe.main.metadata.piece_thickness_cm, undefined);
+  assert.deepEqual(Quality.review(recipe, context).warnings.sort(), ["equipment", "sides", "thickness"]);
+});
+
+test("usable first draft survives a failed repair call", async () => {
+  const r = fixture(); delete r.main.metadata.piece_thickness_cm;
+  const { response } = await run([r, new Error("unavailable")]);
+  assert.equal(response.body.source, "ai");
+  assert.deepEqual(response.body.structuredRecipe.main.steps, r.main.steps);
+});
+
+test("unsafe targets and preservation protocols cannot be displayed by downgrading to caveats", async () => {
+  for (const mutate of [
+    r => { r.main.metadata.target_internal_c = 54; r.main.steps[2] = "טמפרטורת ליבה של 54°C"; },
+    r => { r.main.step_timing[3].minutes = 0; },
+    r => { r.main.steps[0] += " מוסיפים מלח כבישה."; }
+  ]) {
+    const r = fixture(); mutate(r);
+    const { response } = await run([r, r]);
+    const recipe = response.body.structuredRecipe;
+    assert.equal(recipe.generation.kind, "baseline");
+    assert.equal(recipe.generation.reason, "safety");
+    assert.doesNotMatch(recipe.main.steps.join(" "), /54°C|מלח כבישה/);
+    assert.equal(Quality.review(recipe, context).usable, true);
+  }
 });

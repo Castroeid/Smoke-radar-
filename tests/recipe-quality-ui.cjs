@@ -16,7 +16,7 @@ async function setup() {
   window.fetch = async () => ({ ok: true, json: async () => ({ enabled: false }) });
   window.Image = class { set src(value) { queueMicrotask(() => this.onload?.()); } };
   const execute = code => vm.runInContext(code, dom.getInternalVMContext());
-  for (const file of ["hot-topics.js", "recipe-quality.js", "recipe-store.js", "app.js"]) execute(fs.readFileSync(`public/app/${file}`, "utf8"));
+  for (const file of ["hot-topics.js", "recipe-quality.js", "recipe-guidance.js", "recipe-fallback.js", "recipe-store.js", "app.js"]) execute(fs.readFileSync(`public/app/${file}`, "utf8"));
   await settle();
   execute('state.lang = "he"; state.preferences.cutId = "brisket"; state.preferences.methodId = "oven"; state.preferences.dietaryPreference = "kosher";');
   return { dom, window, execute, document: window.document };
@@ -28,7 +28,7 @@ test("oven steps, quantities and names survive rendering, shopping, saving and r
     const r = Quality.normalize(fixture(), "he");
     c.execute(`state.recipe = enhanceRecipeQuality(${JSON.stringify(r)}); state.shopping = buildShoppingList(state.recipe); currentStep = STEPS.indexOf("recipe"); renderRecipe();`);
     const text = c.document.getElementById("screenContent").textContent;
-    assert.match(text, /עבר בדיקת שלמות אוטומטית/);
+    assert.match(text, /מתכון עם הערות הכנה/);
     assert.match(text, /טרם נוסה במטבח/);
     assert.match(text, /1000.*גרם/);
     assert.doesNotMatch(text, /מעשנה|מרינדה:/);
@@ -39,10 +39,10 @@ test("oven steps, quantities and names survive rendering, shopping, saving and r
     for (const line of r.main.ingredients) assert.ok(Object.values(shopping).flat().includes(line), line);
     await c.execute("saveCurrentRecipe()");
     c.execute('state.recipe = null; openSavedRecipe(state.savedRecipes[0].id);');
-    assert.match(c.document.getElementById("screenContent").textContent, /עבר בדיקת שלמות אוטומטית/);
+    assert.match(c.document.getElementById("screenContent").textContent, /מתכון עם הערות הכנה/);
     assert.deepEqual(JSON.parse(c.execute("JSON.stringify(state.recipe.main.steps)")), r.main.steps);
     c.execute("state.recipe.main.metadata.total_minutes = 1; renderRecipe();");
-    assert.equal(c.document.querySelector(".recipe-check-label"), null);
+    assert.match(c.document.getElementById("screenContent").textContent, /פירוט הזמנים אינו מלא או אינו עקבי/);
   } finally { c.dom.window.close(); }
 });
 
@@ -57,7 +57,7 @@ test("old recipes have neither a passing label nor invented times, sauces or sid
   } finally { c.dom.window.close(); }
 });
 
-test("incomplete responses stop loading without a retry loop; explicit retry can succeed", { skip: !JSDOM }, async () => {
+test("server errors show a complete baseline without a retry loop; regenerate can succeed", { skip: !JSDOM }, async () => {
   const c = await setup();
   try {
     let calls = 0;
@@ -65,14 +65,15 @@ test("incomplete responses stop loading without a retry loop; explicit retry can
     c.execute('state.recipe = null; currentStep = STEPS.indexOf("recipe"); renderRecipe();');
     await settle(); await settle();
     assert.equal(calls, 1);
-    assert.match(c.document.getElementById("screenContent").textContent, /לא עבר את בדיקת השלמות/);
+    assert.match(c.document.getElementById("screenContent").textContent, /מתכון בסיסי חלופי/);
     assert.equal(c.execute("state.recipeLoading"), false);
+    assert.ok(c.document.getElementById("saveRecipeBtn"));
     const r = Quality.normalize(fixture(), "he");
     c.window.fetch = async () => { calls++; return { ok: true, json: async () => ({ structuredRecipe: r }) }; };
-    c.document.getElementById("retryRecipeBtn").click();
+    c.execute('state.recipe = null; renderRecipe();');
     await settle(); await settle();
     assert.equal(calls, 2);
-    assert.ok(c.document.querySelector(".recipe-check-label"));
+    assert.ok(c.document.querySelector(".recipe-caveat-label"));
   } finally { c.dom.window.close(); }
 });
 
@@ -86,5 +87,39 @@ test("recipe loading cannot overwrite a saved recipe opened while a request is p
     resolve({ ok: true, json: async () => ({ structuredRecipe: Quality.normalize(fixture(), "he") }) });
     await pending;
     assert.equal(c.execute("state.recipe.main.title"), "המתכון שפתחתי");
+  } finally { c.dom.window.close(); }
+});
+
+
+test("caveats and sourced tips survive guest storage; incomplete timing never claims a total", { skip: !JSDOM }, async () => {
+  const c = await setup();
+  try {
+    const raw = fixture(); delete raw.main.metadata.piece_thickness_cm; raw.main.steps[1] += " במשך 30 דקות.";
+    const r = Quality.normalize(raw, "he");
+    c.window.fetch = async () => ({ ok: true, json: async () => ({ structuredRecipe: r }) });
+    await c.execute("loadRecipe()"); c.execute('currentStep = STEPS.indexOf("recipe"); renderRecipe();');
+    let text = c.document.getElementById("screenContent").textContent;
+    assert.match(text, /עובי הנתח חסר/); assert.match(text, /פירוט הזמנים אינו מלא/);
+    assert.doesNotMatch(text, /290 דקות|עבר בדיקת שלמות/);
+    const expectedTips = r.main.steps.length + r.sauces[0].steps.length + r.sides[0].steps.length;
+    assert.equal(c.document.querySelectorAll(".recipe-step-tip a").length, expectedTips);
+    await c.execute("saveCurrentRecipe()"); c.execute('state.recipe = null; openSavedRecipe(state.savedRecipes[0].id);');
+    text = c.document.getElementById("screenContent").textContent;
+    assert.match(text, /עובי הנתח חסר/);
+    assert.equal(c.document.querySelectorAll(".recipe-step-tip a").length, expectedTips);
+    for (const link of c.document.querySelectorAll(".recipe-step-tip a")) assert.equal(new URL(link.href).protocol, "https:");
+  } finally { c.dom.window.close(); }
+});
+
+test("a network fallback retains its reason and actual method when saved and reopened", { skip: !JSDOM }, async () => {
+  const c = await setup();
+  try {
+    c.window.fetch = async () => { throw new TypeError("offline"); };
+    c.execute('state.preferences.methodId = "smoker";');
+    await c.execute("loadRecipe()"); c.execute('currentStep = STEPS.indexOf("recipe"); renderRecipe();');
+    await c.execute("saveCurrentRecipe()"); c.execute('state.recipe = null; openSavedRecipe(state.savedRecipes[0].id);');
+    assert.equal(c.execute("state.recipe.generation.reason"), "network");
+    assert.equal(c.execute("state.recipe.generation.method"), "oven");
+    assert.match(c.document.getElementById("screenContent").textContent, /לא התקבלה תשובה מהשרת/);
   } finally { c.dom.window.close(); }
 });
