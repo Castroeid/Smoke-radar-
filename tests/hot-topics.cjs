@@ -35,7 +35,7 @@ test('seasoning and preparation topics recognize Hebrew and English spellings', 
     ['wet-brine', ['Wet brined brisket', 'wet_brine beef', 'בריין רטוב']],
     ['marinade', ['Beef marinade', 'Marinating steak', 'נוזל השרייה לבשר', 'נוזל השריה', 'מרינדה']],
     ['vacuum-marinade', ['Vacuum marinating beef', 'Vacuum-marinated steak', 'Vacuum brining meat', 'השרייה בוואקום', 'השריה בואקום']],
-    ['drying', ['Drying meat', 'Dehydrated meat', 'Beef jerky', 'ייבוש בשר']],
+    ['drying', ['Drying meat', 'Dehydrated meat', 'Beef jerky', 'Making jerky at home', 'ייבוש בשר']],
     ['dry-aging', ['Dry-aged beef', '#dryaging', 'יישון יבש']]
   ];
   for (const [topic, titles] of examples) for (const title of titles) {

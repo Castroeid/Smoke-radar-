@@ -36,7 +36,7 @@
     ['spice', 'brine', 'בריין / מי מלח', 'Brine', ['brine', 'brining', 'brined', 'בריין', 'בריינינג', 'מי מלח'], [...dryBrine, ...wetBrine, ...vacuumMarinade]],
     ['spice', 'marinade', 'מרינדה / נוזל השריה', 'Marinade', ['marinade', 'marinades', 'marinating', 'marinated', 'marination', 'מרינדה', 'מרינדות', 'נוזל השריה', 'נוזל השרייה', 'השריה', 'השרייה'], vacuumMarinade],
     ['spice', 'vacuum-marinade', 'השריה בוואקום', 'Vacuum marinating', vacuumMarinade],
-    ['spice', 'drying', 'ייבוש בשר', 'Meat drying', ['drying meat', 'meat drying', 'dried meat', 'dehydrated meat', 'dehydrating meat', 'dehydrating beef', 'beef jerky', 'biltong', 'ייבוש', 'בשר מיובש']],
+    ['spice', 'drying', 'ייבוש בשר', 'Meat drying', ['drying meat', 'meat drying', 'dried meat', 'dehydrated meat', 'dehydrating meat', 'dehydrating beef', 'making jerky', 'beef jerky', 'biltong', 'ייבוש', 'בשר מיובש']],
     ['spice', 'dry-aging', 'יישון יבש', 'Dry aging', ['dry aging', 'dry ageing', 'dry aged', 'dryage', 'dryaged', 'dryaging', 'יישון יבש', 'ישון יבש']]
   ];
   function normalize(text) {

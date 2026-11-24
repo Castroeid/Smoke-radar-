@@ -365,7 +365,7 @@ function buildSeasoningSearchQuery() {
   // YouTube's OR operator keeps these alternatives in one supplemental search.
   // Every phrase includes a cooking context; avoid broad terms like "dry" or "vacuum".
   return ["bbq rub", "beef brine", "dry brine", "wet brine", "meat marinade",
-    "meat drying", "beef jerky", "dry aging", "vacuum marinating",
+    "meat drying", "drying meat", "making jerky", "dehydrating beef", "dry aging", "vacuum marinating",
     "ראב לבשר", "בריין", "מרינדה לבשר", "השריה בוואקום"]
     .map(phrase => `"${phrase}"`).join("|");
 }
