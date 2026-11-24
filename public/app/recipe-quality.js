@@ -37,6 +37,21 @@
     return result;
   }
 
+  function durationBounds(instruction) {
+    let min = 0, max = 0, found = false;
+    const pattern = /(\d+(?:[.,]\d+)?)(?:\s*[-–—]\s*(\d+(?:[.,]\d+)?))?\s*(minutes?|mins?\b|hours?|hrs?\b|דקות|דקה|שעות|שעה)/gi;
+    for (const match of String(instruction).matchAll(pattern)) {
+      if (/(?:כל|every)\s*$/i.test(instruction.slice(Math.max(0, match.index - 10), match.index))) continue;
+      const after = instruction.slice(match.index + match[0].length, match.index + match[0].length + 25);
+      const sides = /^\s*(?:מכל צד|לכל צד|per side|each side)/i.test(after) ? 2 : 1;
+      const factor = (/hour|hr|שעות|שעה/i.test(match[3]) ? 60 : 1) * sides;
+      min += Number(match[1].replace(",", ".")) * factor;
+      max += Number((match[2] || match[1]).replace(",", ".")) * factor;
+      found = true;
+    }
+    return found ? { min, max } : null;
+  }
+
   function prepareDraft(recipe) {
     if (!recipe?.main) return recipe;
     const totals = stepTotals(recipe.main.step_timing);
@@ -70,7 +85,10 @@
     const totals = stepTotals(recipe.main?.step_timing);
     if (!totals || recipe.main.step_timing.length !== list(recipe.main?.steps).length) issues.push("main.step_timing: provide phase (prep/cook/rest) and nonnegative integer minutes for every step");
     else for (const key of Object.keys(totals)) if (m[key] !== totals[key]) issues.push(`main.metadata.${key}: must equal the sum of step_timing`);
-    if (list(recipe.main?.steps).some(s => /\d[\d.,–—\-/\s]*\s*(?:minutes?|mins?\b|hours?|hrs?\b|seconds?|דקות|דקה|שעות|שעה|שניות|שנייה)/i.test(s))) issues.push("main.steps: put ALL durations only in step_timing, not in step text (the UI will render them)");
+    list(recipe.main?.steps).forEach((s, i) => {
+      const bounds = durationBounds(s), minutes = recipe.main?.step_timing?.[i]?.minutes;
+      if (bounds && (minutes < bounds.min - 1 || minutes > bounds.max + 1)) issues.push(`main.steps[${i}]: duration in text must agree with step_timing, counting both sides and all cooking stages`);
+    });
     const servings = Number(m.servings);
     if (!Number.isInteger(servings) || servings < 1 || servings > 20 || (context.servings !== undefined && servings !== Number(context.servings))) issues.push("main.metadata.servings: must match requested servings");
     for (const key of ["prep_minutes", "cook_minutes", "rest_minutes", "total_minutes"]) {

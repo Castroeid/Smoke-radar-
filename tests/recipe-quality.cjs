@@ -48,7 +48,9 @@ test("total time comes from every step, including additional finishing and resti
   assert.equal(calculated.main.metadata.total_minutes, 320);
   assert.equal(Quality.check(calculated, context).passed, true);
   calculated.main.steps[3] += " במשך 30 דקות.";
-  assert.equal(Quality.check(calculated, context).passed, false, "duration must have a single source of truth");
+  assert.equal(Quality.check(calculated, context).passed, true);
+  calculated.main.steps[3] += " ועוד 30 דקות.";
+  assert.equal(Quality.check(calculated, context).passed, false, "every finishing stage must be counted");
 });
 
 test("slow brisket and short ribs cannot use the safety minimum as their tenderness target", () => {

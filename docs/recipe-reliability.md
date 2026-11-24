@@ -17,8 +17,10 @@ AI-generated / not kitchen-tested note. It is not a guarantee of safety or taste
   equipment, prep (including marination), cooking, rest and total minutes. The
   main meat weight and time totals must agree with their corresponding fields.
 - Each main step has a prep/cook/rest phase and estimated minutes. The server
-  calculates all totals from those steps; durations are appended by the UI rather
-  than repeated inside model prose. Additional finishing and resting therefore
+  calculates all totals from those steps; durations are appended by the UI.
+  Numeric minute/hour durations also present in model prose are checked against
+  that step's estimate (including per-side cooking and additional phases).
+  Additional finishing and resting therefore
   cannot disappear from the displayed total. Steps are sequential estimates.
 - The client preserves instructions: it no longer turns an oven brisket into a
   smoker recipe, replaces reverse searing with quick searing, or inserts an
