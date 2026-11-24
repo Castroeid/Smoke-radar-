@@ -123,3 +123,27 @@ test("a network fallback retains its reason and actual method when saved and reo
     assert.match(c.document.getElementById("screenContent").textContent, /לא התקבלה תשובה מהשרת/);
   } finally { c.dom.window.close(); }
 });
+
+test("recipe notes and sourced tips start collapsed while cooking targets stay visible", { skip: !JSDOM }, async () => {
+  const c = await setup();
+  try {
+    const r = Quality.normalize(fixture(), "he");
+    c.execute(`state.recipe = ${JSON.stringify(r)}; renderRecipe();`);
+    const review = c.document.querySelector('details.recipe-quality');
+    assert.equal(review.open, false);
+    assert.equal(review.querySelector('summary').textContent, 'פרטים והערות למתכון');
+    assert.match(c.document.querySelector('.recipe-cooking-facts').textContent, /טמפרטורת ליבה/);
+    assert.equal(c.document.querySelector('.recipe-cooking-facts').closest('details'), null);
+    const tips = [...c.document.querySelectorAll('details.recipe-step-tip')];
+    assert.ok(tips.length > 0);
+    assert.ok(tips.every(tip => !tip.open && tip.querySelector('a[href^="https:"]')));
+    tips[0].querySelector('summary').click();
+    assert.equal(tips[0].open, true);
+    assert.ok(tips.slice(1).every(tip => !tip.open));
+    tips[0].querySelector('summary').click();
+    assert.equal(tips[0].open, false);
+    review.querySelector('summary').click();
+    assert.equal(review.open, true);
+    assert.match(review.textContent, /טרם נוסה במטבח/);
+  } finally { c.dom.window.close(); }
+});

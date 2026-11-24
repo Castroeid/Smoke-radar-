@@ -453,6 +453,7 @@ function renderLanding() {
       </div>
     ` : ""}
     <button class="btn btn-choice btn-choice-saved" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
+    <a class="app-install-link" href="/app/install.html">${state.lang === "he" ? "התקנת האפליקציה בטלפון" : "Install the app"}</a>
     ${renderRecipeAccount()}
     <div class="footer-separator" aria-hidden="true"></div>
     <section class="card legal-menu">
@@ -938,7 +939,7 @@ function recipeHeroForCut() {
 }
 
 function renderRecipeQuality(recipe) {
-  return `<div class="card">${RecipeGuidance.reviewHTML(recipe, state.preferences, state.lang)}</div>`;
+  return RecipeGuidance.reviewHTML(recipe, state.preferences, state.lang);
 }
 
 function renderStepTip(step, phase, section = "main", part) {
@@ -973,9 +974,7 @@ function renderRecipe() {
 
   const r = state.recipe;
   const main = r.main || {};
-  const selectedCut = getCutById(state.preferences.cutId).labels[state.lang];
   const selectedMethod = getMethodById(state.preferences.methodId).labels[state.lang];
-  const selectedFlavor = getFlavorById(state.preferences.flavorId).labels[state.lang];
   const timingUncertain = RecipeQuality.review(r, RecipeGuidance.effectiveContext(r, state.preferences)).warnings.includes("timing");
   const prep = timingUncertain ? "—" : main.prepTime || main.metadata?.prep_time || "—";
   const cook = timingUncertain ? "—" : main.cookTime || main.metadata?.cook_time || "—";
@@ -988,7 +987,6 @@ function renderRecipe() {
     { label: state.lang === "he" ? "מנות" : "Servings", value: state.preferences.servings },
     { label: state.lang === "he" ? "כשרות" : "Diet", value: kosherLabel }
   ];
-  const chefTips = Array.isArray(main.chefTips) ? main.chefTips : [];
   const sauces = normalizeSubRecipes(r.sauces, "sauce");
   const sides = normalizeSubRecipes(r.sides, "side");
   const glossaryTitle = state.lang === "he" ? "מקרא פעולות" : "Technique Glossary";
@@ -1000,23 +998,16 @@ function renderRecipe() {
       <p class="small">${escapeHotText(main.description || "")}</p>
     </div>
 
-    ${renderRecipeQuality(r)}
     <div class="badges-row">
       ${badges.map((badge) => `<span class="badge"><strong>${badge.label}</strong> ${escapeHotText(badge.value)}</span>`).join("")}
     </div>
 
-    <div class="card meta-grid">
-      <div class="meta-item"><strong>${state.lang === "he" ? "הכנה והשריה" : "Prep & marinating"}</strong>${escapeHotText(prep)}</div>
-      ${Number.isFinite(main.metadata?.rest_minutes) ? `<div class="meta-item"><strong>${state.lang === "he" ? "מנוחה" : "Rest"}</strong>${main.metadata.rest_minutes} ${state.lang === "he" ? "דקות" : "min"}</div>` : ""}
-      <div class="meta-item"><strong>${state.lang === "he" ? "זמן בישול" : "Cook Time"}</strong>${escapeHotText(cook)}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "סה״כ זמן" : "Total Time"}</strong>${escapeHotText(total)}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "קושי" : "Difficulty"}</strong>${escapeHotText(difficulty)}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "נתח" : "Cut"}</strong>${r.generation?.kind === "baseline" ? escapeHotText(main.title) : selectedCut}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "שיטת בישול" : "Cooking method"}</strong>${r.generation?.kind === "baseline" ? escapeHotText(main.equipment?.[0] || "—") : selectedMethod}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "פרופיל טעמים" : "Flavor profile"}</strong>${r.generation?.kind === "baseline" ? (state.lang === "he" ? "מלח ופלפל" : "Salt and pepper") : selectedFlavor}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "מנות" : "Servings"}</strong>${state.preferences.servings}</div>
-      <div class="meta-item"><strong>${state.lang === "he" ? "העדפת כשרות" : "Dietary preference"}</strong>${kosherLabel}</div>
+    <div class="recipe-cooking-facts">
+      <p>${state.lang === "he" ? "זמנים משוערים" : "Estimated times"} · ${state.lang === "he" ? "הכנה" : "Prep"}: ${escapeHotText(prep)} · ${state.lang === "he" ? "בישול" : "Cook"}: ${escapeHotText(cook)}${Number.isFinite(main.metadata?.rest_minutes) ? ` · ${state.lang === "he" ? "מנוחה" : "Rest"}: ${main.metadata.rest_minutes} ${state.lang === "he" ? "דק׳" : "min"}` : ""}</p>
+      <p>${Number.isFinite(main.metadata?.meat_weight_g) ? `${main.metadata.meat_weight_g} ${state.lang === "he" ? "גרם בשר" : "g meat"} · ` : ""}${Number.isFinite(main.metadata?.piece_thickness_cm) ? `${main.metadata.piece_thickness_cm} ${state.lang === "he" ? "ס״מ עובי" : "cm thick"} · ` : ""}${escapeHotText((main.equipment || []).join(" · ") || selectedMethod)}</p>
+      ${Number.isFinite(main.metadata?.target_internal_c) ? `<p><strong>${state.lang === "he" ? "טמפרטורת ליבה" : "Internal target"}: ${main.metadata.target_internal_c}°C</strong> · ${escapeHotText(main.metadata.doneness_cue || "")}</p>` : ""}
     </div>
+    ${renderRecipeQuality(r)}
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${escapeHotText(i)}</li>`).join("")}</ul></div>
     <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s, i) => `<li>${escapeHotText(s)}${!timingUncertain && main.step_timing?.[i]?.minutes ? `<p class="small">${state.lang === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${Number(main.step_timing[i].minutes)} ${state.lang === "he" ? "דקות" : "min"}</p>` : ""}${renderStepTip(s, main.step_timing?.[i]?.phase)}</li>`).join("")}</ol></div>
@@ -2323,14 +2314,14 @@ function closeLegalModal() {
 }
 
 async function shareSmokeRadar() {
-  const shareData = { title: "Smoke Radar", text: SHARE_TEXT, url: window.location.href };
+  const shareData = { title: "Smoke Radar", text: SHARE_TEXT, url: new URL("/install", window.location.origin).href };
   try {
     if (navigator.share) {
       await navigator.share(shareData);
       return;
     }
     if (navigator.clipboard) {
-      await navigator.clipboard.writeText(`${SHARE_TEXT}\n${window.location.href}`);
+      await navigator.clipboard.writeText(`${SHARE_TEXT}\n${shareData.url}`);
       alert(state.lang === "he" ? "הקישור הועתק" : "Link copied");
       return;
     }

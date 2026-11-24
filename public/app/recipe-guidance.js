@@ -87,7 +87,7 @@
   }
   function stepHTML(step, options, language = "en") {
     const tip = tipFor(step, options, language), he = language === "he";
-    return `<aside class="recipe-step-tip"><strong>${he ? (tip.general ? "תזכורת להכנה" : "טיפ לשלב") : (tip.general ? "Preparation reminder" : "Step tip")}</strong><p>${escape(tip.text)}</p><a href="${escape(tip.source.url)}" target="_blank" rel="noopener noreferrer">${he ? "מקור: " : "Source: "}${escape(tip.source.name)}<span class="sr-only"> — ${escape(tip.source.title)}</span></a></aside>`;
+    return `<details class="recipe-step-tip"><summary>${he ? (tip.general ? "תזכורת להכנה" : "טיפ לשלב") : (tip.general ? "Preparation reminder" : "Step tip")}</summary><div class="recipe-tip-content"><p>${escape(tip.text)}</p><a href="${escape(tip.source.url)}" target="_blank" rel="noopener noreferrer">${he ? "מקור: " : "Source: "}${escape(tip.source.name)}<span class="sr-only"> — ${escape(tip.source.title)}</span></a></div></details>`;
   }
   function effectiveContext(recipe, context = {}) {
     const g = generation(recipe?.generation);
@@ -113,24 +113,22 @@
   }
   function reviewHTML(recipe, context = {}, language = "en") {
     const he = language === "he", g = generation(recipe?.generation);
-    if (recipe?.recipeVersion !== Quality.VERSION) return `<section class="recipe-quality"><p>${he ? "למתכון השמור הזה אין בדיקת שלמות עדכנית. יצירה מחדש תפעיל את הבדיקות החדשות." : "This saved recipe has no current completeness check. Regenerate to apply the new checks."}</p></section>`;
+    if (recipe?.recipeVersion !== Quality.VERSION) return `<details class="recipe-quality"><summary>${he ? "פרטים והערות למתכון" : "Recipe details and notes"}</summary><div class="recipe-quality-content"><p>${he ? "למתכון הזה אין בדיקת שלמות עדכנית. יצירה מחדש תפעיל את הבדיקות החדשות." : "This recipe has no current completeness check. Regenerate to apply the new checks."}</p></div></details>`;
     const report = Quality.review(recipe, effectiveContext(recipe, context)), m = recipe.main?.metadata || {};
     const details = notes(recipe, context, language);
-    return `<section class="recipe-quality" aria-label="${he ? "הערות לפני ההכנה" : "Before you cook"}">
+    return `<details class="recipe-quality"><summary>${he ? "פרטים והערות למתכון" : "Recipe details and notes"}</summary><div class="recipe-quality-content">
       <strong class="recipe-caveat-label">${he ? (g.kind === "baseline" ? "מתכון בסיסי חלופי" : "מתכון עם הערות הכנה") : (g.kind === "baseline" ? "Basic alternative recipe" : "Recipe with preparation notes")}</strong>
       <p>${he ? (g.kind === "baseline" ? "מתכון מתבנית קבועה. המתכון טרם נוסה במטבח." : "נוצר בעזרת AI. המתכון טרם נוסה במטבח.") : (g.kind === "baseline" ? "A fixed-template recipe. Not kitchen-tested." : "AI-generated. Not kitchen-tested.")}</p>
-      <p>${he ? "הזמנים משוערים: עובי הנתח והציוד שלכם עשויים לשנות את משך הבישול. הסתמכו גם על מדחום ועל סימני המוכנות." : "Times are estimates: your cut’s thickness and equipment can change cooking time. Use a thermometer and readiness cues too."}</p>
       ${details.length ? `<ul class="recipe-caveats">${details.map(n => `<li><strong>${escape(n.title)}</strong><p>${escape(n.text)}</p></li>`).join("")}</ul>` : ""}
-      <details><summary>${he ? "למה יש הסתייגויות ומה נבדק?" : "Why the caveats, and what was checked?"}</summary>
+      <h4>${he ? "מה נבדק?" : "What was checked?"}</h4>
         <p>${he ? "המשקל, עובי הנתח והציוד בפועל עשויים להיות שונים מההנחות במתכון. לכן הזמנים הם הערכה למנה העיקרית בלבד, וצריך לבדוק טמפרטורה ומוכנות בזמן הבישול." : "Actual weight, thickness and equipment may differ from this recipe’s assumptions. Times estimate the main dish only; check temperature and readiness during cooking."}</p>
         <p>${he ? (report.passed ? "הבדיקה האוטומטית לא זיהתה חוסרים בכמויות, במספר המנות, בסכום הזמנים וברשימות המרכיבים והשלבים. " : "הבדיקה האוטומטית מצאה את החוסרים שמפורטים למעלה. ") : (report.passed ? "Automated checks found no omissions in quantities, servings, time totals or ingredient and step lists. " : "Automated checks found the omissions listed above. ")}${he ? "זו אינה בדיקת טעם, בדיקת כל הקשרים בין המרכיבים לשלבים או אישור מקצועי." : "This is not a taste test, a check of every ingredient-to-step relationship, or professional approval."}</p>
         <p>${he ? "הטיפים ליד השלבים נבחרים מאוסף מקורות שנבדקו. הקישור תומך בטיפ בלבד, לא במתכון כולו; אין כאן טענה שהמתכון נוסה או אושר בידי המקור." : "Step tips are selected from a checked source collection. Each link supports that tip only, not the whole recipe; no source is claimed to have tested or approved this recipe."}</p>
-      </details>
       <p><strong>${he ? "הנחות המתכון:" : "Recipe assumptions:"}</strong> ${Number.isFinite(m.meat_weight_g) ? `${m.meat_weight_g} ${he ? "גרם בסך הכול" : "g total"}` : "—"} · ${Number.isFinite(m.piece_thickness_cm) ? `${m.piece_thickness_cm} ${he ? "ס״מ עובי" : "cm thick"}` : (he ? "עובי לא צוין" : "thickness unspecified")}</p>
       <p><strong>${he ? "ציוד:" : "Equipment:"}</strong> ${(recipe.main?.equipment || []).map(escape).join(" · ") || "—"}</p>
       <p><strong>${he ? "טמפרטורת ליבה במתכון:" : "Internal target:"}</strong> ${escape(m.target_internal_c)}°C. ${escape(m.doneness_cue)}</p>
       <a href="${Quality.SOURCE_URL}" target="_blank" rel="noopener noreferrer">${he ? "טבלת טמפרטורות לבישול — FoodSafety.gov" : "Cooking temperature chart — FoodSafety.gov"}</a>
-    </section>`;
+    </div></details>`;
   }
   return { SOURCES, TIPS, generation, effectiveContext, notes, tipFor, stepHTML, reviewHTML };
 });
