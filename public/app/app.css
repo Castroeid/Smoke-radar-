@@ -419,28 +419,33 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   margin: 0 0 8px;
   font-weight: 700;
 }
+.app-info {
+  margin-block-start: 12px;
+  padding-block-start: 6px;
+  border-top: 1px solid var(--line);
+}
+.app-info > summary {
+  min-height: 44px;
+  padding: 12px 6px;
+  color: var(--muted);
+  font-size: .88rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.app-info > summary:hover { color: var(--text); }
+.app-info > summary:focus-visible,
+.legal-menu .btn:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 3px; }
 .legal-menu {
-  opacity: .86;
   display: grid;
   gap: 8px;
-  margin-top: 0;
-  padding: 9px;
-  border-radius: 14px;
-  border-color: rgba(255,255,255,0.08);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  transform: scale(.985);
-  transform-origin: center top;
+  padding-block-start: 8px;
 }
-.legal-menu h3 {
-  margin: 0 0 2px;
-  color: #a69b8d;
-  font-size: .82rem;
-  font-weight: 700;
-}
-.footer-separator {
-  height: 1px;
-  margin: 18px 18px 8px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+.legal-menu .btn {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: .88rem;
+  font-weight: 500;
+  text-align: start;
 }
 .footer-note {
   margin-top: 4px;
