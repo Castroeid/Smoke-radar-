@@ -6,6 +6,9 @@
   // Editorial paraphrases, checked against these pages on 2026-11-24.
   // The model never supplies a citation, URL, tip text, or an endorsement.
   const SOURCES = Object.freeze({
+    grillGas: { name: "Weber", title: "Direct and Indirect Cooking on a Gas Barbecue", url: "https://contact-emea.weber.com/hc/en-us/articles/39518225669789-Direct-and-Indirect-Cooking-on-a-Gas-Barbecue" },
+    grillCharcoal: { name: "Weber", title: "Charcoal Grilling Methods", url: "https://contact-emea.weber.com/hc/en-us/articles/360000623338-Charcoal-Grilling-Methods" },
+    barbecue: { name: "Food Standards Scotland", title: "Barbecue food safety", url: "https://www.foodstandards.gov.scot/consumer-advice/food-safety/in-the-kitchen/parties-and-events/barbecue-food-safety" },
     basic: { name: "Food Standards Agency", title: "Cooking your food — cooking without a thermometer", url: "https://www.gov.uk/government/publications/cooking-your-food/cooking-your-food" },
     sousVide: { name: "Douglas Baldwin", title: "A Practical Guide to Sous Vide Cooking — Table 5.1 and tough meat", url: "https://douglasbaldwin.com/sous-vide.html" },
     hygiene: { name: "FoodSafety.gov", title: "4 Steps to Food Safety", url: "https://www.foodsafety.gov/keep-food-safe/4-steps-to-food-safety" },
@@ -21,6 +24,10 @@
     vinaigrette: { name: "Good Food", title: "Classic vinaigrette — mixing technique", url: "https://www.bbcgoodfood.com/recipes/classic-vinaigrette" }
   });
   const TIPS = Object.freeze({
+    grillGas: { source: "grillGas", he: "בבישול עקיף מכבים את המבער שמתחת לבשר ומשאירים מקור חום לצדו. סוגרים את מכסה הגריל כדי שהחום יקיף את המזון.", en: "For indirect cooking, turn off the burner below the food and keep heat beside it. Close the grill lid so heat circulates around the food." },
+    grillCharcoal: { source: "grillCharcoal", he: "לצלייה עקיפה מסדרים את הגחלים בצד ומשאירים שטח ללא גחלים מתחת למזון. בישול ממושך כזה נעשה עם מכסה המנגל סגור.", en: "For indirect cooking, bank the coals to one side and leave none directly below the food. Keep the barbecue lid closed during this longer cook." },
+    charcoalReady: { source: "barbecue", he: "ממתינים לגחלים זוהרות עם אפר אפור. להבות עלולות להשחיר את החוץ לפני שהמרכז מוכן; מזיזים את הבשר כשיש התלקחות.", en: "Wait for glowing coals with grey ash. Flames can blacken the outside before the centre is cooked; move the meat away from flare-ups." },
+    barbecueFinish: { source: "barbecue", he: "אפשר לבשל תחילה בתנור ולסיים במנגל לטעם הצלוי. הבישול המקדים צריך להגיע למוכנות; הצריבה האחרונה נועדה להשחמה.", en: "You can cook in the oven first and finish on the barbecue for grilled flavour. Complete the initial cooking; the final sear is for browning." },
     basic: { source: "basic", he: "בלי מדחום משלבים כמה בדיקות: פותחים את החלק העבה ובודקים אדים גם במרכז ובישול לכל העובי. זמן או צבע לבדם אינם מספיקים; אין בכך מדידה של מידת עשייה מדויקת.", en: "Without a thermometer, combine checks: cut into the thickest part and check for steam at the centre and cooking throughout. Time or colour alone is insufficient; this does not measure precise doneness." },
     sousVide: { source: "sousVide", he: "זמן סו־ויד תלוי גם בעובי ובטמפרטורת ההתחלה. לוח הזמנים כאן מיועד לבשר מופשר מהמקרר, בשכבה אחת ובאמבט מבוקר; אין להעתיק אותו לבשר קפוא או עבה יותר.", en: "Sous-vide time also depends on thickness and starting temperature. This schedule is for thawed, refrigerated meat in a single layer in a controlled bath; do not reuse it for frozen or thicker meat." },
     sousVideBag: { source: "sousVide", he: "שקית צפה או בשר חופף מתחממים אחרת. הוציאו אוויר, השאירו את הבשר שקוע ואת המים חופשיים לזרום מסביב.", en: "Floating bags and overlapping pieces heat differently. Remove air, keep the meat submerged and leave room for water circulation." },
@@ -71,10 +78,17 @@
     const s = String(step || ""), safety = Quality.safetyReference(recipe, context), cooking = Quality.cookingReference(context);
     const partText = `${part?.title || part?.name || ""} ${(part?.ingredients || []).join(" ")}`;
     const protocol = recipe?.main?.metadata?.cooking_protocol;
-    if (section === "main" && ["basic_v1", "sous_vide_v1"].includes(protocol)) {
+    if (section === "main" && ["basic_v1", "basic_v2", "sous_vide_v1"].includes(protocol)) {
       let id = "clean";
       if (protocol === "sous_vide_v1") id = /מייבשים|pat thoroughly dry/i.test(s) ? "sousVideSear" : /אוטמים|seal following/i.test(s) ? "sousVideBag" : /אמבט|bath/i.test(s) ? "sousVide" : /מגישים|serve/i.test(s) ? "serve" : "clean";
-      else id = phase === "rest" ? "braiseRest" : /פותחים|cut open/i.test(s) ? "basic" : /בעבוע|simmer/i.test(s) ? "simmer" : phase === "cook" ? "basic" : "clean";
+      else {
+        const method = recipe?.main?.metadata?.cooking_method;
+        if (/השחמה בלבד|browning finish/i.test(s)) id = "barbecueFinish";
+        else if (/ממתינים לגחלים|wait for glowing coals/i.test(s)) id = "charcoalReady";
+        else if (/מבער.*כבוי|ללא מבער דולק|burner off|no lit burner/i.test(s)) id = method === "bbq" ? "grillCharcoal" : "grillGas";
+        else if (phase === "rest") id = /נוזלי הבישול|cooking liquid/i.test(s) ? "braiseRest" : "serve";
+        else id = /פותחים|פותחים את החלק|cut open|cut into/i.test(s) ? "basic" : /בעבוע|simmer|bubbling/i.test(s) ? "simmer" : phase === "cook" ? "basic" : "clean";
+      }
       const tip = TIPS[id];
       return { id, text: tip[language === "he" ? "he" : "en"], source: SOURCES[tip.source], general: id === "clean" };
     }

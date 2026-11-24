@@ -31,7 +31,8 @@ const methods = [
   { id: "grill", labels: { he: "גריל", en: "Grill" } },
   { id: "cast_iron", labels: { he: "מחבת ברזל", en: "Cast Iron" } },
   { id: "oven", labels: { he: "תנור", en: "Oven" } },
-  { id: "bbq", labels: { he: "ברביקיו", en: "BBQ" } },
+  { id: "bbq", labels: { he: "מנגל / ברביקיו", en: "BBQ" } },
+  { id: "bbq_finish", labels: { he: "ריכוך בתנור וסיום במנגל", en: "Oven braise and barbecue finish" } },
   { id: "smoker", labels: { he: "מעשנה", en: "Smoker" } },
   { id: "smoking", labels: { he: "עישון", en: "Smoking" } },
   { id: "long_cook", labels: { he: "בישול ארוך", en: "Long Cook" } },
@@ -528,7 +529,7 @@ function renderLanding() {
 function renderSavedRecipes() {
   const cards = (state.account.loading || state.account.initializing ? [] : state.savedRecipes).map((item) => {
     const cut = getCutById(item.preferences?.cutId || "ribeye").labels[state.lang];
-    const method = getMethodById(item.preferences?.methodId || "grill").labels[state.lang];
+    const method = item.preferences?.equipmentMode === "basic" ? RecipeProtocols.basicMethodLabel(item.preferences.methodId, item.preferences.cutId, state.lang) : getMethodById(item.preferences?.methodId || "grill").labels[state.lang];
     const date = formatSavedDate(item.createdAt);
     const thumbnail = recipeThumbnailForCut(item.preferences?.cutId || "ribeye");
     return `
@@ -728,7 +729,7 @@ function renderPreferences() {
 
 
 function getAllowedMethodsForCut(cutId) {
-  if (state.preferences.equipmentMode === "basic") return RecipeProtocols.tough(cutId) ? ["long_cook"] : ["pan_sear"];
+  if (state.preferences.equipmentMode === "basic") return RecipeProtocols.basicMethods(cutId);
   return [...(cutMethodRules[cutId] || methods.map((m) => m.id)), "sous_vide"];
 }
 
@@ -737,8 +738,8 @@ function setupMethodOptions() {
   const cutId = document.getElementById("cutId")?.value || state.preferences.cutId;
   if (!methodSelect) return;
   const allowed = new Set(getAllowedMethodsForCut(cutId));
-  const options = methods.filter((m) => allowed.has(m.id));
-  methodSelect.innerHTML = options.map((m) => `<option value="${m.id}">${m.labels[state.lang]}</option>`).join("");
+  const options = [...allowed].map(getMethodById);
+  methodSelect.innerHTML = options.map((m) => `<option value="${m.id}">${state.preferences.equipmentMode === "basic" ? RecipeProtocols.basicMethodLabel(m.id, cutId, state.lang) : m.labels[state.lang]}</option>`).join("");
   if (!allowed.has(state.preferences.methodId)) {
     state.preferences.methodId = options[0]?.id || "grill";
   }
@@ -760,7 +761,7 @@ function updateMethodHelperText() {
   note.textContent = question.title;
   note.hidden = !question.disabled;
   if (sv) { helperEl.textContent = state.lang === "he" ? "נדרשים מכשיר סו־ויד ושקיות מתאימות. הזמן נקבע לפי הנתח והעובי; טמפרטורת האמבט תופיע במתכון." : "Requires a sous-vide circulator and suitable bags. Time follows the cut and thickness; the recipe specifies the bath temperature."; return; }
-  if (basic) { helperEl.textContent = state.lang === "he" ? (RecipeProtocols.tough(cutId) ? "הנתח יוכן בקדירה בסיר רגיל, עם בדיקות רכות וחום במרכז." : "הנתח ייחתך לרצועות דקות ויבושל במחבת רגילה. המתכון מיועד לבשר מבושל לכל עוביו, ללא יעד של מדיום.") : (RecipeProtocols.tough(cutId) ? "A stew in an ordinary pot, with tenderness and central heat checks." : "Thin strips cooked throughout in an ordinary pan, without a medium-doneness target."); return; }
+  if (basic) { helperEl.textContent = RecipeProtocols.basicMethodHelp(state.preferences.methodId, cutId, state.lang); return; }
   helperEl.textContent = state.lang === "he"
     ? `מתאים ל: ${allowed.join(" / ")}`
     : `Best methods: ${allowed.join(" / ")}`;
@@ -936,7 +937,7 @@ async function loadRecipe() {
   const p = { ...state.preferences };
   const requestLanguage = state.lang;
   const cut = getCutById(p.cutId).labels[state.lang];
-  const method = getMethodById(p.methodId).labels[state.lang];
+  const method = p.equipmentMode === "basic" ? RecipeProtocols.basicMethodLabel(p.methodId, p.cutId, state.lang) : getMethodById(p.methodId).labels[state.lang];
   const flavor = getFlavorById(p.flavorId).labels[state.lang];
   const query = new URLSearchParams({
     lang: state.lang,

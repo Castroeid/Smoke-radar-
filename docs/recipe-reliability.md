@@ -94,13 +94,26 @@ adapt cut, portions, seasoning and equipment, but not free-text requests. The UI
 states this before generation. Their origin and limitations remain inside the
 collapsed recipe notes, without a tested/verified badge.
 
-- **Basic cookware:** tender cuts become 0.5 cm strips in an ordinary pan; tough
-  cuts become 3 cm cubes simmered in a covered pot. Readiness combines steaming
+- **Basic cookware:** tender cuts offer an ordinary pan, gas grill, charcoal
+  barbecue and oven. Tough cuts offer a pot, oven, covered indirect gas/charcoal
+  cooking, or an oven braise followed by an open-charcoal finish. Each choice
+  changes the actual equipment and instructions; the shared method allowlist
+  drives the UI and server validation. Pan strips and pot cubes remain unchanged
+  as `basic_v1`, preserving saved recipes. Added methods use `basic_v2` with the
+  selected `cooking_method` persisted in metadata. Tender steaks are limited to
+  1.5 cm; slow-cooked pieces to 3 cm in a covered metal dish with liquid. Readiness combines steaming
   at the centre, cooking throughout and texture, with explicit continuation checks.
   This follows the [FSA's practical no-thermometer guidance](https://www.gov.uk/government/publications/cooking-your-food/cooking-your-food),
   accessed 2026-11-24. Neither colour nor elapsed time alone is treated as proof;
   no precise medium/rare result is promised. The thermometer tips from the standard
-  route are not injected into these steps.
+  route are not injected into these steps. The grill technique tips use
+  [Weber's gas-grill guidance](https://contact-emea.weber.com/hc/en-us/articles/39518225669789-Direct-and-Indirect-Cooking-on-a-Gas-Barbecue)
+  and [charcoal guidance](https://contact-emea.weber.com/hc/en-us/articles/360000623338-Charcoal-Grilling-Methods).
+  Indirect cooking requires the barbecue lid and no direct heat beneath the dish;
+  the UI states this before generation. For open barbecues the separate oven-first
+  method follows the pre-cooking/finishing principle in
+  [Food Standards Scotland's barbecue guidance](https://www.foodstandards.gov.scot/consumer-advice/food-safety/in-the-kitchen/parties-and-events/barbecue-food-safety).
+  These sources were checked 2026-11-24 and do not endorse the authored recipes.
 - **Sous vide:** uses [Douglas Baldwin's guide](https://douglasbaldwin.com/sous-vide.html),
   accessed 2026-11-24. Tender cuts use a 65°C bath with 75/90/105/120/150 minutes
   for maximum thickness 2/2.5/3/4/5 cm. These exceed Table 5.1's corresponding

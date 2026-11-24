@@ -7,7 +7,7 @@
   const text = (value) => typeof value === "string" ? value : "";
   const strings = (items) => Array.isArray(items) ? items.filter(item => typeof item === "string") : [];
   const metadata = value => Object.fromEntries(Object.entries(value || {}).filter(([key, item]) =>
-    ["cooking_protocol", "cooking_language", "bath_temperature_c", "bath_minutes", "bath_step_index", "servings", "prep_minutes", "cook_minutes", "rest_minutes", "total_minutes", "meat_weight_g", "piece_thickness_cm", "target_internal_c", "doneness_cue", "difficulty", "prep_time", "cook_time", "rest_time", "total_time"].includes(key)
+    ["cooking_protocol", "cooking_method", "cooking_language", "bath_temperature_c", "bath_minutes", "bath_step_index", "servings", "prep_minutes", "cook_minutes", "rest_minutes", "total_minutes", "meat_weight_g", "piece_thickness_cm", "target_internal_c", "doneness_cue", "difficulty", "prep_time", "cook_time", "rest_time", "total_time"].includes(key)
     && (typeof item === "string" || (typeof item === "number" && Number.isFinite(item)))));
   const part = (item = {}) => ({
     name: text(item?.name), title: text(item?.title), description: text(item?.description),
