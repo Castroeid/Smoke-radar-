@@ -83,6 +83,10 @@ endpoint responds with `{"enabled":false}` and no login buttons are displayed.
 - Google/Facebook use a popup. In-app Facebook/WhatsApp browsers may block OAuth;
   open the site in Chrome or Safari. Provider errors are handled without deleting
   recipes. A cancelled login keeps the guest experience.
+- Account initialization has a ten-second deadline covering configuration, SDK
+  loading, persistence and the first authentication state. On timeout, device
+  recipes and saving become available; late initialization cannot switch the
+  library. Refresh the page to try account initialization again.
 - Users can delete individual recipes, or **Account settings → Delete account
   and all its recipes**. Deletion reauthenticates first, deletes Firestore recipes,
   then deletes the Firebase user. If it fails partway, the account remains so the

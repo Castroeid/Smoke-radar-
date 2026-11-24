@@ -7,12 +7,15 @@ import { getAuth, setPersistence, browserLocalPersistence, browserSessionPersist
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore-lite.js";
 
-export async function connect({ config, providers, store, onUser, lang }) {
+export async function connect({ config, providers, store, onUser, lang, signal }) {
+  const ensureActive = () => { if (signal?.aborted) throw new Error("account-initialization-cancelled"); };
+  ensureActive();
   const app = initializeApp(config, "smoke-radar-recipes");
   const auth = getAuth(app);
   auth.languageCode = lang;
   try { await setPersistence(auth, browserLocalPersistence); }
-  catch { await setPersistence(auth, browserSessionPersistence); }
+  catch { ensureActive(); await setPersistence(auth, browserSessionPersistence); }
+  ensureActive();
   const db = getFirestore(app);
   function owned(uid) {
     if (!auth.currentUser || auth.currentUser.uid !== uid) throw new Error("account-changed");
@@ -29,13 +32,23 @@ export async function connect({ config, providers, store, onUser, lang }) {
     async remove(uid, id) { await deleteDoc(doc(owned(uid), id)); }
   });
   let first = true;
-  await new Promise((resolve, reject) => onAuthStateChanged(auth, user => {
-    onUser(user);
-    // Keep the listener after initialization so sign-out/account changes also
-    // clear recipes in this tab. Never cache cloud recipes in localStorage.
-    store.setUser(user);
-    if (first) { first = false; resolve(); }
-  }, reject));
+  await new Promise((resolve, reject) => {
+    let unsubscribe = () => {};
+    const cancel = () => { unsubscribe(); reject(new Error("account-initialization-cancelled")); };
+    signal?.addEventListener("abort", cancel, { once: true });
+    unsubscribe = onAuthStateChanged(auth, user => {
+      if (signal?.aborted) return;
+      onUser(user);
+      // Keep the listener after successful initialization for account changes.
+      // A timed-out initialization must never replace the device recipe library.
+      store.setUser(user);
+      if (first) { first = false; signal?.removeEventListener("abort", cancel); resolve(); }
+    }, error => {
+      unsubscribe(); signal?.removeEventListener("abort", cancel); reject(error);
+    });
+    if (signal?.aborted) cancel();
+  });
+  ensureActive();
   return {
     login(provider) {
       if (!providers.includes(provider)) throw new Error("provider-disabled");

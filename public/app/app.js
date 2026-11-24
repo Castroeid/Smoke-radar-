@@ -2138,20 +2138,29 @@ function renderRecipeAccountScreen() {
   if (["landing", "saved"].includes(STEPS[currentStep])) render();
 }
 
-async function initRecipeAccounts() {
+async function initRecipeAccounts(loadModule = () => import("/app/recipe-account.js")) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-  try {
+  let timeout;
+  const deadline = new Promise((_, reject) => {
+    timeout = setTimeout(() => {
+      controller.abort();
+      reject(new Error("account-initialization-timeout"));
+    }, 10000);
+  });
+  const initialize = async () => {
     const response = await fetch("/api/recipe-account-config", { signal: controller.signal, cache: "no-store" });
     if (!response.ok) throw new Error("account-config-unavailable");
     const settings = await response.json();
+    if (controller.signal.aborted) return;
     if (!settings.enabled) return;
     state.account.enabled = true;
     state.account.providers = settings.providers;
-    const { connect } = await import("/app/recipe-account.js");
-    recipeAccountClient = await connect({
-      ...settings, store: recipeStore, lang: state.lang,
+    const { connect } = await loadModule();
+    if (controller.signal.aborted) return;
+    const client = await connect({
+      ...settings, store: recipeStore, lang: state.lang, signal: controller.signal,
       onUser(user) {
+        if (controller.signal.aborted) return;
         if (state.account.user && state.account.user.uid !== user?.uid) {
           // Never leave the previous account's opened recipe visible after logout.
           state.recipe = null; state.shopping = {}; state.shoppingChecks = {}; state.lastOpenedRecipeId = null;
@@ -2159,8 +2168,12 @@ async function initRecipeAccounts() {
         }
       }
     });
+    if (controller.signal.aborted) return;
+    recipeAccountClient = client;
     state.account.ready = true;
-  } catch { state.account.connectionError = true; }
+  };
+  try { await Promise.race([initialize(), deadline]); }
+  catch { controller.abort(); state.account.connectionError = true; }
   finally {
     clearTimeout(timeout);
     state.account.initializing = false;
