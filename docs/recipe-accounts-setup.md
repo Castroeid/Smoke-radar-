@@ -1,16 +1,15 @@
 # Recipe accounts: Google + Facebook
 
-Account support is disabled until Firebase, its security rules, and both OAuth
+Account support is disabled until Firebase, its security rules, and the chosen OAuth
 providers have been configured. The existing device-only recipe library continues
 to work. No service-account private key or provider secret belongs in this repo.
 
 ## 1. Firebase project
 
-Open https://console.firebase.google.com/ using the Google account that owns
-Smoke Radar. If it is absent, use **Add Firebase to Google Cloud project** and
-select the existing project ID `smoke-radar`; creating a second Cloud project is
-unnecessary. Register a **Web app** in Firebase's project settings and retain its
-web configuration. Firebase Hosting is not needed: Render still hosts this app.
+The owner created Firebase project **`smoke-radar-310f1`**, separate from the
+Google Places Cloud project `smoke-radar`. Use the existing Firebase Web app;
+do not create or attach another project. Render continues to host the website.
+The default Firestore database is Standard / Native in `me-west1` (Tel Aviv).
 
 Create a Cloud Firestore **Standard / Native mode** database. Select an appropriate
 location and use production/locked rules initially. Publish the contents of
@@ -55,8 +54,8 @@ Add these environment variables to the existing Smoke Radar service:
 | Variable | Value |
 | --- | --- |
 | `FIREBASE_WEB_CONFIG` | A JSON object with the Web app's `apiKey`, `authDomain`, `projectId`, `appId`. Copy from Firebase's Web app configuration. |
-| `RECIPE_AUTH_PROVIDERS` | `google,facebook` |
-| `RECIPE_ACCOUNTS_ENABLED` | `true`, after rules and both providers are configured |
+| `RECIPE_AUTH_PROVIDERS` | `google` initially; add `facebook` only after Meta setup is complete |
+| `RECIPE_ACCOUNTS_ENABLED` | `true`, after rules and the chosen providers are configured |
 
 The Firebase web key identifies this app and is intentionally exposed through
 `/api/recipe-account-config`. It is **not** the server-only Google Places API key.
@@ -89,7 +88,10 @@ endpoint responds with `{"enabled":false}` and no login buttons are displayed.
   then deletes the Firebase user. If it fails partway, the account remains so the
   user can retry; do not claim atomic deletion.
 
-Before opening sign-in to users, test Google and Facebook with actual non-admin
+Meta/Facebook setup is deferred by the owner. Google and the scoped Firestore
+rules are configured in the preview, but end-to-end account testing is still pending.
+
+Before opening sign-in to users, test each enabled provider with actual non-admin
 accounts, including mobile Chrome/Safari. Save a recipe in browser A, sign into
 the same account in browser B and confirm it loads. Test sign-out, a second
 account, failed network operations, explicit guest import, and account deletion.

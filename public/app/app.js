@@ -114,14 +114,14 @@ const copy = {
     loadingMessages: [
       "מנתחים את הנתונים...",
       "מחפשים השראה חמה 🔥",
-      "מרכיבים לך מתכון מושלם...",
+      "מרכיבים את המתכון שלך...",
       "בודקים מה הכי טרנדי עכשיו...",
       "כמעט שם..."
     ],
     recipeLoadingMessages: [
       "מחממים את הרדאר 🔥",
       "מוצאים את השילוב המושלם...",
-      "בונים לך מתכון מדויק..."
+      "בודקים כמויות ופרטי הכנה..."
     ],
     butcherLoadingMessage: "מחפש קצביות באזור שלך...",
     loadingSteps: [
@@ -157,14 +157,14 @@ const copy = {
     loadingMessages: [
       "Analyzing trends...",
       "Finding something hot 🔥",
-      "Crafting your perfect recipe...",
+      "Creating your recipe...",
       "Scanning what's trending...",
       "Almost ready..."
     ],
     recipeLoadingMessages: [
       "Warming up the radar 🔥",
       "Finding the perfect pairing...",
-      "Building your precise recipe..."
+      "Checking quantities and preparation details..."
     ],
     butcherLoadingMessage: "Searching butcher shops near you...",
     loadingSteps: [
@@ -893,7 +893,8 @@ function renderCookIdeas() {
 }
 
 async function loadRecipe() {
-  const p = state.preferences;
+  const p = { ...state.preferences };
+  const requestLanguage = state.lang;
   const cut = getCutById(p.cutId).labels[state.lang];
   const method = getMethodById(p.methodId).labels[state.lang];
   const flavor = getFlavorById(p.flavorId).labels[state.lang];
@@ -913,12 +914,41 @@ async function loadRecipe() {
 
   const res = await fetch(`/api/ai-recipe?${query.toString()}`);
   const data = await res.json();
-  state.recipe = enhanceRecipeQuality(data.structuredRecipe || null);
+  if (requestLanguage !== state.lang || JSON.stringify(p) !== JSON.stringify(state.preferences) || state.recipe) return false;
+  if (!res.ok) throw new Error(data.error || "recipe_service_unavailable");
+  const report = RecipeQuality.check(data.structuredRecipe, p);
+  if (!report.passed) throw new Error("recipe_incomplete");
+  state.recipe = enhanceRecipeQuality(data.structuredRecipe);
   state.shopping = buildShoppingList(state.recipe);
 }
 
 function recipeHeroForCut() {
   return "var(--asset-recipe)";
+}
+
+function renderRecipeQuality(recipe) {
+  const he = state.lang === "he";
+  const report = RecipeQuality.check(recipe, state.preferences);
+  if (recipe.recipeVersion !== RecipeQuality.VERSION || !report.passed) {
+    return `<div class="card recipe-quality"><p>${he ? "למתכון השמור הזה אין בדיקת שלמות עדכנית. יצירה מחדש תפעיל את הבדיקות החדשות." : "This saved recipe has no current completeness check. Regenerate it to apply the new checks."}</p></div>`;
+  }
+  const m = recipe.main.metadata;
+  return `<section class="card recipe-quality" aria-label="${he ? "פרטי בדיקת המתכון" : "Recipe check details"}">
+    <span class="recipe-check-label">${he ? "עבר בדיקת שלמות אוטומטית" : "Automated completeness checks passed"}</span>
+    <p>${he ? "נוצר בעזרת AI. המתכון טרם נוסה במטבח." : "AI-generated. This recipe has not been kitchen-tested."}</p>
+    <details><summary>${he ? "מה נבדק?" : "What was checked?"}</summary>
+      <p>${he ? "נבדקו נוכחות של כמות ויחידה לכל מרכיב, התאמת מספר המנות לבקשה, סכום זמני ההכנה וקיום רשימות המרכיבים והשלבים למנה, לרטבים ולתוספות. זו בדיקת נתונים אוטומטית, לא בדיקת טעם או אישור מקצועי." : "Checks cover a quantity and unit for each ingredient, requested serving count, time totals, and ingredient and instruction lists for the main dish, sauces and sides. This is an automated data check, not a taste test or professional approval."}</p>
+    </details>
+    <p><strong>${he ? "המתכון מתוכנן עבור:" : "Recipe assumptions:"}</strong> ${m.meat_weight_g} ${he ? "גרם בשר בסך הכול; עובי כל יחידה כ־" : "g meat in total; each piece about "}${m.piece_thickness_cm} ${he ? "ס״מ." : "cm thick."}</p>
+    <p><strong>${he ? "ציוד:" : "Equipment:"}</strong> ${recipe.main.equipment.map(escapeHotText).join(" · ")}</p>
+    <p><strong>${he ? "טמפרטורת ליבה במתכון:" : "Recipe internal target:"}</strong> <bdi>${m.target_internal_c}°C</bdi>. ${escapeHotText(m.doneness_cue)}</p>
+    <p class="small">${he ? "הזמנים הם הערכה למנה העיקרית וכוללים מנוחה. משקל, עובי וציוד משפיעים על הבישול; בדקו במדחום ובסימני המוכנות." : "Times estimate the main dish and include resting. Weight, thickness and equipment affect cooking; check with a thermometer and the readiness cues."}</p>
+    <details><summary>${he ? "הנחיית טמפרטורה ממקור חיצוני" : "External temperature guidance"}</summary>
+      <p>${he ? "לסוג הבשר שבמתכון, הנחיית FoodSafety.gov היא לפחות " : "For this recipe's meat type, FoodSafety.gov recommends at least "}<bdi>${report.safety.minimumC}°C</bdi>${report.safety.restMinutes ? (he ? " ומנוחה של 3 דקות לפחות." : " and at least 3 minutes rest.") : "."}</p>
+      <a href="${RecipeQuality.SOURCE_URL}" target="_blank" rel="noopener noreferrer">${he ? "טבלת טמפרטורות לבישול — FoodSafety.gov" : "Cooking temperature chart — FoodSafety.gov"}</a>
+      <p class="small">${he ? "המקור מתייחס לטמפרטורת הבישול; הוא אינו מקור למתכון ואינו מאשר אותו." : "The source covers cooking temperatures; it is not the source of, or an endorsement of, this recipe."}</p>
+    </details>
+  </section>`;
 }
 
 function renderRecipe() {
@@ -929,11 +959,16 @@ function renderRecipe() {
       loadRecipe().then(() => {
         stopRecipeLoadingState();
         state.recipeLoading = false;
-        renderRecipe();
-      }).catch(() => {
+        if (STEPS[currentStep] === "recipe") renderRecipe();
+      }).catch((error) => {
         stopRecipeLoadingState();
         state.recipeLoading = false;
-        el.content.innerHTML = `<div class="card">${state.lang === "he" ? "לא הצלחנו לטעון מתכון כרגע." : "Could not load recipe right now."}</div>`;
+        if (STEPS[currentStep] !== "recipe") return;
+        const incomplete = error.message === "recipe_incomplete";
+        el.content.innerHTML = `<div class="card" role="status"><p>${state.lang === "he"
+          ? (incomplete ? "המתכון שנוצר לא עבר את בדיקת השלמות. אפשר לנסות שוב או לשנות את הבקשה." : "לא הצלחנו ליצור מתכון כרגע. אפשר לנסות שוב.")
+          : (incomplete ? "This recipe did not pass the completeness checks. Try again or adjust your request." : "Could not create a recipe right now. Please retry.")}</p><button class="btn btn-primary" id="retryRecipeBtn">${state.lang === "he" ? "נסה שוב" : "Try again"}</button></div>`;
+        document.getElementById("retryRecipeBtn")?.addEventListener("click", renderRecipe);
       });
     }
     return;
@@ -944,10 +979,10 @@ function renderRecipe() {
   const selectedCut = getCutById(state.preferences.cutId).labels[state.lang];
   const selectedMethod = getMethodById(state.preferences.methodId).labels[state.lang];
   const selectedFlavor = getFlavorById(state.preferences.flavorId).labels[state.lang];
-  const prep = main.prepTime || (state.lang === "he" ? "20 דקות" : "20 min");
-  const cook = main.cookTime || (state.lang === "he" ? "45 דקות" : "45 min");
-  const total = main.totalTime || (state.lang === "he" ? "65 דקות" : "65 min");
-  const difficulty = main.difficulty || (state.lang === "he" ? "בינוני" : "Medium");
+  const prep = main.prepTime || main.metadata?.prep_time || "—";
+  const cook = main.cookTime || main.metadata?.cook_time || "—";
+  const total = main.totalTime || main.metadata?.total_time || "—";
+  const difficulty = main.difficulty || main.metadata?.difficulty || "—";
   const kosherLabel = state.preferences.dietaryPreference === "kosher" ? (state.lang === "he" ? "כשר" : "Kosher") : (state.lang === "he" ? "לא כשר" : "Non-kosher");
   const badges = [
     { label: state.lang === "he" ? "סה״כ זמן" : "Total Time", value: total },
@@ -955,7 +990,7 @@ function renderRecipe() {
     { label: state.lang === "he" ? "מנות" : "Servings", value: state.preferences.servings },
     { label: state.lang === "he" ? "כשרות" : "Diet", value: kosherLabel }
   ];
-  const chefTips = getChefTips(state.preferences.cutId, state.preferences.methodId);
+  const chefTips = Array.isArray(main.chefTips) ? main.chefTips : [];
   const sauces = normalizeSubRecipes(r.sauces, "sauce");
   const sides = normalizeSubRecipes(r.sides, "side");
   const glossaryTitle = state.lang === "he" ? "מקרא פעולות" : "Technique Glossary";
@@ -967,12 +1002,14 @@ function renderRecipe() {
       <p class="small">${escapeHotText(main.description || "")}</p>
     </div>
 
+    ${renderRecipeQuality(r)}
     <div class="badges-row">
       ${badges.map((badge) => `<span class="badge"><strong>${badge.label}</strong> ${escapeHotText(badge.value)}</span>`).join("")}
     </div>
 
     <div class="card meta-grid">
-      <div class="meta-item"><strong>${state.lang === "he" ? "זמן הכנה" : "Prep Time"}</strong>${escapeHotText(prep)}</div>
+      <div class="meta-item"><strong>${state.lang === "he" ? "הכנה והשריה" : "Prep & marinating"}</strong>${escapeHotText(prep)}</div>
+      ${Number.isFinite(main.metadata?.rest_minutes) ? `<div class="meta-item"><strong>${state.lang === "he" ? "מנוחה" : "Rest"}</strong>${main.metadata.rest_minutes} ${state.lang === "he" ? "דקות" : "min"}</div>` : ""}
       <div class="meta-item"><strong>${state.lang === "he" ? "זמן בישול" : "Cook Time"}</strong>${escapeHotText(cook)}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "סה״כ זמן" : "Total Time"}</strong>${escapeHotText(total)}</div>
       <div class="meta-item"><strong>${state.lang === "he" ? "קושי" : "Difficulty"}</strong>${escapeHotText(difficulty)}</div>
@@ -996,8 +1033,8 @@ function renderRecipe() {
     </div>
     <div class="card"><h3>${state.lang === "he" ? "שתייה מתאימה" : "Drink Pairings"}</h3><ul class="list">${(r.drinkPairings || []).map((d) => `<li>${escapeHotText(d.name)}</li>`).join("")}</ul></div>
     <div class="card">
-      <h3>${state.lang === "he" ? "טיפים מהשף" : "Chef Tips"}</h3>
-      <ul class="list">${chefTips.map((tip) => `<li>${tip}</li>`).join("")}</ul>
+      <h3>${state.lang === "he" ? "טיפים להכנה" : "Cooking Tips"}</h3>
+      <ul class="list">${chefTips.map((tip) => `<li>${escapeHotText(tip)}</li>`).join("")}</ul>
     </div>
 
     <div class="inline-actions">
@@ -1044,7 +1081,7 @@ function buildShoppingList(recipe) {
 
   return {
     meat: mainIng.filter((i) => /beef|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
-    seasoning: mainIng.filter((i) => /salt|pepper|paprika|garlic|spice|מלח|פלפל|תבלין|שום/i.test(i)),
+    seasoning: mainIng.filter((i) => !/beef|meat|rib|steak|brisket|פיקניה|בשר|נתח|אנטריקוט|פילה/i.test(i)),
     sauceIngredients: [...new Set(sauces)],
     sideIngredients: [...new Set(sides)],
     drinks: [...new Set(drinks)]
@@ -1054,7 +1091,7 @@ function buildShoppingList(recipe) {
 function renderShopping() {
   const groups = [
     { key: "meat", he: "בשר", en: "Meat" },
-    { key: "seasoning", he: "תיבול", en: "Seasoning" },
+    { key: "seasoning", he: "יתר מרכיבי המנה", en: "Other main-dish ingredients" },
     { key: "sauceIngredients", he: "מרכיבי רוטב", en: "Sauce ingredients" },
     { key: "sideIngredients", he: "מרכיבי תוספות", en: "Side dish ingredients" },
     { key: "drinks", he: "שתייה", en: "Drinks" }
@@ -1231,26 +1268,13 @@ function renderButchers() {
   });
 }
 
-function normalizeSubRecipes(items, type) {
-  const list = Array.isArray(items) ? items : [];
-  const normalized = list.map((item) => ({
-    title: item?.name || defaultSubRecipe(type).title,
-    description: item?.description || "",
-    ingredients: (item?.ingredients || []).filter(Boolean),
-    steps: (item?.steps || []).filter(Boolean)
+function normalizeSubRecipes(items) {
+  return (Array.isArray(items) ? items : []).filter(item => item && typeof item === "object").map(item => ({
+    name: item.name || item.title || "", title: item.title || item.name || "",
+    description: item.description || "",
+    ingredients: Array.isArray(item.ingredients) ? item.ingredients.filter(i => typeof i === "string") : [],
+    steps: Array.isArray(item.steps) ? item.steps.filter(i => typeof i === "string") : []
   }));
-
-  if (!normalized.length) return [defaultSubRecipe(type)];
-
-  return normalized.map((item) => {
-    const fallback = defaultSubRecipe(type, item.title);
-    return {
-      title: item.title || fallback.title,
-      description: item.description || fallback.description,
-      ingredients: item.ingredients.length ? item.ingredients : fallback.ingredients,
-      steps: item.steps.length ? item.steps : fallback.steps
-    };
-  });
 }
 
 const sideRecipeTemplates = {
@@ -1543,44 +1567,17 @@ function getChefTips(cutId, methodId) {
 }
 
 function enhanceRecipeQuality(recipe) {
-  if (!recipe || typeof recipe !== "object") return recipe;
-  const methodId = state.preferences.methodId;
-  const cutId = state.preferences.cutId;
-  const lang = state.lang;
-  const kosherMode = state.preferences.dietaryPreference === "kosher";
+  // Preserve the generated cooking instructions, amounts and full side recipes.
+  if (!recipe || typeof recipe !== "object") return null;
   const main = recipe.main || {};
-  const ingredients = Array.isArray(main.ingredients) ? [...main.ingredients] : [];
-  const steps = Array.isArray(main.steps) ? [...main.steps] : [];
-
-  const enrichedMain = { ...main, ingredients, steps };
-  applyCutMethodRecipeRules(enrichedMain, methodId, cutId, lang);
-  ensureDefinitionsInSteps(enrichedMain, lang);
-  ensureMarinadeSupport(enrichedMain, methodId, cutId, lang);
-  if (kosherMode) applyKosherAdjustments(enrichedMain, lang);
-  if (lang === "he") enforceHebrewOnlyRecipe(enrichedMain);
-
-  const recipeCopy = {
+  const metadata = main.metadata || {};
+  return {
     ...recipe,
-    main: enrichedMain,
-    sauces: normalizeSubRecipes(recipe.sauces, "sauce"),
-    sides: normalizeSubRecipes(recipe.sides, "side"),
-    drinkPairings: Array.isArray(recipe.drinkPairings) ? recipe.drinkPairings.map((d) => ({ ...d })) : []
+    main: { ...main, prepTime: main.prepTime || metadata.prep_time || "",
+      cookTime: main.cookTime || metadata.cook_time || "", totalTime: main.totalTime || metadata.total_time || "",
+      difficulty: main.difficulty || metadata.difficulty || "" },
+    sauces: normalizeSubRecipes(recipe.sauces), sides: normalizeSubRecipes(recipe.sides)
   };
-
-  recipeCopy.sauces = enforceSubRecipeDiversity(recipeCopy.sauces.map((item) => enhanceSubRecipe(item, "sauce", { kosherMode, lang })), "sauce", { kosherMode, lang });
-  recipeCopy.sides = enforceSubRecipeDiversity(recipeCopy.sides.map((item) => enhanceSubRecipe(item, "side", { kosherMode, lang })), "side", { kosherMode, lang });
-  recipeCopy.drinkPairings = recipeCopy.drinkPairings.map((d) => {
-    const value = d?.name || "";
-    return { name: lang === "he" ? normalizeHebrewCookingText(value) : value };
-  });
-
-  if (lang === "he") {
-    recipeCopy.main.title = normalizeHebrewCookingText(recipeCopy.main.title || "");
-    recipeCopy.main.description = normalizeHebrewCookingText(recipeCopy.main.description || "");
-  }
-  sanitizeLocalizedRecipe(recipeCopy, lang);
-
-  return recipeCopy;
 }
 
 function enhanceSubRecipe(item, type, { kosherMode, lang }) {
@@ -2077,6 +2074,8 @@ async function saveCurrentRecipe() {
     id: crypto.randomUUID(),
     title: main.title || (state.lang === "he" ? "מתכון ללא שם" : "Untitled Recipe"),
     preferences: { ...state.preferences },
+    recipeVersion: state.recipe.recipeVersion,
+    dietaryPreference: state.recipe.dietaryPreference,
     main: state.recipe.main || {},
     sauces: state.recipe.sauces || [],
     sides: state.recipe.sides || [],
@@ -2101,6 +2100,8 @@ function openSavedRecipe(id) {
   if (!saved) return;
   state.preferences = { ...state.preferences, ...(saved.preferences || {}) };
   state.recipe = {
+    recipeVersion: saved.recipeVersion,
+    dietaryPreference: saved.dietaryPreference || saved.preferences?.dietaryPreference,
     main: saved.main || {},
     sauces: saved.sauces || [],
     sides: saved.sides || [],

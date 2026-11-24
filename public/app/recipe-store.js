@@ -6,6 +6,9 @@
   const validId = (id) => typeof id === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(id);
   const text = (value) => typeof value === "string" ? value : "";
   const strings = (items) => Array.isArray(items) ? items.filter(item => typeof item === "string") : [];
+  const metadata = value => Object.fromEntries(Object.entries(value || {}).filter(([key, item]) =>
+    ["servings", "prep_minutes", "cook_minutes", "rest_minutes", "total_minutes", "meat_weight_g", "piece_thickness_cm", "target_internal_c", "doneness_cue", "difficulty", "prep_time", "cook_time", "rest_time", "total_time"].includes(key)
+    && (typeof item === "string" || (typeof item === "number" && Number.isFinite(item)))));
   const part = (item = {}) => ({
     name: text(item?.name), title: text(item?.title), description: text(item?.description),
     ingredients: strings(item?.ingredients), steps: strings(item?.steps)
@@ -16,13 +19,16 @@
     const m = value.main || {};
     const recipe = {
       id: value.id, title: value.title,
+      recipeVersion: value.recipeVersion === 1 ? 1 : undefined,
+      dietaryPreference: text(value.dietaryPreference),
       createdAt: Number.isFinite(Date.parse(value.createdAt)) ? new Date(value.createdAt).toISOString() : new Date(0).toISOString(),
       preferences: {
         meatType: text(p.meatType), cutId: text(p.cutId), methodId: text(p.methodId), flavorId: text(p.flavorId),
         dietaryPreference: text(p.dietaryPreference), servings: Math.max(1, Math.min(20, Number(p.servings) || 4)), userQuestion: text(p.userQuestion)
       },
       main: { ...part(m), prepTime: text(m.prepTime), cookTime: text(m.cookTime), totalTime: text(m.totalTime),
-        difficulty: text(m.difficulty), techniqueGlossary: strings(m.techniqueGlossary) },
+        difficulty: text(m.difficulty), techniqueGlossary: strings(m.techniqueGlossary),
+        metadata: metadata(m.metadata), equipment: strings(m.equipment), chefTips: strings(m.chefTips) },
       sauces: Array.isArray(value.sauces) ? value.sauces.map(part) : [],
       sides: Array.isArray(value.sides) ? value.sides.map(part) : [],
       drinks: Array.isArray(value.drinks) ? value.drinks.map(item => ({ name: text(item?.name) })) : [],

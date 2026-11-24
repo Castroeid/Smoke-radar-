@@ -719,3 +719,10 @@ html[dir="rtl"] .butcher-rating {
 .hot-video { min-width: 0; overflow-wrap: anywhere; }
 .hot-video a { color: inherit; text-decoration: none; }
 .hot-video-image { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; }
+
+.recipe-quality { border-inline-start: 3px solid #e9a868; font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
+.recipe-quality p { margin-block: .65rem; }
+.recipe-check-label { display: inline-block; color: #ffd0a0; font-size: .95rem; font-weight: 700; }
+.recipe-quality summary { cursor: pointer; min-height: 44px; padding-block: .65rem; font-weight: 600; }
+.recipe-quality a { color: #ffd0a0; text-underline-offset: .2em; }
+.recipe-quality summary:focus-visible { outline: 2px solid #ffd0a0; outline-offset: 3px; }
