@@ -83,6 +83,10 @@ body {
 }
 
 .opening-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  direction: ltr;
   font-size: clamp(1.6rem, 8vw, 2.35rem);
   font-weight: 900;
   color: #ffd3b7;
@@ -205,7 +209,11 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   padding-top: 8px;
   padding-bottom: 8px;
 }
-.brand { margin: 0; direction: ltr; text-align: left; color: var(--accent-soft); font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+.brand { display: flex; align-items: center; gap: 8px; margin: 0; direction: ltr; text-align: left; color: var(--accent-soft); font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+.brand-mark { position: relative; display: inline-block; width: 36px; height: 36px; flex: 0 0 auto; overflow: hidden; border-radius: 50%; mix-blend-mode: screen; }
+/* Frame only the radar symbol in the existing app icon, leaving out its small wordmark. */
+.brand-mark img { position: absolute; width: 182.86%; height: 182.86%; max-width: none; left: -41.43%; top: -17.86%; }
+.opening-logo .brand-mark { width: clamp(36px, 10vw, 48px); height: clamp(36px, 10vw, 48px); }
 #screenTitle { margin: 8px 0 0; font-size: clamp(1.55rem, 5.2vw, 2.4rem); line-height: 1.05; font-weight: 900; }
 .hero-subtitle { margin: 6px 0 0; color: var(--muted); font-size: .92rem; }
 .app-header.landing-minimal #screenTitle,
