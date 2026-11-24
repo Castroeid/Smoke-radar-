@@ -901,6 +901,8 @@ async function loadRecipe() {
   const query = new URLSearchParams({
     lang: state.lang,
     meatType: p.meatType,
+    cutId: p.cutId,
+    methodId: p.methodId,
     cut,
     method,
     flavor,
@@ -945,6 +947,7 @@ function renderRecipeQuality(recipe) {
     <p class="small">${he ? "הזמנים הם הערכה למנה העיקרית וכוללים מנוחה. משקל, עובי וציוד משפיעים על הבישול; בדקו במדחום ובסימני המוכנות." : "Times estimate the main dish and include resting. Weight, thickness and equipment affect cooking; check with a thermometer and the readiness cues."}</p>
     <details><summary>${he ? "הנחיית טמפרטורה ממקור חיצוני" : "External temperature guidance"}</summary>
       <p>${he ? "לסוג הבשר שבמתכון, הנחיית FoodSafety.gov היא לפחות " : "For this recipe's meat type, FoodSafety.gov recommends at least "}<bdi>${report.safety.minimumC}°C</bdi>${report.safety.restMinutes ? (he ? " ומנוחה של 3 דקות לפחות." : " and at least 3 minutes rest.") : "."}</p>
+      ${report.cooking ? `<p>${he ? "בנתח הזה נדרש גם ריכוך בבישול ממושך. טמפרטורת המינימום לבטיחות אינה יעד הריכוך; בדקו שהשיפוד או המדחום נכנסים בקלות." : "This cut also needs extended cooking for tenderness. The safety minimum is not the tenderness target; check that a probe enters easily."}</p><a href="${report.cooking.url}" target="_blank" rel="noopener noreferrer">${he ? "הסבר על ריכוך הנתח: " : "Cut tenderness reference: "}${report.cooking.name}</a><br>` : ""}
       <a href="${RecipeQuality.SOURCE_URL}" target="_blank" rel="noopener noreferrer">${he ? "טבלת טמפרטורות לבישול — FoodSafety.gov" : "Cooking temperature chart — FoodSafety.gov"}</a>
       <p class="small">${he ? "המקור מתייחס לטמפרטורת הבישול; הוא אינו מקור למתכון ואינו מאשר אותו." : "The source covers cooking temperatures; it is not the source of, or an endorsement of, this recipe."}</p>
     </details>
@@ -1021,7 +1024,7 @@ function renderRecipe() {
     </div>
 
     <div class="card"><h3>${state.lang === "he" ? "מרכיבים" : "Ingredients"}</h3><ul class="list">${(main.ingredients || []).map((i) => `<li>${escapeHotText(i)}</li>`).join("")}</ul></div>
-    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s) => `<li>${escapeHotText(s)}</li>`).join("")}</ol></div>
+    <div class="card"><h3>${state.lang === "he" ? "שלבי הכנה" : "Step-by-step"}</h3><ol class="list">${(main.steps || []).map((s, i) => `<li>${escapeHotText(s)}${main.step_timing?.[i]?.minutes ? `<p class="small">${state.lang === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${Number(main.step_timing[i].minutes)} ${state.lang === "he" ? "דקות" : "min"}</p>` : ""}</li>`).join("")}</ol></div>
     ${glossary.length ? `<div class="card"><h3>${glossaryTitle}</h3><ul class="list">${glossary.map((item) => `<li>${escapeHotText(item)}</li>`).join("")}</ul></div>` : ""}
     <div class="card">
       <h3>${state.lang === "he" ? "רטבים" : "Sauces"}</h3>

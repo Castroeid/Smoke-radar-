@@ -38,6 +38,31 @@ test("serving mismatch, missing weight, conflicting weight and time arithmetic f
   ]) { const r = fixture(); mutate(r); assert.equal(Quality.check(r, context).passed, false); }
 });
 
+test("total time comes from every step, including additional finishing and resting", () => {
+  const r = fixture();
+  r.main.steps.splice(3, 0, "מסירים את הכיסוי ומשחימים בתנור.");
+  r.main.step_timing.splice(3, 0, { phase: "cook", minutes: 30 });
+  assert.equal(Quality.check(r, context).passed, false);
+  const calculated = Quality.prepareDraft(r);
+  assert.equal(calculated.main.metadata.cook_minutes, 270);
+  assert.equal(calculated.main.metadata.total_minutes, 320);
+  assert.equal(Quality.check(calculated, context).passed, true);
+  calculated.main.steps[3] += " במשך 30 דקות.";
+  assert.equal(Quality.check(calculated, context).passed, false, "duration must have a single source of truth");
+});
+
+test("slow brisket and short ribs cannot use the safety minimum as their tenderness target", () => {
+  for (const cutId of ["brisket", "short_ribs", "asado"]) {
+    const r = fixture();
+    const c = { ...context, cutId, methodId: "oven" };
+    assert.equal(Quality.check(r, c).passed, true);
+    r.main.metadata.target_internal_c = 63;
+    r.main.steps[2] = "מודדים טמפרטורת ליבה של 63°C ובודקים רכות.";
+    assert.equal(Quality.check(r, c).passed, false);
+    assert.equal(Quality.check(r, { ...context, cutId: "ribeye", methodId: "grill" }).passed, true);
+  }
+});
+
 test("temperature guidance distinguishes whole cuts, ground meat, poultry and ground pepper", () => {
   const r = fixture();
   r.main.ingredients.push("1 tsp ground black pepper");

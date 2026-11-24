@@ -16,6 +16,10 @@ AI-generated / not kitchen-tested note. It is not a guarantee of safety or taste
 - Numeric metadata includes servings, assumed total meat weight, piece thickness,
   equipment, prep (including marination), cooking, rest and total minutes. The
   main meat weight and time totals must agree with their corresponding fields.
+- Each main step has a prep/cook/rest phase and estimated minutes. The server
+  calculates all totals from those steps; durations are appended by the UI rather
+  than repeated inside model prose. Additional finishing and resting therefore
+  cannot disappear from the displayed total. Steps are sequential estimates.
 - The client preserves instructions: it no longer turns an oven brisket into a
   smoker recipe, replaces reverse searing with quick searing, or inserts an
   unlisted marinade. Missing metadata is shown as missing, not invented.
@@ -31,6 +35,17 @@ ground meat 71°C; poultry 74°C. It is linked as temperature guidance, never as
 the origin of or endorsement of an AI recipe. Higher tenderness targets can be
 used. An internal target below the applicable baseline, a missing matching
 target in the steps, or a detected contradictory internal target fails the gate.
+
+A live preview sample exposed a separate culinary error: oven brisket described
+as fall-apart tender at 63°C. Version 2 applies a conservative 90–99°C house range
+and a probe/fork tenderness cue to brisket and thick short ribs/asado with slow
+methods. The sources for the thermal principle are
+[Weber's brisket guide](https://www.weber.com/IE/en/recipes/beef/beginner-brisket/weber-175674.html)
+(90–95°C, with tenderness more important) and
+[ThermoWorks' braised short ribs](https://www.thermoworks.com/blogs/thermoblog/whole-braised-short-ribs)
+(around 95°C plus a tenderness check), accessed 2026-11-24. Applying that range
+to generated recipes is our guardrail, not proof that a source tested or approved
+the resulting recipe. This does not apply to thin quick-grilled short ribs.
 
 These checks do **not** establish that a cooking time is physically sufficient,
 that every step uses every listed ingredient, that seasoning proportions taste

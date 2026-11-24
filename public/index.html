@@ -5912,6 +5912,7 @@ updateRecipeActionLabels();
 
       return {
         main: {
+          step_timing: Array.isArray(recipe?.main?.step_timing) ? recipe.main.step_timing.map(t => ({ minutes: Number(t?.minutes) || 0 })) : [],
           equipment: safeList(recipe?.main?.equipment),
           title: String(recipe?.main?.title || "").trim(),
           description: String(recipe?.main?.description || "").trim(),
@@ -5973,7 +5974,7 @@ updateRecipeActionLabels();
         : `<p>${escapeHtml(t("recipe.ingredientsMissing"))}</p>`;
 
       const mainSteps = (main.steps || []).length
-        ? `<ol>${(main.steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+        ? `<ol>${(main.steps || []).map((item, i) => `<li>${escapeHtml(item)}${main.step_timing?.[i]?.minutes ? `<p>${currentLanguage === "he" ? "זמן משוער לשלב:" : "Estimated step time:"} ${main.step_timing[i].minutes} ${currentLanguage === "he" ? "דקות" : "min"}</p>` : ""}</li>`).join("")}</ol>`
         : `<p>${escapeHtml(t("recipe.stepsMissing"))}</p>`;
       const chefTips = (main.chefTips || []).length
         ? `<ul>${(main.chefTips || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`

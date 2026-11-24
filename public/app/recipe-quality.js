@@ -3,7 +3,7 @@
   else root.RecipeQuality = factory();
 })(typeof window !== "undefined" ? window : this, function () {
   "use strict";
-  const VERSION = 1;
+  const VERSION = 2;
   const SOURCE_URL = "https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures";
   const text = value => typeof value === "string" && value.trim().length > 0;
   const list = value => Array.isArray(value) ? value : [];
@@ -19,6 +19,30 @@
     if (/\b(chicken|turkey|poultry)\b|עוף|הודו/i.test(input)) return { minimumC: 74, restMinutes: 0, url: SOURCE_URL };
     if (/\b(ground|minced)\s+(beef|lamb|veal|pork|meat)\b|\b(burger|sausage)\b|(?:בשר|בקר|טלה|עגל)\s+טחו[ןנ]|המבורגר|קבב|נקניק/i.test(input)) return { minimumC: 71, restMinutes: 0, url: SOURCE_URL };
     return { minimumC: 63, restMinutes: 3, url: SOURCE_URL };
+  }
+
+  function cookingReference(context = {}) {
+    const cut = `${context.cutId || ""} ${context.cut || ""}`;
+    const method = `${context.methodId || ""} ${context.method || ""}`;
+    if (!/oven|roast|smok|long|low|brais|תנור|מעשנ|עישון|ארוך|איטי/i.test(method)) return null;
+    if (/brisket|בריסקט/i.test(cut)) return { minimumC: 90, maximumC: 99, name: "Weber — Brisket", url: "https://www.weber.com/IE/en/recipes/beef/beginner-brisket/weber-175674.html" };
+    if (/asado|short.?ribs|אסאדו|שפונדרה/i.test(cut)) return { minimumC: 90, maximumC: 99, name: "ThermoWorks — Braised Short Ribs", url: "https://www.thermoworks.com/blogs/thermoblog/whole-braised-short-ribs" };
+    return null;
+  }
+
+  function stepTotals(timing) {
+    if (!Array.isArray(timing) || !timing.length || timing.some(t => !["prep", "cook", "rest"].includes(t?.phase) || !number(t.minutes, 0, 4320) || !Number.isInteger(t.minutes))) return null;
+    const result = { prep_minutes: 0, cook_minutes: 0, rest_minutes: 0, total_minutes: 0 };
+    for (const step of timing) { result[`${step.phase}_minutes`] += step.minutes; result.total_minutes += step.minutes; }
+    return result;
+  }
+
+  function prepareDraft(recipe) {
+    if (!recipe?.main) return recipe;
+    const totals = stepTotals(recipe.main.step_timing);
+    if (!totals) return recipe;
+    // Totals come from the ordered steps, not a separately generated summary.
+    return { ...recipe, main: { ...recipe.main, metadata: { ...recipe.main.metadata, ...totals } } };
   }
 
   function check(recipe, context = {}) {
@@ -43,6 +67,10 @@
       else recipe[name].forEach((item, i) => part(item, `${name}[${i}]`, 2));
     }
     const m = recipe.main?.metadata || {};
+    const totals = stepTotals(recipe.main?.step_timing);
+    if (!totals || recipe.main.step_timing.length !== list(recipe.main?.steps).length) issues.push("main.step_timing: provide phase (prep/cook/rest) and nonnegative integer minutes for every step");
+    else for (const key of Object.keys(totals)) if (m[key] !== totals[key]) issues.push(`main.metadata.${key}: must equal the sum of step_timing`);
+    if (list(recipe.main?.steps).some(s => /\d[\d.,–—\-/\s]*\s*(?:minutes?|mins?\b|hours?|hrs?\b|seconds?|דקות|דקה|שעות|שעה|שניות|שנייה)/i.test(s))) issues.push("main.steps: put ALL durations only in step_timing, not in step text (the UI will render them)");
     const servings = Number(m.servings);
     if (!Number.isInteger(servings) || servings < 1 || servings > 20 || (context.servings !== undefined && servings !== Number(context.servings))) issues.push("main.metadata.servings: must match requested servings");
     for (const key of ["prep_minutes", "cook_minutes", "rest_minutes", "total_minutes"]) {
@@ -56,6 +84,8 @@
     const grams = weight ? Number(weight[1].replace(",", ".")) * (/kg|kilograms?|ק/i.test(weight[2]) ? 1000 : 1) : NaN;
     if (!Number.isFinite(grams) || Math.abs(grams - m.meat_weight_g) > 0.01) issues.push("main.ingredients[0]: meat amount in g/kg must equal meat_weight_g");
     const safety = safetyReference(recipe, context);
+    const cooking = cookingReference(context);
+    if (cooking && (!number(m.target_internal_c, cooking.minimumC, cooking.maximumC) || !/probe|fork|שיפוד|מזלג|מדחום/i.test(m.doneness_cue || ""))) issues.push(`main.metadata: slow-cooked cut requires a ${cooking.minimumC}-${cooking.maximumC} C tenderness target AND a probe/fork tenderness cue; minimum food-safety temperature alone does not tenderize this cut`);
     if (!number(m.target_internal_c, safety.minimumC, 110)) issues.push(`main.metadata.target_internal_c: must be at least ${safety.minimumC} C`);
     if (m.rest_minutes < safety.restMinutes) issues.push(`main.metadata.rest_minutes: at least ${safety.restMinutes} minutes required`);
     if (!text(m.doneness_cue)) issues.push("main.metadata.doneness_cue: describe how to check readiness with a thermometer and texture");
@@ -68,7 +98,7 @@
     if (context.dietaryPreference && recipe.dietaryPreference !== context.dietaryPreference) issues.push("dietaryPreference: must match the request");
     const allIngredients = [recipe.main, ...list(recipe.sauces), ...list(recipe.sides)].flatMap(p => list(p?.ingredients)).join(" ");
     if (context.dietaryPreference === "kosher" && /\b(butter|cream|yogurt|cheese|parmesan|milk)\b|חמאה|שמנת|יוגורט|גבינ|חלב(?! קוקוס| סויה| שקדים)/i.test(allIngredients)) issues.push("dietaryPreference: use a complete non-dairy formulation, not a word substitution");
-    return { passed: issues.length === 0, issues, version: VERSION, safety };
+    return { passed: issues.length === 0, issues, version: VERSION, safety, cooking };
   }
 
   function minutes(value, language) { return `${value} ${language === "he" ? "דקות" : "min"}`; }
@@ -79,11 +109,11 @@
     const metadata = { ...m, servings: String(m.servings), prep_time: minutes(m.prep_minutes, language), cook_time: minutes(m.cook_minutes, language), rest_time: minutes(m.rest_minutes, language), total_time: minutes(m.total_minutes, language) };
     return {
       recipeVersion: VERSION, dietaryPreference: recipe.dietaryPreference,
-      main: { ...part(recipe.main), metadata, equipment: [...recipe.main.equipment], chefTips: strings(recipe.main.chefTips) ? [...recipe.main.chefTips] : [],
+      main: { ...part(recipe.main), metadata, step_timing: recipe.main.step_timing.map(t => ({ phase: t.phase, minutes: t.minutes })), equipment: [...recipe.main.equipment], chefTips: strings(recipe.main.chefTips) ? [...recipe.main.chefTips] : [],
         prepTime: metadata.prep_time, cookTime: metadata.cook_time, totalTime: metadata.total_time, difficulty: m.difficulty || "" },
       sauces: recipe.sauces.map(part), sides: recipe.sides.map(part),
       drinkPairings: list(recipe.drinkPairings).filter(d => text(d?.name)).map(d => ({ name: d.name, description: d.description || "" }))
     };
   }
-  return { VERSION, SOURCE_URL, check, normalize, safetyReference };
+  return { VERSION, SOURCE_URL, check, normalize, safetyReference, cookingReference, prepareDraft };
 });

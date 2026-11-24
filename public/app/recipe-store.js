@@ -19,7 +19,7 @@
     const m = value.main || {};
     const recipe = {
       id: value.id, title: value.title,
-      recipeVersion: value.recipeVersion === 1 ? 1 : undefined,
+      recipeVersion: [1, 2].includes(value.recipeVersion) ? value.recipeVersion : undefined,
       dietaryPreference: text(value.dietaryPreference),
       createdAt: Number.isFinite(Date.parse(value.createdAt)) ? new Date(value.createdAt).toISOString() : new Date(0).toISOString(),
       preferences: {
@@ -28,7 +28,7 @@
       },
       main: { ...part(m), prepTime: text(m.prepTime), cookTime: text(m.cookTime), totalTime: text(m.totalTime),
         difficulty: text(m.difficulty), techniqueGlossary: strings(m.techniqueGlossary),
-        metadata: metadata(m.metadata), equipment: strings(m.equipment), chefTips: strings(m.chefTips) },
+        metadata: metadata(m.metadata), step_timing: Array.isArray(m.step_timing) ? m.step_timing.map(t => ({ phase: text(t?.phase), minutes: typeof t?.minutes === "number" && Number.isFinite(t.minutes) ? t.minutes : null })) : [], equipment: strings(m.equipment), chefTips: strings(m.chefTips) },
       sauces: Array.isArray(value.sauces) ? value.sauces.map(part) : [],
       sides: Array.isArray(value.sides) ? value.sides.map(part) : [],
       drinks: Array.isArray(value.drinks) ? value.drinks.map(item => ({ name: text(item?.name) })) : [],
