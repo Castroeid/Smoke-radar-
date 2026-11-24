@@ -351,6 +351,7 @@ function render() {
   el.header.classList.toggle("landing-minimal", step === "landing" || step === "saved" || step === "hot");
   el.homeBtn.textContent = state.lang === "he" ? "בית" : "Home";
   el.homeBtn.setAttribute("aria-label", state.lang === "he" ? "חזרה למסך הבית" : "Back to home");
+  el.homeBtn.hidden = step === "landing";
   el.backBtn.textContent = t("back");
   el.nextBtn.textContent = currentStep === STEPS.length - 1
     ? t("finish")
@@ -471,16 +472,17 @@ function renderLanding() {
     <button class="btn btn-choice btn-choice-saved" id="openSavedRecipesBtn">${state.lang === "he" ? "המתכונים שלי" : "My Recipes"}</button>
     <a class="app-install-link" href="/app/install.html">${state.lang === "he" ? "התקנת האפליקציה בטלפון" : "Install the app"}</a>
     ${renderRecipeAccount()}
-    <div class="footer-separator" aria-hidden="true"></div>
-    <section class="card legal-menu">
-      <h3>${state.lang === "he" ? "תפריט Smoke Radar" : "Smoke Radar Menu"}</h3>
-      <button class="btn btn-ghost" id="aboutBtn">${state.lang === "he" ? "About Smoke Radar" : "About Smoke Radar"}</button>
-      <button class="btn btn-ghost" id="termsBtn">${state.lang === "he" ? "Terms of Use" : "Terms of Use"}</button>
-      <button class="btn btn-ghost" id="privacyBtn">${state.lang === "he" ? "Privacy Policy" : "Privacy Policy"}</button>
-      <a class="btn btn-ghost" href="/app/privacy.html">${state.lang === "he" ? "פרטיות ומחיקת נתונים" : "Privacy and data deletion"}</a>
-      <button class="btn btn-ghost" id="shareBtn">${state.lang === "he" ? "Share Smoke Radar" : "Share Smoke Radar"}</button>
-      <p class="small footer-note">© 2026 Smoke Radar. All rights reserved.</p>
-    </section>
+    <details class="app-info">
+      <summary>${state.lang === "he" ? "מידע על האפליקציה" : "App information"}</summary>
+      <div class="legal-menu">
+        <button class="btn btn-ghost" id="aboutBtn">${state.lang === "he" ? "אודות Smoke Radar" : "About Smoke Radar"}</button>
+        <button class="btn btn-ghost" id="termsBtn">${state.lang === "he" ? "תנאי שימוש" : "Terms of Use"}</button>
+        <button class="btn btn-ghost" id="privacyBtn">${state.lang === "he" ? "מדיניות פרטיות" : "Privacy Policy"}</button>
+        <a class="btn btn-ghost" href="/app/privacy.html">${state.lang === "he" ? "פרטיות ומחיקת נתונים" : "Privacy and data deletion"}</a>
+        <button class="btn btn-ghost" id="shareBtn">${state.lang === "he" ? "שיתוף Smoke Radar" : "Share Smoke Radar"}</button>
+        <p class="small footer-note">© 2026 Smoke Radar. All rights reserved.</p>
+      </div>
+    </details>
     <div class="chips">${cutsCatalog.slice(0, 6).map((cut) => `<span class="chip">${cut.labels[state.lang]}</span>`).join("")}</div>
   `;
 

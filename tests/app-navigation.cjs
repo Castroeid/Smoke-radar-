@@ -44,18 +44,20 @@ test('both generate buttons return to the generator with its choices intact, the
   } finally { c.dom.window.close(); }
 });
 
-test('every app screen offers home without deleting the recipe or preferences; no numbered progress remains', { skip: !JSDOM }, async () => {
+test('home is hidden on landing and available elsewhere without deleting recipe or preferences; no numbered progress remains', { skip: !JSDOM }, async () => {
   const c = await setup();
   try {
     c.execute(`state.recipe = ${JSON.stringify(c.recipe)}; state.shopping = buildShoppingList(state.recipe); state.butcherLoaded = true;`);
     for (const screen of ['landing', 'saved', 'hot', 'preferences', 'expert', 'cook', 'recipe', 'shopping', 'butcher']) {
       c.execute(`currentStep = STEPS.indexOf('${screen}'); render();`);
       assert.equal(c.d.getElementById('homeBtn').getAttribute('aria-label'), 'חזרה למסך הבית');
+      assert.equal(c.d.getElementById('homeBtn').hidden, screen === 'landing');
       assert.equal(c.d.getElementById('progressText'), null);
       assert.equal(c.d.querySelector('.progress-wrap'), null);
       assert.doesNotMatch(c.d.getElementById('appHeader').textContent, /\d+\s*\/\s*\d+/);
-      c.click('homeBtn');
+      if (screen !== 'landing') c.click('homeBtn');
       assert.equal(c.screen(), 'landing');
+      assert.equal(c.d.getElementById('homeBtn').hidden, true);
       assert.equal(c.execute('state.recipe.main.title'), c.recipe.main.title);
       assert.equal(c.execute('state.preferences.cutId'), 'ribeye');
     }
