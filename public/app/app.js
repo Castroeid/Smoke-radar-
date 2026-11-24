@@ -1213,7 +1213,14 @@ function renderButcherGuide() {
     guide.goal = event.target.value;
     renderButcherGuideResult();
   });
-  document.getElementById("butcherServings").addEventListener("change", event => {
+  const servingsInput = document.getElementById("butcherServings");
+  // Keep the request (and its copy action) current while a phone keyboard is still open.
+  servingsInput.addEventListener("input", event => {
+    if (!event.target.value.trim()) return;
+    guide.servings = ButcherGuide.build(guide.goal, event.target.value).servings;
+    renderButcherGuideResult();
+  });
+  servingsInput.addEventListener("change", event => {
     guide.servings = ButcherGuide.build(guide.goal, event.target.value).servings;
     event.target.value = guide.servings;
     renderButcherGuideResult();

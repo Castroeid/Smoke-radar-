@@ -125,9 +125,15 @@ test('butcher guide updates the copied request without changing the recipe, and 
     assert.equal(c.d.getElementById('nextBtn').classList.contains('hidden'), true);
     assert.match(c.d.getElementById('butcherRequestText').textContent, /המבורגר.*800.*אונטריב/);
     const select = (id, value) => { const e = c.d.getElementById(id); e.value = value; e.dispatchEvent(new c.w.Event('change')); };
-    select('butcherGoal', 'stir_fry'); select('butcherServings', '6');
+    select('butcherGoal', 'stir_fry');
+    const servings = c.d.getElementById('butcherServings');
+    servings.value = '6'; servings.dispatchEvent(new c.w.Event('input'));
     c.click('copyButcherRequest'); await settle();
     assert.match(copied, /6 מנות.*1200.*שייטל.*13.*רצועות/);
+    servings.value = ''; servings.dispatchEvent(new c.w.Event('input'));
+    assert.match(c.d.getElementById('butcherRequestText').textContent, /6 מנות.*1200/);
+    select('butcherServings', '25'); assert.equal(servings.value, '20');
+    select('butcherServings', '6');
     assert.equal(c.execute('state.preferences.servings'), 4);
     assert.equal(c.execute('state.recipe.main.title'), c.recipe.main.title);
     c.click('guideFindButchers'); assert.equal(c.screen(), 'butcher');
