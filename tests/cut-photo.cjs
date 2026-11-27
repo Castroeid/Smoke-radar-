@@ -2,7 +2,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { cutPhotoHandler } = require("../lib/cut-photo.js");
 const fakeJpeg = Buffer.from([0xff, 0xd8, 0x01, 0xff, 0xd9]);
-const suggestion = { status: "suggested", cutName: "אונטריב", species: "beef", cutId: "chuck_roll", observation: "שם הנתח מופיע על האריזה.", ideas: ["קדירת אונטריב עם בצל"] };
+const suggestion = { presentation: "whole_cut", labelText: "", status: "suggested", cutName: "אונטריב", species: "beef", cutId: "chuck_roll", observation: "שם הנתח מופיע על האריזה.", ideas: ["קדירת אונטריב עם בצל"] };
 
 async function run({ body = fakeJpeg, stage = "raw", type = "image/jpeg", value = suggestion, configured = true } = {}) {
   const calls = [];
@@ -23,7 +23,8 @@ test("sends an image and the supplied preparation stage, and maps a supported cu
   assert.equal(parts[1].image_url.url, "data:image/jpeg;base64," + fakeJpeg.toString("base64"));
   assert.match(parts[0].text, /לפני בישול/);
   assert.equal(calls[0].store, false);
-  assert.deepEqual(res.data, suggestion);
+  const { presentation, labelText, ...expected } = suggestion;
+  assert.deepEqual(res.data, expected);
 });
 
 test("uncertain, unsupported species and unrelated images do not preselect a recipe", async () => {
@@ -56,4 +57,16 @@ test("English model prose never replaces the requested Hebrew experience", async
   const cooked = await run({ value: { ...foreign, status: "uncertain" }, stage: "cooked" });
   assert.equal(cooked.res.data.cutId, null);
   assert.match(cooked.res.data.ideas[0], /כריך/);
+});
+
+test("an unsupported whole-cut guess from a cooked or processed image is downgraded even if the model is confident", async () => {
+  const cooked = await run({ stage: "cooked", value: { ...suggestion, labelText: "בשר בקר" } });
+  assert.equal(cooked.res.data.status, "uncertain");
+  assert.equal(cooked.res.data.cutId, null);
+  assert.match(cooked.res.data.ideas[0], /כריך/);
+  const unknown = await run({ stage: "unknown", value: { ...suggestion, presentation: "processed_or_cooked" } });
+  assert.equal(unknown.res.data.status, "uncertain");
+  const labelled = await run({ stage: "cooked", value: { ...suggestion, labelText: "נתח אונטריב" } });
+  assert.equal(labelled.res.data.status, "suggested");
+  assert.match(labelled.res.data.observation, /נתח אונטריב/);
 });
