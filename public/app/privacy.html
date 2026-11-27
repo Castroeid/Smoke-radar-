@@ -19,7 +19,7 @@
   <p>ללא התחברות, מתכונים שמורים נשמרים באחסון המקומי של הדפדפן. מחיקת נתוני הדפדפן עלולה למחוק אותם. כאשר שירות החשבונות מופעל ומתחברים, מתכונים ששומרים נשמרים בחשבון ב־Google Cloud Firestore. מתכונים שכבר שמורים במכשיר מועברים לחשבון רק לאחר בחירה מפורשת להעביר אותם.</p>
   <h2>התחברות עם Google או Facebook</h2>
   <p>כאשר אפשרויות ההתחברות פעילות, Firebase Authentication מנהל את הזיהוי ואת ההתחברות. מזהה המשתמש ופרטי פרופיל שהספק מעביר, כגון שם ואימייל, משמשים לניהול החשבון. האתר אינו מקבל את סיסמת Google או Facebook שלך. פרטי ההתחברות נשמרים בדפדפן כדי לזהות אותך בביקור הבא, כשאפשר; בדפדפנים מסוימים ההתחברות נשמרת רק למשך ההפעלה.</p>
-  <p>המתכונים משויכים למזהה החשבון ומוגבלים לגישה מהחשבון שלו הם שייכים. תוכן מתכון שנשלח למחולל עובר לשרת האפליקציה ולספק יצירת המתכונים, OpenAI. מידע על מיקום, כאשר נותנים הרשאה, משמש לחיפוש קצביות באמצעות Google Places. באתר עשויים לפעול כלי ניתוח שימוש לצורך שיפורו.</p>
+  <p>המתכונים משויכים למזהה החשבון ומוגבלים לגישה מהחשבון שלו הם שייכים. תוכן מתכון שנשלח למחולל עובר לשרת האפליקציה ולספק יצירת המתכונים, OpenAI. בזיהוי נתח מתמונה, התמונה המוקטנת נשלחת לשרת האפליקציה ול־OpenAI בעת בחירה בניתוח. האפליקציה אינה שומרת עותק שלה במתכונים או בחשבון. מידע על מיקום, כאשר נותנים הרשאה, משמש לחיפוש קצביות באמצעות Google Places. באתר עשויים לפעול כלי ניתוח שימוש לצורך שיפורו.</p>
   <h2 id="delete-data">מחיקת נתונים וחשבון</h2>
   <ol>
     <li>היכנס לאתר ופתח ״המתכונים שלי״.</li>
@@ -32,7 +32,7 @@
   <section lang="en" dir="ltr">
     <h2>Privacy and data deletion</h2>
     <p>Without sign-in, saved recipes stay in this browser's local storage. With account sign-in enabled, Firebase Authentication manages Google/Facebook sign-in and stores the account identifier and provider profile information, such as name and email. Smoke Radar does not receive your provider password. Account recipes are stored under your private user ID in Cloud Firestore. Device recipes are moved only when you explicitly choose to import them.</p>
-    <p>Recipe-generation requests go to the application server and OpenAI. Location is used for Google Places butcher searches when permission is granted. Usage analytics may be used to improve the site.</p>
+    <p>Recipe-generation requests go to the application server and OpenAI. When you choose to analyze a cut photo, the resized image is sent to the application server and OpenAI. The app does not save a copy to your recipes or account. Location is used for Google Places butcher searches when permission is granted. Usage analytics may be used to improve the site.</p>
     <p>To delete a recipe, open My Recipes and select Delete. To delete your account and its recipes, sign in, open Account settings, select Delete account and all its recipes, and complete confirmation and reauthentication. If deletion fails, retry; signing out alone does not delete account data. Separate device-only copies must be removed on their original device. This does not delete your Google/Facebook account or separate data held by external providers.</p>
   </section>
 </main></body></html>

@@ -177,5 +177,5 @@
     for (const [key, value] of Object.entries(expected.metadata)) if (String(main.metadata?.[key]) !== String(value)) return false;
     return main.metadata?.target_internal_c == null;
   }
-  return { SOURCES, THICKNESSES, BATH_MINUTES, tough, basicMethods, basicMethodLabel, basicMethodHelp, requested, createMain, matches };
+  return { SOURCES, THICKNESSES, BATH_MINUTES, cutLabel: (id, lang) => names[id]?.[lang === "en" ? 1 : 0], tough, basicMethods, basicMethodLabel, basicMethodHelp, requested, createMain, matches };
 });
