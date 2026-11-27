@@ -493,7 +493,7 @@ function stopOpeningExperience() {
 function renderLanding() {
   const latest = state.savedRecipes[0];
   el.content.innerHTML = `
-    <div class="card recipe-hero hero-card" style="--recipe-image:var(--asset-hero)">
+    <div class="hero-card">
       <h2>${t("landingTitle")}</h2>
       <p class="small">${t("landingSubtitle")}</p>
     </div>

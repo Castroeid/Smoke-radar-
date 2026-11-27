@@ -239,6 +239,12 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   overflow-y: auto;
 }
 
+.app-shell[data-step="landing"] .screen-content {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
 .card {
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -506,6 +512,33 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   border-color: rgba(255, 140, 84, 0.35);
   color: #f2d7bf;
 }
+.hero-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: end;
+  gap: 6px;
+  min-height: clamp(175px, 47vw, 205px);
+  margin-inline: -12px;
+  padding: 14px 12px 10px;
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 18%, rgba(10, 8, 8, .66) 90%),
+    var(--asset-hero) center 52% / cover no-repeat;
+  --fade-edges: linear-gradient(to right, transparent, black 14%, black 86%, transparent),
+    linear-gradient(to bottom, transparent, black 19%, black 46%, transparent);
+  -webkit-mask-image: var(--fade-edges);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--fade-edges);
+  mask-composite: intersect;
+}
+
 .hero-card h2 {
   font-size: clamp(1.45rem, 5.6vw, 2.25rem);
   margin: 0;
