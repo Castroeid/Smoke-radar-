@@ -364,6 +364,7 @@ function render() {
   document.documentElement.lang = state.lang;
   document.documentElement.dir = t("dir");
   el.appRoot.dataset.step = step;
+  window.trackSmokeRadarScreen?.(step);
   el.title.textContent = step === "landing" ? "" : t(`titles.${step}`);
   el.subtitle.textContent = "";
   el.header.classList.toggle("landing-minimal", step === "landing" || step === "saved" || step === "hot");
