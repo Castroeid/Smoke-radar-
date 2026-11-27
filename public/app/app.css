@@ -239,6 +239,38 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   overflow-y: auto;
 }
 
+body:has(.app-shell[data-step="landing"]) {
+  background:
+    radial-gradient(ellipse min(90vw, 490px) 460px at calc(50% + min(18vw, 85px)) 180px,
+      rgba(160, 62, 19, .54), rgba(110, 45, 22, .34) 42%, rgba(63, 32, 24, .14) 72%, transparent),
+    radial-gradient(ellipse min(120vw, 680px) 680px at 50% 170px,
+      #382016, rgba(47, 30, 25, .74) 42%, rgba(32, 25, 24, .34) 70%, transparent),
+    #0b0c0f;
+}
+
+.app-shell[data-step="landing"] {
+  position: relative;
+  isolation: isolate;
+  border-color: transparent;
+}
+
+.app-shell[data-step="landing"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(350px, 96vw, 430px);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 26%, rgba(16, 10, 9, .52) 72%),
+    var(--asset-hero) center 54% / cover no-repeat;
+  /* Feather the detail into the longer ember glow behind the controls. */
+  --hero-mask: radial-gradient(ellipse 50% 47% at 50% 47%,
+    #000 8%, rgba(0, 0, 0, .95) 26%, rgba(0, 0, 0, .76) 48%,
+    rgba(0, 0, 0, .40) 68%, rgba(0, 0, 0, .10) 86%, transparent 100%);
+  -webkit-mask-image: var(--hero-mask);
+  mask-image: var(--hero-mask);
+}
+
 .app-shell[data-step="landing"] .screen-content {
   background: transparent;
   border: 0;
@@ -513,36 +545,18 @@ html[dir="ltr"] .opening-step.active { transform: translateX(2px); }
   color: #f2d7bf;
 }
 .hero-card {
-  position: relative;
-  isolation: isolate;
   display: grid;
   align-content: end;
   gap: 6px;
   min-height: clamp(175px, 47vw, 205px);
   margin-inline: -12px;
   padding: 14px 12px 10px;
-}
-
-.hero-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent 18%, rgba(10, 8, 8, .66) 90%),
-    var(--asset-hero) center 52% / cover no-repeat;
-  --fade-edges: linear-gradient(to right, transparent, black 14%, black 86%, transparent),
-    linear-gradient(to bottom, transparent, black 19%, black 46%, transparent);
-  -webkit-mask-image: var(--fade-edges);
-  -webkit-mask-composite: source-in;
-  mask-image: var(--fade-edges);
-  mask-composite: intersect;
+  text-shadow: 0 1px 4px rgba(0,0,0,.85), 0 4px 16px rgba(0,0,0,.58);
 }
 
 .hero-card h2 {
   font-size: clamp(1.45rem, 5.6vw, 2.25rem);
   margin: 0;
-  text-shadow: 0 6px 24px rgba(0,0,0,.58);
 }
 .hero-card .small {
   color: #f3dbca;
