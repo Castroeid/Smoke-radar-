@@ -21,14 +21,14 @@ test("sends an image and the supplied preparation stage, and maps a supported cu
   assert.equal(calls.length, 1);
   const parts = calls[0].messages[1].content;
   assert.equal(parts[1].image_url.url, "data:image/jpeg;base64," + fakeJpeg.toString("base64"));
-  assert.match(parts[0].text, /raw/);
+  assert.match(parts[0].text, /לפני בישול/);
   assert.equal(calls[0].store, false);
   assert.deepEqual(res.data, suggestion);
 });
 
 test("uncertain, unsupported species and unrelated images do not preselect a recipe", async () => {
   const cooked = await run({ stage: "cooked", value: { ...suggestion, status: "uncertain" } });
-  assert.match(cooked.calls[0].messages[1].content[0].text, /cooked/);
+  assert.match(cooked.calls[0].messages[1].content[0].text, /כבר מבושל/);
   assert.equal(cooked.res.data.cutId, null);
   assert.equal(cooked.res.data.cutName, "");
   const other = await run({ value: { ...suggestion, species: "other" } });
@@ -45,4 +45,15 @@ test("invalid inputs and unavailable analysis never produce a guessed answer", a
     assert.equal(res.code, expected);
   }
   assert.equal((await run({ value: { ...suggestion, ideas: [] } })).res.code, 503);
+});
+
+test("English model prose never replaces the requested Hebrew experience", async () => {
+  const foreign = { ...suggestion, cutName: "Chuck roll", observation: "The label suggests chuck roll.", ideas: ["Try a sandwich."] };
+  const raw = await run({ value: foreign });
+  assert.equal(raw.res.data.cutName, "אונטריב");
+  assert.equal(raw.res.data.cutId, "chuck_roll");
+  assert(raw.res.data.ideas.every(idea => /[א-ת]/.test(idea)));
+  const cooked = await run({ value: { ...foreign, status: "uncertain" }, stage: "cooked" });
+  assert.equal(cooked.res.data.cutId, null);
+  assert.match(cooked.res.data.ideas[0], /כריך/);
 });
