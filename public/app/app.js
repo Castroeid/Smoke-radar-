@@ -1,5 +1,6 @@
-const STEPS = ["landing", "saved", "hot", "preferences", "expert", "cook", "recipe", "shopping", "butcher", "butcherGuide"];
-let currentStep = 0;
+const STEPS = ["landing", "saved", "hot", "preferences", "expert", "cook", "recipe", "shopping", "butcher", "butcherGuide", "cutPhoto"];
+let currentStep = new URLSearchParams(window.location.search).get("screen") === "cut-photo" ? STEPS.indexOf("cutPhoto") : 0;
+let closeCutPhoto = null;
 const SAVED_RECIPES_KEY = "smoke_radar_saved_recipes_v1";
 const SHARE_TEXT = "Check out Smoke Radar — meat trends, recipes, and butcher discovery in one radar-style app.";
 const INTRO_MIN_DURATION_MS = 3400;
@@ -144,6 +145,7 @@ const copy = {
       landing: "מה בא לך להכין היום?",
       saved: "המתכונים שלי",
       hot: "מה חם היום",
+      cutPhoto: "זיהוי נתח מתמונה",
       preferences: "מה לבשל",
       cook: "Smart Cooking Mode™",
       expert: "שאל את המומחים",
@@ -187,6 +189,7 @@ const copy = {
       landing: "What do you want to cook today?",
       saved: "My Recipes",
       hot: "What’s hot today",
+      cutPhoto: "Identify a meat cut",
       preferences: "What to cook",
       cook: "Smart Cooking Mode™",
       expert: "Ask the Experts",
@@ -360,6 +363,10 @@ async function applyResolvedAssets() {
 
 function render() {
   const step = STEPS[currentStep];
+  if (closeCutPhoto && step !== "cutPhoto") {
+    closeCutPhoto();
+    closeCutPhoto = null;
+  }
 
   document.documentElement.lang = state.lang;
   document.documentElement.dir = t("dir");
@@ -377,7 +384,7 @@ function render() {
       ? (state.lang === "he" ? "צור מתכון" : "Generate Recipe")
       : t("next");
   el.backBtn.classList.toggle("hidden", currentStep === 0);
-  el.nextBtn.classList.toggle("hidden", step === "landing" || step === "saved" || step === "hot" || step === "butcherGuide");
+  el.nextBtn.classList.toggle("hidden", step === "landing" || step === "saved" || step === "hot" || step === "butcherGuide" || step === "cutPhoto");
 
   el.content.classList.remove("fade-in");
   void el.content.offsetWidth;
@@ -386,6 +393,18 @@ function render() {
   void el.appRoot.offsetWidth;
   el.appRoot.classList.add("screen-transition");
 
+  if (step === "cutPhoto") {
+    if (!closeCutPhoto) closeCutPhoto = CutPhoto.mount(el.content, state.lang, cutsCatalog, (cutId, meatType) => {
+      state.preferences.cutId = cutId;
+      state.preferences.meatType = meatType;
+      state.preferences.userQuestion = "";
+      state.navigation.askExpertMode = false;
+      state.navigation.generatorMode = true;
+      currentStep = STEPS.indexOf("preferences");
+      render();
+    });
+    return;
+  }
   if (step === "landing") return renderLanding();
   if (step === "saved") return renderSavedRecipes();
   if (step === "hot") return renderHotNow();
@@ -480,6 +499,7 @@ function renderLanding() {
     </div>
     <button class="btn btn-choice btn-choice-hot" data-choice="hot">${t("hotAction")}</button>
     <button class="btn btn-choice btn-choice-know" data-choice="feel">${t("knowAction")}</button>
+    <button class="btn btn-choice" id="openCutPhotoBtn">${state.lang === "he" ? "📷 זיהוי נתח מתמונה" : "📷 Identify a cut from a photo"}</button>
     <button class="btn btn-choice" id="openButchersBtn">${state.lang === "he" ? "📍 מצא קצבייה לידי" : "📍 Find a butcher near me"}</button>
     ${butcherGuideEntry(true)}
     ${latest ? `
@@ -521,6 +541,10 @@ function renderLanding() {
     });
   });
 
+  document.getElementById("openCutPhotoBtn").addEventListener("click", () => {
+    currentStep = STEPS.indexOf("cutPhoto");
+    render();
+  });
   document.getElementById("openButchersBtn")?.addEventListener("click", () => {
     state.butcherFromHome = true;
     state.butcherReturnTo = null;
@@ -2428,6 +2452,7 @@ function getLegalContent(type) {
       title: "Privacy Policy",
       paragraphs: [
         "The app may collect anonymous usage analytics.",
+        "When you choose to analyze a cut photo, a resized image goes to the Smoke Radar server and OpenAI.",
         "Location, if used, is only for nearby butcher and search results.",
         "Without sign-in, saved recipes are stored in this browser. Clearing browser data can remove them.",
         "When account sign-in is enabled and you choose Google or Facebook, Firebase manages authentication and stores your user identifier and profile information such as name and email. Smoke Radar does not receive your Google or Facebook password.",

@@ -14,9 +14,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
 const CACHE_FILE = path.join(__dirname, "cache.json");
 const STATE_FILE = path.join(__dirname, "runtime-state.json");
@@ -752,6 +750,12 @@ app.get("/api/smoke-radar", async (req, res) => {
   }
 });
 
+app.post("/api/identify-cut", express.raw({ type: "image/jpeg", limit: "1mb" }),
+  require("./lib/cut-photo.js").cutPhotoHandler({ client: openai }),
+  (err, req, res, next) => {
+    if (err.type === "entity.too.large") return res.status(413).json({ error: "image_too_large" });
+    next(err);
+  });
 app.post("/api/ask-expert", require("./lib/expert-answers.js").createExpertHandler({ client: openai }));
 app.get("/api/ai-recipe", require("./lib/recipe-generation.js").createRecipeHandler({ client: openai }));
 
