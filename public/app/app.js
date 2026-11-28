@@ -116,8 +116,8 @@ const copy = {
     brand: "🔥 Smoke Radar",
     landingTitle: "מה בא לך להכין היום?",
     landingSubtitle: "האפליקציה שבוחרת עבורך מה חם, מה לבשל, ואיפה לקנות.",
-    hotAction: "🔥 מה חם עכשיו",
-    knowAction: "😋 יש לי נתח, צור לי מתכון מתאים",
+    hotAction: "🌡️ מה חם עכשיו",
+    knowAction: "🥩 יש לי נתח, צור לי מתכון מתאים",
     next: "המשך",
     finish: "סיום",
     back: "חזרה",
@@ -160,8 +160,8 @@ const copy = {
     brand: "🔥 Smoke Radar",
     landingTitle: "What do you want to cook today?",
     landingSubtitle: "A premium flow from trends to recipe to butcher map.",
-    hotAction: "🔥 What’s Hot Now",
-    knowAction: "😋 I Know What I Want",
+    hotAction: "🌡️ What’s Hot Now",
+    knowAction: "🥩 I Know What I Want",
     next: "Next",
     finish: "Finish",
     back: "Back",
@@ -493,7 +493,7 @@ function stopOpeningExperience() {
 function renderLanding() {
   const latest = state.savedRecipes[0];
   el.content.innerHTML = `
-    <div class="card recipe-hero hero-card" style="--recipe-image:var(--asset-hero)">
+    <div class="hero-card">
       <h2>${t("landingTitle")}</h2>
       <p class="small">${t("landingSubtitle")}</p>
     </div>
